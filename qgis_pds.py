@@ -20,8 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from qgis.core import *
 from qgis.gui import QgsVertexMarker
 # Initialize Qt resources from file resources.py
@@ -222,6 +222,7 @@ class QgisPDS(QObject):
             #    QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)
         else:
             return self._currentProject
+
     @currentProject.setter
     def currentProject(self,value):
         self._currentProject=value

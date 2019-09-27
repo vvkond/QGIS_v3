@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from qgis.PyQt import uic, QtCore, QtGui
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 import qgis
 from qgis.core import *
 from qgis.gui import *

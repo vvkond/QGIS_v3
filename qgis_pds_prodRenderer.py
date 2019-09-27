@@ -22,9 +22,9 @@
  ***************************************************************************/
 """
 
-from PyQt4 import uic
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5 import uic
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 from bblInit import *
@@ -36,7 +36,7 @@ import re
 from datetime import datetime
 
 try:
-    from PyQt4.QtCore import QString
+    from PyQt5.QtCore import QString
 except ImportError:
     # we are using Python3 so QString is not defined
     QString = type("")
@@ -60,7 +60,7 @@ class DiagrammDesc:
 
 
 def float_t(val):
-    if (type(val) is QPyNullVariant and val.isNull()) or val is None:   #PyQt4.QtCore.QPyNullVariant:
+    if (type(val) is QPyNullVariant and val.isNull()) or val is None:   #PyQt5.QtCore.QPyNullVariant:
         val=0.0
     try:
         return float(val)

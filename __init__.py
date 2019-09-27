@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- QgisPDS
-                                 A QGIS plugin
+ QgisPDS_v3
+                                 A PUMA+ plugin
  PDS link
                              -------------------
         begin                : 2016-11-05
-        copyright            : (C) 2016 by SoyuzGeoService
+        copyright            : (C) 2019 by SoyuzGeoService
         email                : viktor@gmail.com, skylex72rus@gmail.com
         git sha              : $Format:%H$
  ***************************************************************************/

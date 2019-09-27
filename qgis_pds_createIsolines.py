@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui, uic, QtCore
-from PyQt4.QtGui import *
+from PyQt5 import QtGui, uic, QtCore
+from PyQt5.QtGui import *
 from qgis import core, gui
 from qgis_pds_production import *
 from processing.tools.system import getTempFilename

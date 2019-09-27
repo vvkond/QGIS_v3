@@ -23,7 +23,7 @@
 
 import os
 
-from PyQt4 import QtGui, uic
+from PyQt5 import QtGui, uic
 from qgis.gui import QgsMessageBar
 from qgis.core import  QgsMessageLog
 from db import Sqlite

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt4 import QtGui, uic, QtCore
-from PyQt4.QtGui import *
+from PyQt5 import QtGui, uic, QtCore
+from PyQt5.QtGui import *
 from qgis import core, gui
 import os
 import csv

@@ -3,9 +3,9 @@
 import os
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt4 import QtGui, uic
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5 import QtGui, uic
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 import csv
 import imp
 

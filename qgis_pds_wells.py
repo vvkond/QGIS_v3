@@ -2,9 +2,9 @@
 
 from qgis.core import *
 from qgis.gui import *
-from PyQt4 import QtGui
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5 import QtGui
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode

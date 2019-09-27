@@ -6,7 +6,7 @@ from qgis.gui         import QgsMessageBar
 from qgis.PyQt.QtGui  import QProgressBar
 from qgis.PyQt.QtCore import *
 
-from PyQt4 import QtGui, uic
+from PyQt5 import QtGui, uic
 from qgis.PyQt.QtGui import *
 from collections import namedtuple
 

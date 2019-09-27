@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4 import QtGui, uic, QtCore
-from PyQt4.QtGui import *
+from PyQt5 import QtGui, uic, QtCore
+from PyQt5.QtGui import *
 from qgis import core, gui
 from qgis.gui import QgsColorButtonV2
 from collections import namedtuple

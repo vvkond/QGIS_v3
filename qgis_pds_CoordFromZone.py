@@ -5,7 +5,7 @@ import numpy
 import time
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt4 import QtGui, uic
+from PyQt5 import QtGui, uic
 from qgis.PyQt.QtGui  import *
 from qgis.PyQt.QtCore import *
 
