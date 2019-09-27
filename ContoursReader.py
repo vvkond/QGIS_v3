@@ -1,0 +1,213 @@
+# -*- coding: utf-8 -*-
+
+import os
+import numpy
+from qgis.core import *
+from qgis.gui import QgsMessageBar
+from PyQt4.QtCore import *
+import time
+
+from QgisPDS.db import Oracle
+from QgisPDS.connections import create_connection
+from QgisPDS.utils import *
+from tig_projection import *
+from ReaderBase import *
+from bblInit import STYLE_DIR
+
+class ContoursReader(ReaderBase):
+    def __init__(self
+                    ,iface
+                    , _dataType
+                    ,styleName=None
+                    ,styleUserDir=None
+                    ,isShowSymbCategrized=False
+                  ):
+        super(ContoursReader, self).__init__()
+        self.iface=iface
+        self.plugin_dir = os.path.dirname(__file__)
+
+        self.setNoAttr = u'set_no'
+        self.parameterNoAttr = u'param_no'
+        self.subsetNoAttr = u'subset_no'
+        self.setNameAttr = u'set_name'
+        self.paramNameAttr = u'param_name'
+        self.subsetNameAttr = u'subsetname'
+        self.paramAttr = u'parameter'
+        self.varNameAttr = u'var_name'
+        
+        self.styleName=styleName
+        self.styleUserDir=styleUserDir
+        self.isShowSymbCategrized=isShowSymbCategrized
+
+        self.dataType = _dataType
+        if self.dataType == 0:      #Contours
+            self.groupFile = "Contours_group.sql"
+            self.setFile = "Contours_set.sql"
+            self.dataFile = "Contours.sql"
+            self.geomType = "LineString"
+            self.pdsType = "pds_contours"
+        elif self.dataType == 1:         #Polygons
+            self.groupFile = "Polygons_group.sql"
+            self.setFile = "Polygons_set.sql"
+            self.dataFile = "Polygons.sql"
+            self.geomType = "Polygon"
+            self.pdsType = "pds_polygon"
+            
+        else:                   #Faults
+            self.groupFile = "Faults_group.sql"
+            self.setFile = "Faults_set.sql"
+            self.dataFile = "Faults.sql"
+            self.geomType = "LineString"
+            self.pdsType = "pds_faults"
+
+    @cached_property
+    def windowTitle(self):
+        if self.dataType == 0:
+            return self.tr('Contours')
+        elif self.dataType == 1:         #Polygons
+            return self.tr('Polygons')
+        else:
+            return self.tr('Faults')
+
+    def setupGui(self, dialog):
+        self.dialog = dialog
+        if self.dataType > 1:
+            super(ContoursReader, self).setupGui(dialog)
+        if self.dataType == 1:
+            dialog.mLoadAsContourCheckBox.setVisible(True)
+        else:
+            dialog.mLoadAsContourCheckBox.setVisible(False)
+
+
+    def createLayer(self, layerName, pdsProject, groupSetId, defaultValue):
+        self.defaultParameter = defaultValue
+
+        self.proj4String = QgisProjectionConfig.get_default_layer_prj_epsg()
+        try:
+            self.tig_projections = TigProjections(db=self.db)
+            proj = self.tig_projections.get_projection(self.tig_projections.default_projection_id)
+            if proj is not None:
+                self.proj4String = 'PROJ4:' + proj.qgis_string
+                destSrc = QgsCoordinateReferenceSystem()
+                destSrc.createFromProj4(proj.qgis_string)
+                sourceCrs = None
+                self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
+        except Exception as e:
+            self.iface.messageBar().pushMessage(self.tr('Error'),
+                                                self.tr(u'Project projection read error {0}').format(
+                                                str(e)),
+                                                level=QgsMessageBar.CRITICAL)
+            return
+
+        if self.dataType == 1 and self.dialog.mLoadAsContourCheckBox.isChecked():
+            self.geomType = "LineString"
+
+        self.uri = self.geomType + "?crs={}".format(self.proj4String)
+        self.uri += '&field={}:{}'.format(self.setNoAttr, "double")
+        self.uri += '&field={}:{}'.format(self.parameterNoAttr, "double")
+        self.uri += '&field={}:{}'.format(self.subsetNoAttr, "double")
+        self.uri += '&field={}:{}'.format(self.setNameAttr, "string")
+        self.uri += '&field={}:{}'.format(self.paramNameAttr, "string")
+        self.uri += '&field={}:{}'.format(self.subsetNameAttr, "string")
+        self.uri += '&field={}:{}'.format(self.paramAttr, "double")
+        self.uri += '&field={}:{}'.format(self.varNameAttr, "string")
+        layer = QgsVectorLayer(self.uri, layerName, "memory")
+
+        uniqSymbols = self.readData(layer, groupSetId)
+
+        layer = self.memoryToShp(layer, pdsProject['project'], layerName)
+        layer.setCustomProperty("pds_project", str(pdsProject))
+        layer.setCustomProperty("qgis_pds_type", self.pdsType)
+        
+        #---load user styles
+        if self.styleUserDir is not None:
+            load_styles_from_dir(layer=layer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, self.styleUserDir) ,switchActiveStyle=False)
+        #---load default style
+        if self.styleName is not None:
+            load_style(layer=layer, style_path=os.path.join(plugin_path() ,STYLE_DIR ,self.styleName+".qml"))
+        
+        if self.isShowSymbCategrized:
+            categories = []
+            for ss in uniqSymbols:
+                symbol = QgsSymbolV2.defaultSymbol(layer.geometryType())
+                category = QgsRendererCategoryV2(ss, symbol, ss)
+                categories.append(category)
+            renderer = QgsCategorizedSymbolRendererV2(self.subsetNameAttr, categories)
+            layer.setRendererV2(renderer)
+
+        return layer
+
+    def readData(self, layer, groupSetId):
+        sqlFile = os.path.join(self.plugin_dir, 'db', self.dataFile)
+        uniqSymbols = set()
+        if os.path.exists(sqlFile):
+            f = open(sqlFile, 'r')
+            sql = f.read()
+            f.close()
+
+            groups = self.db.execute(sql, group_id=groupSetId[0], set_id=groupSetId[1])
+
+            layer.startEditing()
+            # for setNo, paramNo, subsetNo, setName, paramName, subsetName, mapX, mapY, mapZ, varName in groups:
+            for raw in groups:
+                xCoords = numpy.fromstring(self.db.blobToString(raw[6]), '>d').astype('d')
+                yCoords = numpy.fromstring(self.db.blobToString(raw[7]), '>d').astype('d')
+
+                param = 0
+                # paramLen = 0
+                # if self.dataType > 0:   #Faults, #Contours
+                zParams = numpy.fromstring(self.db.blobToString(raw[8]), '>d').astype('d')
+                paramLen = len(zParams)
+
+                if len(xCoords) != len(yCoords):
+                    self.iface.messageBar().pushMessage(self.tr('Error'),
+                        self.tr(u'Coordinates length unmatched'), level=QgsMessageBar.CRITICAL)
+                    continue
+
+                i = 0
+                polyLine = []  
+                cPoint = QgsFeature(layer.fields())              
+                for x in xCoords:
+                    y = yCoords[i]
+                    # if self.dataType > 0 and i < paramLen:
+                    if i < paramLen and self.defaultParameter == -9999:
+                        param = zParams[i]
+                    else:
+                        param = self.defaultParameter
+                    pt = QgsPoint(x, y)
+                    if self.xform:
+                        pt = self.xform.transform(pt)
+                    polyLine.append(pt)
+
+                    i = i + 1
+
+                if len(polyLine):
+                    if self.dataType == 1 and not self.dialog.mLoadAsContourCheckBox.isChecked():
+                        cPoint.setGeometry(QgsGeometry.fromPolygon([polyLine]))
+                    else:
+                        cPoint.setGeometry(QgsGeometry.fromPolyline(polyLine))
+                    
+                    cPoint.setAttribute(self.setNoAttr, raw[0])
+                    cPoint.setAttribute(self.parameterNoAttr, raw[1])
+                    cPoint.setAttribute(self.subsetNoAttr, raw[2])
+                    cPoint.setAttribute(self.setNameAttr, raw[3])
+                    cPoint.setAttribute(self.paramNameAttr, raw[4])
+                    cPoint.setAttribute(self.subsetNameAttr, raw[5])
+                    cPoint.setAttribute(self.paramAttr, float(param))
+                    if len(raw) > 9:
+                        cPoint.setAttribute(self.varNameAttr, raw[9])
+
+                    uniqSymbols.add(raw[5])
+                    layer.addFeatures([cPoint])
+
+        # categories = []
+        # for ss in uniqSymbols:
+        #     symbol = QgsSymbolV2.defaultSymbol(layer.geometryType())
+        #     category = QgsRendererCategoryV2(ss, symbol, ss)
+        #     categories.append(category)
+        #
+        # renderer = QgsCategorizedSymbolRendererV2(self.subsetNameAttr, categories)
+        # layer.setRendererV2(renderer)
+        layer.commitChanges()
+
+        return uniqSymbols
