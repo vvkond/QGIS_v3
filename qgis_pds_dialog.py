@@ -26,8 +26,8 @@ import os
 from PyQt5 import QtGui, uic
 from qgis.gui import QgsMessageBar
 from qgis.core import  QgsMessageLog
-from db import Sqlite
-from connections import create_connection
+from .db import Sqlite
+from .connections import create_connection
 from QgisPDS.utils import to_unicode
 from os.path import abspath
 import json

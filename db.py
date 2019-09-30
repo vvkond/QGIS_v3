@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import total_ordering
-from itertools import izip
+# from itertools import izip
 from os import environ,path
 from os.path import abspath
 from time import sleep
@@ -20,7 +20,7 @@ import cx_Oracle
 @total_ordering
 class Expando(object):
     def __init__(self, names, row):
-        self.__dict__.update(izip(names, row))
+        self.__dict__.update(zip(names, row))
 
     def __repr__(self):
         return repr(self.__dict__)

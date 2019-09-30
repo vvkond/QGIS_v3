@@ -25,9 +25,8 @@ from PyQt5.QtGui import *
 from qgis.core import *
 from qgis.gui import QgsVertexMarker
 # Initialize Qt resources from file resources.py
-import resources
 # Import the code for the dialog
-from qgis_pds_dialog import QgisPDSDialog
+from .qgis_pds_dialog import QgisPDSDialog
 from qgis_pds_production import QgisPDSProductionDialog
 from qgis_pds_cpoints import QgisPDSCPointsDialog
 from qgis_pds_wells import *
@@ -53,6 +52,8 @@ from qgis_pds_SelectMapTool import QgisPDSSelectMapTool
 from qgis_pds_dca import QgisPDSDCAForm
 from qgis_pds_wellsMarkDialog import QgisPDSWellsMarkDialog
 from qgis_pds_wellsBrowserDialog import *
+import resources
+
 # Import both Processing and CommanderWindow 
 #   classes from the Processing framework. 
 from processing.core.Processing import Processing
