@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
 from QgisPDS.utils import *
 from qgis.core import QgsField 
 from collections import namedtuple
@@ -10,7 +10,7 @@ from calc_statistics import removeOutliers, removeOutliers2
 import numpy as np
 
 try:
-    from PyQt4.QtCore import QString
+    from PyQt5.QtCore import QString
 except ImportError:
     QString = type("")
 

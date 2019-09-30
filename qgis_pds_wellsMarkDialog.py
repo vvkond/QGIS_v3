@@ -4,9 +4,9 @@ import os
 import ast
 from qgis.core import *
 #from qgis.gui import QgsFieldExpressionWidget,QgsColorButtonV2
-from PyQt4 import QtGui, uic
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5 import QtGui, uic
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 from QgisPDS.connections import create_connection
 from utils import *
@@ -163,8 +163,8 @@ class QgisPDSWellsMarkDialog(QtGui.QDialog, FORM_CLASS):
 
 
     #===============================================================================
-    # from PyQt4.QtGui import *
-    # from PyQt4.QtCore import *
+    # from PyQt5.QtGui import *
+    # from PyQt5.QtCore import *
     # pr=l.dataProvider()
     # pr.addAttributes([QgsField('test',QVariant.String)]) # define/add field data type
     # l.updateFields() # tell the vector layer to fetch changes from the provider

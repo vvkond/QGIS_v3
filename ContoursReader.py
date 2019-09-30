@@ -4,7 +4,7 @@ import os
 import numpy
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 import time
 
 from QgisPDS.db import Oracle

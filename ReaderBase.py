@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 from utils import *
 from qgis.core import *
 # from processing.tools.vector import VectorWriter
