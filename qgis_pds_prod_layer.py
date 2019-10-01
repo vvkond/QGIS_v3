@@ -67,13 +67,13 @@ class QgisPDSProductionLayer(QgsPluginLayer):
     LAYER_TYPE="currentproduction"
 
     def __init__(self, iface):
-        QgsPluginLayer.__init__(self, QgisPDSProductionLayer.LAYER_TYPE, "Current production layer")
+        super().__init__(self, QgisPDSProductionLayer.LAYER_TYPE, "Current production layer")
         self.iface = iface
         self.setValid(True)
 
     def readXml(self, node):
         # custom properties
-        print "ReadXlm"
+        print("ReadXlm")
         debug("[WORKER THREAD] readXml", 3)
         self.readCustomProperties(node)
         self.setExtent(QgsRectangle(-2003.34, -2003.34, 2003.34, 2003.34))

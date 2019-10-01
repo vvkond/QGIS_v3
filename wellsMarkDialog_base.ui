@@ -48,7 +48,7 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <widget class="QgsColorButtonV2" name="mCBtnLine"/>
+         <widget class="QgsColorButton" name="mCBtnLine"/>
         </item>
        </layout>
       </widget>
@@ -63,7 +63,7 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
-         <widget class="QgsColorButtonV2" name="mCBtnFill"/>
+         <widget class="QgsColorButton" name="mCBtnFill"/>
         </item>
        </layout>
       </widget>
@@ -118,7 +118,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QgsColorButtonV2</class>
+   <class>QgsColorButton</class>
    <extends>QToolButton</extends>
    <header>qgis.gui</header>
   </customwidget>

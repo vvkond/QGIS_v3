@@ -92,8 +92,8 @@ class Base(object):
 
     def execute_fn(self, fn, sql, *args, **kwargs):
         cursor = self.execute(sql, *args, **kwargs)
-        names = zip(*cursor.description)[0]
-        #names = [desc[0] for desc in cursor.description]
+        # names = zip(*cursor.description)[0]
+        names = [desc[0] for desc in cursor.description]
         for row in cursor:
             yield fn(names, row)
 
@@ -235,7 +235,7 @@ class Oracle(Base):
         return code in self._reconnection_exception_codes
 
     def _execute(self, sql, cursor_id=None,**kwargs):
-        kwargs = {k.encode('ascii'): v.encode('ascii') if isinstance(v, unicode) else v for k, v in kwargs.iteritems()}
+        kwargs = {k.encode('ascii'): v.encode('ascii') if isinstance(v, unicode) else v for k, v in kwargs.items()}
         attempts = 2
         while attempts > 0:
             attempts -= 1

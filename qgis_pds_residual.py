@@ -8,8 +8,8 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from qgis.analysis import QgsGeometryAnalyzer
 from qgis.analysis import QgsZonalStatistics
 import processing
 from processing.tools.system import getTempFilename
@@ -22,13 +22,13 @@ from osgeo import gdal
 import ogr
 import csv
 
-from db import Oracle, Sqlite
+from .db import Oracle, Sqlite
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode, StrictInit
-from bblInit import *
-from qgis_processing import *
-from tig_projection import *
-from qgis_pds_wellFilter import QgisWellFilterDialog
+from .bblInit import *
+from .qgis_processing import *
+from .tig_projection import *
+from .qgis_pds_wellFilter import QgisWellFilterDialog
 
 class Item(StrictInit):
     id = None
@@ -87,7 +87,7 @@ class Well(StrictInit):
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_residuals_base.ui'))
 
-class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSResidualDialog(QDialog, FORM_CLASS):
     '''
         @warning: All operations go in current map projection!!!! 
                     So if projection in degree,then 1map unit=1degree
@@ -548,7 +548,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
         with edit(self.temp_points):
             f = QgsFeature(self.temp_points.fields())
             for well in wells:
-                geom = QgsGeometry.fromPoint(QgsPoint(well.pos[0], well.pos[1]))
+                geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
                 f.setGeometry(geom)
                 f.setAttribute('ID', well.id)
                 self.temp_points.addFeatures([f])
@@ -560,7 +560,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
             f = QgsFeature(self.nfpt_output_class.fields())
             for wellId in wells:
                 well = wells[wellId]
-                geom = QgsGeometry.fromPoint(QgsPoint(well.pos[0], well.pos[1]))
+                geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
                 f.setGeometry(geom)
                 f.setAttribute('ID', well.id)
                 f.setAttribute('Well', well.name)
@@ -570,7 +570,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
 
     def buffer_wells(self, wells, mr):
         for well in wells:
-            geom = QgsGeometry.fromPoint(QgsPoint(well.pos[0], well.pos[1]))
+            geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
             well.buffer = geom.buffer(mr, 50)
             
 
@@ -629,7 +629,6 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
         self.copy_wells_to_temp_points(all_wells.itervalues())
 
         self.progress.setFormat( self.tr('Buffering wells...') )
-        # QgsGeometryAnalyzer().buffer(self.temp_points_path, self.temp_polygons_path, 0.02, False, False, -1)
         self.buffer_wells(all_wells.itervalues(), self.maxRadius)
 
         self.progress.setFormat( self.tr('Creating output feature class...') )
@@ -667,7 +666,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
                     for item in items:
                         well = all_wells[item.id]
                         pos = well.pos
-                        geom = QgsGeometry.fromPoint(QgsPoint(pos[0], pos[1]))
+                        geom = QgsGeometry.fromPointXY(QgsPoint(pos[0], pos[1]))
                         f.setGeometry(geom)
                         f.setAttribute('ID', item.id)
                         self.temp_points.addFeatures([f])
@@ -870,7 +869,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
 
 #Methods
     def addMessage(self, fmt, *a, **kw):
-        print fmt.format(*a, **kw)
+        print(fmt.format(*a, **kw))
 
     def setPercentage(self, val):
         return
@@ -879,7 +878,7 @@ class QgisPDSResidualDialog(QtGui.QDialog, FORM_CLASS):
         return
 
     def error(self, text):
-        print text
+        print(text)
 
     def setCommand(self, text):
         return

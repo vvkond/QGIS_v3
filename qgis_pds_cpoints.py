@@ -5,20 +5,20 @@ import numpy
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
-from connections import create_connection
+from .connections import create_connection
 from QgisPDS.utils import to_unicode
 from QgisPDS.tig_projection import *
-from ControlPointReader import ControlPointReader
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_cpoints_base.ui'))
 
-class QgisPDSCPointsDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSCPointsDialog(QDialog, FORM_CLASS):
 
     def __init__(self, project, iface, reader, parent=None):
         """Constructor."""

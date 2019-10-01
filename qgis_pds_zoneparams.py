@@ -6,6 +6,7 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
@@ -16,7 +17,7 @@ from QgisPDS.tig_projection import *
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_zoneparams_base.ui'))
 
-class QgisPDSZoneparamsDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSZoneparamsDialog(QDialog, FORM_CLASS):
     def __init__(self, _project, _iface, zonation_id, zone_id, well_ids,  parent=None):
         """Constructor."""
         super(QgisPDSZoneparamsDialog, self).__init__(parent)

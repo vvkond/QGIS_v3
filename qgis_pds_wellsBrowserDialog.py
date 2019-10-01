@@ -4,19 +4,20 @@ import os
 import ast
 from qgis.core import *
 from qgis.gui import QgsMessageBar
+from qgis.PyQt.QtWidgets import *
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from QgisPDS.connections import create_connection
-from utils import *
+from .utils import *
 from QgisPDS.tig_projection import *
-from qgis_pds_wellsBrowserForm import QgisPDSWellsBrowserForm
+from .qgis_pds_wellsBrowserForm import QgisPDSWellsBrowserForm
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wellsBrowserDialog_base.ui'))
 
-class QgisPDSWellsBrowserDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
     """Constructor."""
     def __init__(self, _iface, _project, parent=None, selectedIds=None, selectedIdsCol=0, markedIds=None, markedIdsCol=0 ,allowCheckRow=True, isDisableUnmarkedItems=False):
         super(QgisPDSWellsBrowserDialog, self).__init__(parent)

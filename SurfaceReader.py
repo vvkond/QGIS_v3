@@ -5,15 +5,15 @@ from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from tig_projection import *
-from ReaderBase import *
+from .tig_projection import *
+from .ReaderBase import *
 
 from osgeo import gdal, osr
 import numpy
 import os
 import struct
 import tempfile
-from bblInit import STYLE_DIR
+from .bblInit import STYLE_DIR
 
 
 class SurfaceReader(ReaderBase):

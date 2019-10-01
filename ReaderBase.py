@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5.QtCore import *
-from utils import *
+from .utils import *
 from qgis.core import *
 # from processing.tools.vector import VectorWriter
 import time

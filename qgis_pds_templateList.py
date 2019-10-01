@@ -6,17 +6,18 @@ from struct import unpack_from
 from qgis.core import *
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from utils import *
+from .utils import *
 import cx_Oracle
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_templateList_base.ui'))
 
-class QgisPDSTemplateListDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
     """Constructor."""
     def __init__(self, _db, currentId, simple=True, parent=None):
         self.db = _db

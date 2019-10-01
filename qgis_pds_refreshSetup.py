@@ -4,9 +4,8 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import *
 from qgis.PyQt import QtGui, uic
-from qgis.PyQt.QtGui import *
-from qgis_pds_wellsBrowserDialog import QgisPDSWellsBrowserDialog
-from qgis_pds_wells import QgisPDSWells
+from qgis.PyQt.QtWidgets import *
+from .qgis_pds_wellsBrowserDialog import QgisPDSWellsBrowserDialog
 import ast
 import os
 
@@ -15,7 +14,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 #===============================================================================
 # 
 #===============================================================================
-class QgisPDSRefreshSetup(QtGui.QDialog, FORM_CLASS):
+class QgisPDSRefreshSetup(QDialog, FORM_CLASS):
     def __init__(self, _iface, _project, parent=None, filterWellIds=None ):
         super(QgisPDSRefreshSetup, self).__init__(parent)
         self.filterWellIds = filterWellIds # list of well ids for read from base. 

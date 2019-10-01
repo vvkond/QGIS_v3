@@ -45,8 +45,7 @@ class QgisSaveWellsToPDS(QtGui.QDialog, FORM_CLASS):
 
     def initDb(self):
         if self.project is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'No current PDS project'), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'No current PDS project'))
 
             return False
 

@@ -3,10 +3,10 @@
 import os
 
 from qgis.gui         import QgsMessageBar
-from qgis.PyQt.QtGui  import QProgressBar
 from qgis.PyQt.QtCore import *
 
-from PyQt5 import QtGui, uic
+from PyQt5 import QtWidgets, QtGui, uic
+from PyQt5.QtWidgets import *
 from qgis.PyQt.QtGui import *
 from collections import namedtuple
 
@@ -14,11 +14,11 @@ from os.path import abspath
 import json
 import ast
 
-from db import Oracle, Sqlite
+# from db import Oracle, Sqlite
 from QgisPDS.connections import create_connection
-from utils import *
-from bblInit import *
-from tig_projection import *
+from .utils import *
+from .bblInit import *
+from .tig_projection import *
 import time
 import sys
 from itertools import chain
@@ -62,7 +62,7 @@ fondLoadConfig=namedtuple('fondLoadConfig',['isWell','isObject'])
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_production_base.ui'))
     
-class QgisPDSProductionDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar ):
+class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
     #===========================================================================
     # 
     #===========================================================================
@@ -150,10 +150,10 @@ class QgisPDSProductionDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar ):
             self.fondByWellRdBtn.setChecked(self.fondLoadConfig.isWell   or False)
             self.fondByObjRdBtn.setChecked( self.fondLoadConfig.isObject or False)
             try:
-                self.mStartDate=QDateTime().fromString( self.layer.customProperty("pds_prod_startDate", QDateTime(1900,01,01,00,00).toString(self.dateFormat)) , self.dateFormat)
+                self.mStartDate=QDateTime().fromString( self.layer.customProperty("pds_prod_startDate", QDateTime(1900,1,1,0,0).toString(self.dateFormat)) , self.dateFormat)
                 self.mEndDate=  QDateTime().fromString( self.layer.customProperty("pds_prod_endDate",   QDateTime().currentDateTime().toString(self.dateFormat)) , self.dateFormat)
             except:
-                self.mStartDate=QDateTime(1900,01,01,00,00)
+                self.mStartDate=QDateTime(1900,1,1,0,0)
                 self.mEndDate=  QDateTime().currentDateTime()
         self.fondByWellRdBtn.toggled.connect(self.onFondByWellRdBtn)
         self.endDateEdit.setDateTime(self.mEndDate)
@@ -2155,7 +2155,7 @@ class QgisPDSProductionDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar ):
                         pt = QgsPoint(lon, lat)
                         if self.xform:
                             pt = self.xform.transform(pt)
-                        well.setGeometry(QgsGeometry.fromPoint(pt))
+                        well.setGeometry(QgsGeometry.fromPointXY(pt))
                         self.mWells[well_name] = well
                         pwp = ProductionWell(name=well_name, sldnid=wId, liftMethod='', prods=[],
                                              maxDebits=[ProdDebit(
@@ -2287,8 +2287,8 @@ class QgisPDSProductionDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar ):
             pt = QgsPoint(lon if lon is not None else 0, lat if lat is not None else 0)
             if self.xform:
                 pt = self.xform.transform(pt)
-            well.setGeometry(QgsGeometry.fromPoint(pt))
-            # well.setGeometry(QgsGeometry.fromPoint(QgsPoint(lon, lat)))
+            well.setGeometry(QgsGeometry.fromPointXY(pt))
+            # well.setGeometry(QgsGeometry.fromPointXY(QgsPoint(lon, lat)))
             self.mWells[well_name] = well
             
 
@@ -2633,7 +2633,7 @@ class QgisPDSProductionDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar ):
     #===========================================================================
     def readSettings(self):
         settings = QSettings()
-        self.mStartDate = settings.value("/PDS/production/startDate", QDateTime(1900,01,01,00,00))
+        self.mStartDate = settings.value("/PDS/production/startDate", QDateTime(1900,1,1,0,0))
         self.mEndDate   = settings.value("/PDS/production/endDate",   QDateTime().currentDateTime())
         self.mSelectedReservoirs = settings.value("/PDS/production/selectedReservoirs")
         self.mPhaseFilter =        settings.value("/PDS/production/selectedPhases")

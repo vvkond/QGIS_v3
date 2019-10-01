@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis import core, gui
-from qgis_pds_production import *
+from .qgis_pds_production import *
 from processing.tools.system import getTempFilename
-from processing.tools.vector import VectorWriter
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 import os
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_isolines_base.ui'))
 
-class QgisPDSCreateIsolines(QtGui.QDialog, FORM_CLASS):
+class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
     def __init__(self, iface, parent=None):
         super(QgisPDSCreateIsolines, self).__init__(parent)
 
@@ -106,7 +106,7 @@ class QgisPDSCreateIsolines(QtGui.QDialog, FORM_CLASS):
             faultFileName = getTempFilename('shp').replace('\\', '/')
             provider = faultLayer.dataProvider()
             fields = provider.fields()
-            writer = VectorWriter(faultFileName, systemEncoding,
+            writer = QgsVectorFileWriter(faultFileName, systemEncoding,
                                   fields,
                                   provider.geometryType(), provider.crs())
 
@@ -204,7 +204,7 @@ class QgisPDSCreateIsolines(QtGui.QDialog, FORM_CLASS):
             self.mMinSpinBox.setValue(stats.minimumValue)
             self.mMaxSpinBox.setValue(stats.maximumValue)
         else:
-            print 'No raster'
+            print('No raster')
 
     def on_buttonBox_accepted(self):
         self.createIsolines()

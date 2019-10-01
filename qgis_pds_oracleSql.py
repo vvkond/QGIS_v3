@@ -4,7 +4,7 @@ from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis import core, gui
 import os
 import csv
@@ -13,8 +13,8 @@ import ast
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
-from tig_projection import *
-from bblInit import MyStruct
+from .tig_projection import *
+from .bblInit import MyStruct
 import numpy as np
 import cx_Oracle
 from QgisPDS.utils import to_unicode
@@ -22,7 +22,7 @@ from QgisPDS.utils import to_unicode
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_oracleSql_base.ui'))
 
-class QgisOracleSql(QtGui.QDialog, FORM_CLASS):
+class QgisOracleSql(QDialog, FORM_CLASS):
     def __init__(self, project, iface, parent=None):
         super(QgisOracleSql, self).__init__(parent)
 
@@ -121,7 +121,7 @@ class QgisOracleSql(QtGui.QDialog, FORM_CLASS):
             return
 
         fileName = QgsProject.instance().homePath() + '/' + self.mLayerNameLineEdit.text() + '.csv'
-        print fileName
+        print(fileName)
         out_pipe = open(fileName, "wb")
         w = csv.writer(out_pipe)
         w.writerow(names)
@@ -200,7 +200,7 @@ class QgisOracleSql(QtGui.QDialog, FORM_CLASS):
                     pt = QgsPoint(float(x), float(y))
                     if needConvert and self.xform:
                         pt = self.xform.transform(pt)
-                    geom = QgsGeometry.fromPoint(pt)
+                    geom = QgsGeometry.fromPointXY(pt)
                     cPoint.setGeometry(geom)
 
                 layer.addFeatures([cPoint])

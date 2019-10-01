@@ -244,7 +244,7 @@ class TigProjection(StrictInit):
     def proj4_string(self):
         if self.proj4_args is None:
             return None
-        return ' '.join('+' + k + '=' + str(v) for k, v in self.proj4_args.iteritems())
+        return ' '.join('+' + k + '=' + str(v) for k, v in self.proj4_args.items())
 
     @cached_property
     def proj4_object(self):
@@ -308,7 +308,7 @@ class Utm(TigProjection):
     def from_row(cls, p_type, units, p, **_kw):
         prj_assert(p_type == 1, 'P_TYPE')
         prj_assert(units == 1, 'UNITS')
-        if type(p) is buffer:
+        if type(p) is bytes:
             prj_assert(len(p) >= 8 * 3 + 4, 'len(p)')
             s = p[:8 * 3 + 4]
         else:
@@ -384,7 +384,7 @@ class Tm(TigProjection):
     @classmethod
     def from_row(cls, p_type, p, **_kw):
         prj_assert(p_type == 1, 'P_TYPE')
-        if type(p) is buffer:
+        if type(p) is bytes:
             prj_assert(len(p) >= 64, 'len(p)')
             s = p[:64]
         else:
@@ -487,6 +487,7 @@ def _get_default_proj_id(db,return_col='db_sldnid'):
     """
         @info: if have projection with specifiying name then return it else return project default projection id
     """
+    className = db.__class__.__name__.lower()
     sql = '''
 SELECT 
     ---*
@@ -505,9 +506,12 @@ FROM (
         db_carto_projection_defs cpd
     WHERE
         cpd.DB_CARTO_TYPE <> 0
-    )
-where ROWNUM=1            
-'''.format(tig_proj_name=AUTO_LOAD_DEFAULT_PROJ_NAME
+    )'''
+    if className == 'oracle':
+        sql += ' where ROWNUM=1'
+    elif className == 'sqlite':
+        sql += ' ORDER BY ROWID ASC LIMIT 1'
+    sql = sql.format(tig_proj_name=AUTO_LOAD_DEFAULT_PROJ_NAME
            ,return_col=return_col
            )
     return db.fetch_scalar(sql)

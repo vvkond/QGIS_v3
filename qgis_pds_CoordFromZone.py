@@ -6,16 +6,17 @@ import time
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
+from PyQt5.QtWidgets import *
 from qgis.PyQt.QtGui  import *
 from qgis.PyQt.QtCore import *
 
 from QgisPDS.db import Oracle
-from connections import create_connection
+from .connections import create_connection
 from QgisPDS.utils import to_unicode
 from QgisPDS.tig_projection import *
-from utils import edit_layer,WithQtProgressBar
-from tig_projection import QgisProjectionConfig
-from bblInit import Fields
+from .utils import edit_layer,WithQtProgressBar
+from .tig_projection import QgisProjectionConfig
+from .bblInit import Fields
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_zonations_base.ui'))
@@ -27,7 +28,7 @@ ZABOY=-2
 #===============================================================================
 # 
 #===============================================================================
-class QgisPDSCoordFromZoneDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar):
+class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
     #===========================================================================
     # 
     #===========================================================================
@@ -171,7 +172,7 @@ class QgisPDSCoordFromZoneDialog(QtGui.QDialog, FORM_CLASS, WithQtProgressBar):
                     coords = self._getCoords(sel, tigWellId)
                 if coords is not None:
                     IS_DEBUG and QgsMessageLog.logMessage(u"\t move well {} to {}".format(tigWellId,coords), tag="QgisPDS.coordFromZone")
-                    geom = QgsGeometry.fromPoint(coords)
+                    geom = QgsGeometry.fromPointXY(coords)
                     self.editLayer.changeGeometry(feature.id(), geom)
                     #self.editLayer.commitChanges()  #--- commit each row
                     #self.editLayer.startEditing()   #--- and start edit again

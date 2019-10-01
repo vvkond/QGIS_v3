@@ -4,15 +4,15 @@ from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis import core, gui
 import os
 import ast
 from QgisPDS.db import Oracle
-from connections import create_connection
+from .connections import create_connection
 from QgisPDS.utils import to_unicode
-from tig_projection import *
-from bblInit import MyStruct
+from .tig_projection import *
+from .bblInit import MyStruct
 import numpy as np
 import cx_Oracle
 from QgisPDS.utils import to_unicode
@@ -25,7 +25,7 @@ class FeatureRecord(MyStruct):
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_saveMapsetToPDS_base.ui'))
 
-class QgisSaveMapsetToPDS(QtGui.QDialog, FORM_CLASS):
+class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
     def __init__(self, project, iface, layerToSave, parent=None):
         super(QgisSaveMapsetToPDS, self).__init__(parent)
 

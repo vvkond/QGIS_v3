@@ -5,8 +5,8 @@ from PyQt5.QtGui import *
 from QgisPDS.utils import *
 from qgis.core import QgsField 
 from collections import namedtuple
-from utils import edit_layer, cached_property
-from calc_statistics import removeOutliers, removeOutliers2
+from .utils import edit_layer, cached_property
+from .calc_statistics import removeOutliers, removeOutliers2
 import numpy as np
 
 try:

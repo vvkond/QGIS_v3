@@ -8,15 +8,15 @@ from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from processing.tools.vector import VectorWriter
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 
 from .db import Oracle
 from .connections import create_connection
 from .utils import to_unicode, makeShpFileName
 from .tig_projection import *
 from .qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
-from utils import edit_layer, LayersHider
-from bblInit import layer_to_labeled, Fields
+from .utils import edit_layer, LayersHider
+from .bblInit import layer_to_labeled, Fields
 
 
 IS_DEBUG=False
@@ -180,14 +180,14 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
         provider = self.editLayer.dataProvider()
         transiteFields = self.editLayer.fields()
         transiteFields.append(QgsField("transite", QVariant.String))
-        transiteWriter = VectorWriter(transiteFileName, systemEncoding,
+        transiteWriter = QgsVectorFileWriter(transiteFileName, systemEncoding,
                                       transiteFields,
-                                      provider.geometryType(), provider.crs())
+                                      provider.wkbType(), provider.crs())
 
         fields = self.editLayer.fields()
-        targetWriter = VectorWriter(targetFileName, systemEncoding,
+        targetWriter = QgsVectorFileWriter(targetFileName, systemEncoding,
                           fields,
-                          provider.geometryType(), provider.crs())
+                          provider.wkbType(), provider.crs())
 
 
         with edit_layer(self.editLayer):

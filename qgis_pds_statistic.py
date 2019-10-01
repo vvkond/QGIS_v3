@@ -4,7 +4,7 @@ import os
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import csv
 import imp
@@ -13,14 +13,14 @@ from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
 from QgisPDS.tig_projection import *
-from calc_statistics import CalculateStatistics
+from .calc_statistics import CalculateStatistics
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_stat_base.ui'))
 
 
-class QgisPDSStatisticsDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
     zval = []
     def __init__(self, project, iface, parent=None):
         """Constructor."""
@@ -167,11 +167,11 @@ class QgisPDSStatisticsDialog(QtGui.QDialog, FORM_CLASS):
                                   , use_original_data=v_is_add_source
                                   )
         if v_is_show_grid:
-            print "Generated grids:"
+            print("Generated grids:")
             for data in stat.data_result:
-                print str(data)
+                print(str(data))
         if v_is_show_gridavg:
-            print "Generated grid after averaging: {}".format(str(stat.get_slice_avg()))
+            print("Generated grid after averaging: {}".format(str(stat.get_slice_avg())))
 
         key, val = zip(*stat.get_statistics().items())
         w.writerow(key)

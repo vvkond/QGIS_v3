@@ -5,18 +5,18 @@ from qgis.gui import *
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from processing.tools.vector import VectorWriter
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
-from tig_projection import *
+from .tig_projection import *
 import numpy
 import ast
 import os
 import time
 
-from bblInit import STYLE_DIR, Fields
-from utils import load_styles_from_dir, load_style, plugin_path, edit_layer,\
+from .bblInit import STYLE_DIR, Fields
+from .utils import load_styles_from_dir, load_style, plugin_path, edit_layer,\
     WithQtProgressBar
 
 class QgisPDSDeviation(QObject, WithQtProgressBar):
@@ -143,7 +143,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
         layerFileName = prjPath + layerFile
         provider = self.layer.dataProvider()
         fields = provider.fields()
-        writer = VectorWriter(layerFileName, systemEncoding,
+        writer = QgsVectorFileWriter(layerFileName, systemEncoding,
                               fields,
                               provider.geometryType(), provider.crs())
 

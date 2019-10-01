@@ -2,12 +2,13 @@
 
 from qgis.core import *
 from qgis.utils import iface
-from qgis.PyQt.QtGui  import QProgressBar
+from PyQt5.QtWidgets  import QProgressBar
 from qgis.PyQt.QtCore import *
 
 import numpy
 import time
-from processing.tools.vector import VectorWriter
+# from processing.tools.vector import VectorWriter
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 import os
 import json
 import sys
@@ -266,9 +267,9 @@ def memoryToShp(layer, scheme, layerName):
 
     provider = layer.dataProvider()
     fields = provider.fields()
-    writer = VectorWriter(layerFileName, systemEncoding,
+    writer = QgsVectorFileWriter(layerFileName, systemEncoding,
                           fields,
-                          provider.geometryType(), provider.crs())
+                          provider.wkbType(), provider.crs())
     features = layer.getFeatures()
     for f in features:
         try:
@@ -344,8 +345,8 @@ def ping(host,hidden=True):
     if hidden:
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess._subprocess.STARTF_USESHOWWINDOW#subprocess.STARTF_USESHOWWINDOW
-    #proc = subprocess.Popen(command, startupinfo=startupinfo)    
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
     return subprocess.call(command, startupinfo=startupinfo) == 0
 
 

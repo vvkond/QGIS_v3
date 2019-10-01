@@ -22,42 +22,43 @@
 """
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import QgsVertexMarker
 # Initialize Qt resources from file resources.py
 # Import the code for the dialog
 from .qgis_pds_dialog import QgisPDSDialog
-from qgis_pds_production import QgisPDSProductionDialog
-from qgis_pds_cpoints import QgisPDSCPointsDialog
-from qgis_pds_wells import *
-from qgis_pds_prodRenderer import *
-from qgis_pds_prod_layer_type import *
-from qgis_pds_prodSetup import *
-from qgis_pds_bubbleSetup import *
-from ControlPointReader import ControlPointReader
-from ContoursReader import ContoursReader
-from SurfaceReader import SurfaceReader
-from qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
-from qgis_pds_zonations import QgisPDSZonationsDialog
-from qgis_pds_residual import QgisPDSResidualDialog
-from qgis_pds_pressureMap import QgisPDSPressure
-from qgis_pds_deviation import QgisPDSDeviation
-from qgis_pds_statistic import QgisPDSStatisticsDialog
-from qgis_pds_refreshSetup import QgisPDSRefreshSetup
-from qgis_pds_SaveMapsetToPDS import QgisSaveMapsetToPDS
-from qgis_pds_oracleSql import QgisOracleSql
-from qgis_pds_createIsolines import QgisPDSCreateIsolines
-from qgis_pds_transite import QgisPDSTransitionsDialog
-from qgis_pds_SelectMapTool import QgisPDSSelectMapTool
-from qgis_pds_dca import QgisPDSDCAForm
-from qgis_pds_wellsMarkDialog import QgisPDSWellsMarkDialog
-from qgis_pds_wellsBrowserDialog import *
-import resources
+from .qgis_pds_production import QgisPDSProductionDialog
+from .qgis_pds_cpoints import QgisPDSCPointsDialog
+from .qgis_pds_wells import *
+from .qgis_pds_prodRenderer import *
+from .qgis_pds_prod_layer_type import *
+from .qgis_pds_prodSetup import *
+from .qgis_pds_bubbleSetup import *
+from .ControlPointReader import ControlPointReader
+from .ContoursReader import ContoursReader
+from .SurfaceReader import SurfaceReader
+from .qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
+from .qgis_pds_zonations import QgisPDSZonationsDialog
+from .qgis_pds_residual import QgisPDSResidualDialog
+from .qgis_pds_pressureMap import QgisPDSPressure
+from .qgis_pds_deviation import QgisPDSDeviation
+from .qgis_pds_statistic import QgisPDSStatisticsDialog
+from .qgis_pds_refreshSetup import QgisPDSRefreshSetup
+from .qgis_pds_SaveMapsetToPDS import QgisSaveMapsetToPDS
+from .qgis_pds_oracleSql import QgisOracleSql
+from .qgis_pds_createIsolines import QgisPDSCreateIsolines
+from .qgis_pds_transite import QgisPDSTransitionsDialog
+from .qgis_pds_SelectMapTool import QgisPDSSelectMapTool
+from .qgis_pds_dca import QgisPDSDCAForm
+from .qgis_pds_wellsMarkDialog import QgisPDSWellsMarkDialog
+from .qgis_pds_wellsBrowserDialog import *
+from .resources import *
 
 # Import both Processing and CommanderWindow 
 #   classes from the Processing framework. 
 from processing.core.Processing import Processing
-from processing.gui.CommanderWindow import CommanderWindow
+# from processing.gui.CommanderWindow import CommanderWindow
 
 import os
 import os.path
@@ -70,10 +71,10 @@ import json
 #===============================================================================
 # --- REGISTER USER FUNCTIONS.CALL @qgsfunction MUST BE IN 1st level,not in def/class
 #===============================================================================
-from qgis.core import QgsMapLayerRegistry
+from qgis.core import QgsProject
 from qgis.utils import qgsfunction
 from qgis.core import QgsExpression
-from utils import getenv_system
+from .utils import getenv_system
 
 
 @qgsfunction(args='auto', group='PumaPlus')
@@ -159,7 +160,7 @@ def activeLayerReservoirs(feature, parent):
     # get legend
     legend = i.legendInterface()
     result=[]
-    for layer in QgsMapLayerRegistry.instance().mapLayers().values():
+    for layer in QgsProject.instance().mapLayers().values():
         # check current visibility
         if legend.isLayerVisible(layer):
             if layer.customProperty("qgis_pds_type") == "pds_current_production" or layer.customProperty("qgis_pds_type") == "pds_cumulative_production":
@@ -184,7 +185,7 @@ def activeLayerProductionType(feature, parent):
     # get legend
     legend = i.legendInterface()
     result=[]
-    for layer in QgsMapLayerRegistry.instance().mapLayers().values():
+    for layer in QgsProject.instance().mapLayers().values():
         # check current visibility
         if legend.isLayerVisible(layer):
             if layer.customProperty("qgis_pds_type") == "pds_current_production":
@@ -206,12 +207,12 @@ def activeLayerProductionType(feature, parent):
 #===============================================================================
 # 
 #===============================================================================
-class QgisPDS(QObject):
+class QgisPDS:
     """QGIS Plugin Implementation."""
     @property
     def currentProject(self):
         if self._currentProject is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Не выбран текущий проект'))
             #try:
             #    projStr = currentLayer.customProperty("pds_project", str(self.currentProject))
             #    proj = ast.literal_eval(projStr)
@@ -230,7 +231,7 @@ class QgisPDS(QObject):
 
     def __init__(self, _iface):
         """Constructor. """
-        QObject.__init__(self)
+        # QObject.__init__(self)
         # Save reference to the QGIS interface
         self.iface = _iface
         
@@ -286,7 +287,8 @@ class QgisPDS(QObject):
     def connectToProject(self):
         proj = QgsProject.instance()
         proj.readProject.connect(self.loadData)
-        QObject.connect(self.iface.legendInterface(), SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.layerSelected)
+        self.iface.layerTreeView().currentLayerChanged.connect(self.layerSelected)
+        #QObject.connect(self.iface.layerTreeView(), SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.layerSelected)
         # QObject.connect(self.iface.mapCanvas(), SIGNAL("mapCanvasRefreshed ()"), self.renderComplete)
 
 
@@ -294,14 +296,15 @@ class QgisPDS(QObject):
         proj = QgsProject.instance()
         proj.readProject.disconnect(self.loadData)
         self.disconnectFromLayers()
-        QObject.disconnect(self.iface.legendInterface(), SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.layerSelected)
+        self.iface.layerTreeView().currentLayerChanged.disconnect(self.layerSelected)
+        #QObject.disconnect(self.iface.layerTreeView(), SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.layerSelected)
 
         # QObject.disconnect(self.iface.mapCanvas(), SIGNAL("mapCanvasRefreshed ()"), self.renderComplete)
 
         
     
     def loadData(self):
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             if not layer.type() == 0:
@@ -312,7 +315,8 @@ class QgisPDS(QObject):
 
 
     def disconnectFromLayers(self):
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
+        print(layers)
 
         for layer in layers:
             if not layer.type() == 0:
@@ -452,8 +456,8 @@ class QgisPDS(QObject):
                     editLayerStyles.setCurrentStyle(style_name)
                     
     def connectVisiblePresetChangedEvent(self):  
-        visiblePreset=QgsProject.instance().visibilityPresetCollection()
-        visiblePreset.presetsChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
+        visiblePreset=QgsProject.instance().mapThemeCollection()
+        visiblePreset.mapThemeChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
         
     def onReadProject(self):
         #for current project
@@ -505,7 +509,7 @@ class QgisPDS(QObject):
             self.uri += '&field={}:{}'.format("SLDNID", "int")
             layer = QgsVectorLayer(self.uri, name, "memory")
             if layer:
-                QgsMapLayerRegistry.instance().addMapLayer(layer)
+                QgsProject.instance().addMapLayer(layer)
             return layer
         return None
 
@@ -832,43 +836,43 @@ class QgisPDS(QObject):
 
         #--- button for processing functions
         # Instantiate the commander window and open the algorithm's interface 
-        cw = CommanderWindow(self.iface.mainWindow(), self.iface.mapCanvas())
+        # cw = CommanderWindow(self.iface.mainWindow(), self.iface.mapCanvas())
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mesh = Processing.getAlgorithm("pumaplus:creategridwithfaults")
-        if alg_mesh is not None:
-            icon_path = ':/plugins/QgisPDS/surface.png'
-            self.add_action(
-                icon_path,
-                text=self.tr(u'Create mesh'),
-                callback=lambda :cw.runAlgorithm(alg_mesh),
-                parent=self.iface.mainWindow())
-        # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mp = Processing.getAlgorithm("pumaplus:updatewelllocation")
-        if alg_mp is not None:
-            icon_path = ':/plugins/QgisPDS/move_point.png'
-            self.add_action(
-                icon_path,
-                text=self.tr(u'Move point'),
-                callback=lambda :cw.runAlgorithm(alg_mp),
-                parent=self.iface.mainWindow())
-        # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_ml = Processing.getAlgorithm("pumaplus:updatelabellocation")
-        if alg_ml is not None:
-            icon_path = ':/plugins/QgisPDS/move_label.png'
-            self.add_action(
-                icon_path,
-                text=self.tr(u'Move label'),
-                callback=lambda :cw.runAlgorithm(alg_ml),
-                parent=self.iface.mainWindow())
-        # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mv = Processing.getAlgorithm("pumaplus:setmapvariable")
-        if alg_mv is not None:
-            icon_path = ':/plugins/QgisPDS/text_edit.png'
-            self.add_action(
-                icon_path,
-                text=self.tr(u'Update variables'),
-                callback=lambda :cw.runAlgorithm(alg_mv),
-                parent=self.iface.mainWindow())
+        # alg_mesh = Processing.getAlgorithm("pumaplus:creategridwithfaults")
+        # if alg_mesh is not None:
+        #     icon_path = ':/plugins/QgisPDS/surface.png'
+        #     self.add_action(
+        #         icon_path,
+        #         text=self.tr(u'Create mesh'),
+        #         callback=lambda :Processing.execAlgorithmDialog(alg_mesh),
+        #         parent=self.iface.mainWindow())
+        # # Then get the algorithm you're interested in (for instance, Join Attributes):
+        # alg_mp = Processing.getAlgorithm("pumaplus:updatewelllocation")
+        # if alg_mp is not None:
+        #     icon_path = ':/plugins/QgisPDS/move_point.png'
+        #     self.add_action(
+        #         icon_path,
+        #         text=self.tr(u'Move point'),
+        #         callback=lambda :Processing.execAlgorithmDialog(alg_mp),
+        #         parent=self.iface.mainWindow())
+        # # Then get the algorithm you're interested in (for instance, Join Attributes):
+        # alg_ml = Processing.getAlgorithm("pumaplus:updatelabellocation")
+        # if alg_ml is not None:
+        #     icon_path = ':/plugins/QgisPDS/move_label.png'
+        #     self.add_action(
+        #         icon_path,
+        #         text=self.tr(u'Move label'),
+        #         callback=lambda :Processing.execAlgorithmDialog(alg_ml),
+        #         parent=self.iface.mainWindow())
+        # # Then get the algorithm you're interested in (for instance, Join Attributes):
+        # alg_mv = Processing.getAlgorithm("pumaplus:setmapvariable")
+        # if alg_mv is not None:
+        #     icon_path = ':/plugins/QgisPDS/text_edit.png'
+        #     self.add_action(
+        #         icon_path,
+        #         text=self.tr(u'Update variables'),
+        #         callback=lambda :Processing.execAlgorithmDialog(alg_mv),
+        #         parent=self.iface.mainWindow())
 
 
         applicationMenu = QMenu(self.iface.mainWindow())
@@ -904,7 +908,7 @@ class QgisPDS(QObject):
             menu=applicationMenu)
 
         self._metadata = BabbleSymbolLayerMetadata()
-        QgsSymbolLayerV2Registry.instance().addSymbolLayerType(self._metadata)
+        QgsApplication.symbolLayerRegistry().addSymbolLayerType(self._metadata)
         #---REGISTER USER EXPRESSIONS
         QgsExpression.registerFunction(activeLayerCustomProperty)        
         QgsExpression.registerFunction(activeLayerReservoirs)
@@ -962,8 +966,7 @@ class QgisPDS(QObject):
     def createProductionlayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
     
             dlg = QgisPDSProductionDialog(self.currentProject, self.iface)
@@ -978,8 +981,7 @@ class QgisPDS(QObject):
     def createFondlayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             currentLayer = self.iface.activeLayer()
             dlg = QgisPDSProductionDialog(self.currentProject, self.iface, isOnlyFond=True)
@@ -1008,8 +1010,7 @@ class QgisPDS(QObject):
     def loadPressure(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
     
             dlg = QgisPDSPressure(self.currentProject, self.iface)
@@ -1036,8 +1037,7 @@ class QgisPDS(QObject):
     def createSummProductionlayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
     
             dlg = QgisPDSProductionDialog(self.currentProject, self.iface, isCP=False)
@@ -1065,8 +1065,7 @@ class QgisPDS(QObject):
     def createCPointsLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, ControlPointReader(self.iface))
             dlg.exec_()
@@ -1081,8 +1080,7 @@ class QgisPDS(QObject):
     def createContoursLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, ContoursReader(self.iface,0 ,styleName=CONTOUR_STYLE,styleUserDir=USER_CONTOUR_STYLE_DIR ,isShowSymbCategrized=False ))
             dlg.exec_()
@@ -1094,8 +1092,7 @@ class QgisPDS(QObject):
     def createPolygonsLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, ContoursReader(self.iface,1 ,styleName=POLYGON_STYLE,styleUserDir=USER_POLYGON_STYLE_DIR ,isShowSymbCategrized=False ))
             dlg.exec_()
@@ -1106,8 +1103,7 @@ class QgisPDS(QObject):
     def createSurfaceLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr('Error'),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, SurfaceReader(styleName=SURF_SYLE,styleUserDir=USER_SURF_STYLE_DIR  ))
             dlg.exec_()
@@ -1119,8 +1115,7 @@ class QgisPDS(QObject):
     def createFaultsLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, ContoursReader(self.iface,2 ,styleName=FAULT_STYLE,styleUserDir=USER_FAULT_STYLE_DIR ,isShowSymbCategrized=False ))
             dlg.exec_()
@@ -1165,8 +1160,7 @@ class QgisPDS(QObject):
     def createWellLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load wells'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load wells'))
                 return
     
             dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
@@ -1184,8 +1178,7 @@ class QgisPDS(QObject):
     def createWellDeviationLayer(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                            self.tr(u'Save project before load'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
                 return
     
             dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
@@ -1220,8 +1213,7 @@ class QgisPDS(QObject):
     def productionSetup(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr('Error'),
-                            self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
                 return
     
             currentLayer = self.iface.activeLayer()
@@ -1346,12 +1338,11 @@ class QgisPDS(QObject):
     def addProductionLayer(self):
         layer = QgisPDSProductionLayer(self.iface)
         if layer.isValid():
-            QgsMapLayerRegistry.instance().addMapLayer(layer)
+            QgsProject.instance().addMapLayer(layer)
 
     def residuals(self):
         if not QgsProject.instance().homePath():
-            self.iface.messageBar().pushMessage(self.tr('Error'),
-                        self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
             return
         dlg = QgisPDSResidualDialog(self.currentProject, self.iface)
         dlg.exec_()
@@ -1360,8 +1351,7 @@ class QgisPDS(QObject):
     def calcStatistics(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr('Error'),
-                            self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
                 return
             dlg = QgisPDSStatisticsDialog(self.currentProject, self.iface)
             dlg.exec_()
@@ -1373,8 +1363,7 @@ class QgisPDS(QObject):
     def calcDCA(self):
         try:
     #         if not QgsProject.instance().homePath():
-    #             self.iface.messageBar().pushMessage(self.tr('Error'),
-    #                         self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+    #             self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
     #             return
             dlg = QgisPDSDCAForm(self.currentProject, self.iface)
             dlg.exec_()
@@ -1400,8 +1389,7 @@ class QgisPDS(QObject):
     def dataFromOracleSql(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr('Error'),
-                            self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
                 return
     
             dlg = QgisOracleSql(self.currentProject, self.iface)
@@ -1413,8 +1401,7 @@ class QgisPDS(QObject):
     def createIsolines(self):
         try:
             if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushMessage(self.tr('Error'),
-                            self.tr(u'Save project before using plugin'), level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
                 return
     
             dlg = QgisPDSCreateIsolines(self.iface)

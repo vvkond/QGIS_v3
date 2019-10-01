@@ -2,18 +2,19 @@
 
 from PyQt5 import QtGui, uic, QtCore
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from qgis import core, gui
-from qgis.gui import QgsColorButtonV2
+from qgis.gui import *
 from collections import namedtuple
-from qgis_pds_production import *
-from bblInit import *
+from .qgis_pds_production import *
+from .bblInit import *
 import ast
 import math
 import xml.etree.cElementTree as ET
 import re
 import time
-from utils import plugin_path, start_edit_layer, qgs_get_last_child_rules, qgs_set_symbol_render_level
-from qgis_pds_prodRenderer import BubbleSymbolLayer
+from .utils import plugin_path, start_edit_layer, qgs_get_last_child_rules, qgs_set_symbol_render_level
+from .qgis_pds_prodRenderer import BubbleSymbolLayer
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -25,7 +26,7 @@ IS_DEBUG=False
 #===============================================================================
 # 
 #===============================================================================
-class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
+class QgisPDSProdSetup(QDialog, FORM_CLASS):
     
     
     #===========================================================================
@@ -39,15 +40,15 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
         # self.scaleEdit.setVisible(False)
         # self.mScaleEditLabel.setVisible(False)
 
-        self.backColorEdit = QgsColorButtonV2(self)
+        self.backColorEdit = QgsColorButton(self)
         self.fluidGridLayout.addWidget(self.backColorEdit, 0, 1)
         QObject.connect(self.backColorEdit, SIGNAL("colorChanged(const QColor &)"), self.backColorChanged)
 
-        self.lineColorEdit = QgsColorButtonV2(self)
+        self.lineColorEdit = QgsColorButton(self)
         self.fluidGridLayout.addWidget(self.lineColorEdit, 1, 1)
         QObject.connect(self.lineColorEdit, SIGNAL("colorChanged(const QColor &)"), self.lineColorChanged)
 
-        self.labelColorEdit = QgsColorButtonV2(self)
+        self.labelColorEdit = QgsColorButton(self)
         self.labelGridLayout.addWidget(self.labelColorEdit, 0, 1)
         QObject.connect(self.labelColorEdit, SIGNAL("colorChanged(const QColor &)"), self.labelColorChanged)
 
@@ -90,7 +91,7 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
                     break
 
         if self.bubbleProps is None:
-            registry = QgsSymbolLayerV2Registry.instance()
+            registry = QgsSymbolLayerRegistry.instance()
             bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
             if bubbleMeta is not None:
                 bubbleLayer = bubbleMeta.createSymbolLayer({})
@@ -231,7 +232,7 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
         #     item.setData(Qt.UserRole, d)
         #     self.mDiagrammsListWidget.addItem(item)
 
-        if type(layer.rendererV2())!=QgsRuleBasedRendererV2:
+        if type(layer.rendererV2())!=QgsRuleBasedRenderer:
             self.isAppendToStyle.setEnabled(False)
             self.isAppendToEachLastSymbol.setEnabled(False)
             
@@ -723,8 +724,8 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
             for fluid in selectedFluids:
                 attr = fluid.code + scaleType
                 slice = {}
-                slice['backColor'] = QgsSymbolLayerV2Utils.encodeColor(fluid.backColor)
-                slice['lineColor'] = QgsSymbolLayerV2Utils.encodeColor(fluid.lineColor)
+                slice['backColor'] = QgsSymbolLayerUtils.encodeColor(fluid.backColor)
+                slice['lineColor'] = QgsSymbolLayerUtils.encodeColor(fluid.lineColor)
                 slice['labelColor'] = fluid.labelColor.name()
                 slice['inPercent'] = fluid.inPercent
                 slice['expression'] = attr
@@ -746,7 +747,7 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
         load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_RENDER_STYLE_DIR),switchActiveStyle=False)
         
         ########################################################
-        #--- If append to current style and current style QgsRuleBasedRendererV2
+        #--- If append to current style and current style QgsRuleBasedRenderer
         ########################################################
         layerCurrentStyleRendere=editLayer.rendererV2()
 
@@ -836,7 +837,7 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
                 else:
                     pass
                 #------ADD CIRCLE SYMBOLS
-                for key,ff in prods.iteritems():
+                for key,ff in prods.items():
                     m = QgsSimpleMarkerSymbolLayerV2()
                     m.setSize(4)
                     m.setSizeUnit(QgsSymbolV2.MM)
@@ -965,7 +966,7 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
                     rule.setFilterExpression(u'\"{0}\"={1}'.format("SymbolCode", symId))
                     rootRule.appendChild(rule)
                 #------CIRCLE SYMBOLS
-                for key,ff in prods.iteritems():
+                for key,ff in prods.items():
                     m = QgsSimpleMarkerSymbolLayerV2()
                     m.setSize(4)
                     m.setSizeUnit(QgsSymbolV2.MM)

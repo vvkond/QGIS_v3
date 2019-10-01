@@ -7,7 +7,7 @@ from qgis.core import *
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from qgis_pds_WellFilterSetup import *
+from .qgis_pds_WellFilterSetup import *
 
 
 class AutoVivification(dict):

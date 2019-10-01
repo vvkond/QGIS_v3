@@ -8,16 +8,17 @@ from PyQt5.QtGui import *
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
-from tig_projection import *
+from .tig_projection import *
 import ast
 import os
 import time
-from processing.tools.vector import VectorWriter
-from bblInit import STYLE_DIR, Fields, FieldsWellLayer,\
+# from processing.tools.vector import VectorWriter
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes
+from .bblInit import STYLE_DIR, Fields, FieldsWellLayer,\
     FieldsForLabels,\
     set_QgsPalLayerSettings_datadefproperty, layer_to_labeled,\
     setLayerFieldsAliases
-from utils import plugin_path, load_styles_from_dir, load_style, edit_layer
+from .utils import plugin_path, load_styles_from_dir, load_style, edit_layer
 
 debuglevel = 4
 
@@ -90,7 +91,7 @@ class QgisPDSWells(QObject):
         layerFileName = prjPath + layerFile
         provider = layer.dataProvider()
         fields = provider.fields()
-        writer = VectorWriter(layerFileName, systemEncoding,
+        writer = QgsVectorFileWriter(layerFileName, systemEncoding,
                               fields,
                               provider.geometryType(), provider.crs())
 
@@ -221,7 +222,7 @@ class QgisPDSWells(QObject):
                     if self.xform:
                         pt = self.xform.transform(pt)
 
-                    geom = QgsGeometry.fromPoint(pt)
+                    geom = QgsGeometry.fromPointXY(pt)
 
                     num = 0
                     well = None

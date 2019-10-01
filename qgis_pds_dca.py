@@ -17,12 +17,13 @@ from struct import unpack_from
 from qgis.core import *
 from qgis.gui import QgsMessageBar
 from qgis.PyQt import QtGui,QtCore, uic
+from qgis.PyQt.QtWidgets import *
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from utils import *
-from bblInit import NAMES, Fields
+from .utils import *
+from .bblInit import NAMES, Fields
 import pandas as pd
-from type_well.autoDCA_new import get_config
+from .type_well.autoDCA_new import get_config
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_dca_base.ui'))
@@ -31,7 +32,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 #===============================================================================
 # 
 #===============================================================================
-class QgisPDSDCAForm(QtGui.QDialog, FORM_CLASS,WithSql):
+class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
     """Constructor."""
     def __init__(self, _project, _iface, parent=None):
         super(QgisPDSDCAForm, self).__init__(parent)
@@ -99,10 +100,10 @@ class QgisPDSDCAForm(QtGui.QDialog, FORM_CLASS,WithSql):
         name='forecast_end'
         val = QtGui.QDateEdit()
         val.setMaximumDateTime(QtCore.QDateTime(QtCore.QDate(7999, 12, 28), QtCore.QTime(23, 59, 59)))
-        val.setDate(QtCore.QDate(2029, 01,01) )
+        val.setDate(QtCore.QDate(2029, 1, 1) )
         val.setCalendarPopup(False)   
         val.setDisplayFormat("yyyy");
-        setter=lambda widget,val:widget.setDate(QtCore.QDate(int(val), 01,01) )
+        setter=lambda widget,val:widget.setDate(QtCore.QDate(int(val), 1, 1) )
         getter=lambda widget:int(widget.date().toString('yyyy'))
         hh.append(name)
         tableWidget.setCellWidget(tableWidget.rowCount()-1,col,val)

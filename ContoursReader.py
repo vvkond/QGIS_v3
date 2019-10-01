@@ -10,9 +10,9 @@ import time
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import *
-from tig_projection import *
-from ReaderBase import *
-from bblInit import STYLE_DIR
+from .tig_projection import *
+from .ReaderBase import *
+from .bblInit import STYLE_DIR
 
 class ContoursReader(ReaderBase):
     def __init__(self

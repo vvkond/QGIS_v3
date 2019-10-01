@@ -6,6 +6,7 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from collections import namedtuple
 
@@ -15,16 +16,16 @@ import ast
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from utils import *
-from bblInit import *
-from tig_projection import *
+from .utils import *
+from .bblInit import *
+from .tig_projection import *
 
 
 
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_pressure_base.ui'))
-class QgisPDSPressureDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSPressureDialog(QDialog, FORM_CLASS):
     """
         @TODO: Its temporary revert of QgisPDSProductionDialog for pressure read. Need change pressure read dialog!!!
     """    
@@ -441,7 +442,7 @@ class QgisPDSPressure(QgisPDSPressureDialog):
                         if self.xform:
                             pt = self.xform.transform(pt)
 
-                        geom = QgsGeometry.fromPoint(pt)
+                        geom = QgsGeometry.fromPointXY(pt)
                         f.setGeometry(geom)
                         f.setAttribute(self.attrWellId, well_name)
                         f.setAttribute(self.attrPressure, pres)

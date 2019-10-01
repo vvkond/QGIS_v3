@@ -27,7 +27,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from qgis.core import *
 from qgis.gui import *
-from bblInit import *
+from .bblInit import *
 import random
 import os,sys
 import xml.etree.cElementTree as ET
@@ -68,7 +68,7 @@ def float_t(val):
         QgsMessageLog.logMessage("incorrect val for float {}={}\n{}".format(type(val),val,str(e)), 'BubbleSymbolLayer')
         #raise Exception("incorrect val for float {}={}\n{}".format(type(val),val,str(e)))
 
-class BubbleSymbolLayer(QgsMarkerSymbolLayerV2):
+class BubbleSymbolLayer(QgsMarkerSymbolLayer):
 
     LAYERTYPE="BubbleDiagramm"
     DIAGRAMM_FIELDS = 'DIAGRAMM_FIELDS'
@@ -80,7 +80,7 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayerV2):
 
     def __init__(self, props):
         ts=datetime.now()
-        QgsMarkerSymbolLayerV2.__init__(self)
+        super().__init__(self)
         self.radius = 4.0
         self.color = QColor(255,0,0)
 
@@ -542,9 +542,9 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayerV2):
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_renderer_base.ui'))
 
-class BabbleSymbolLayerWidget(QgsSymbolLayerV2Widget, FORM_CLASS):
+class BabbleSymbolLayerWidget(QgsSymbolLayerWidget, FORM_CLASS):
     def __init__(self, parent=None, vectorLayer = None):
-        QgsSymbolLayerV2Widget.__init__(self, parent, vectorLayer)
+        super().__init__(self, parent, vectorLayer)
 
         self.setupUi(self)
 
@@ -602,10 +602,10 @@ class BabbleSymbolLayerWidget(QgsSymbolLayerV2Widget, FORM_CLASS):
         self.emit(SIGNAL("changed()"))
 
 
-class BabbleSymbolLayerMetadata(QgsSymbolLayerV2AbstractMetadata):
+class BabbleSymbolLayerMetadata(QgsSymbolLayerAbstractMetadata):
 
     def __init__(self):
-        QgsSymbolLayerV2AbstractMetadata.__init__(self, BubbleSymbolLayer.LAYERTYPE, u"Круговые диаграммы PDS", QgsSymbolV2.Marker)
+        super().__init__(BubbleSymbolLayer.LAYERTYPE, u"Круговые диаграммы PDS", QgsSymbol.Marker)
 
     def createSymbolLayer(self, props):
         return BubbleSymbolLayer(props)

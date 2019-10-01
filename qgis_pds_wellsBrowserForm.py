@@ -9,22 +9,23 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from utils import *
+from .utils import *
 from QgisPDS.tig_projection import *
-from qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
-from qgis_pds_zoneparams import QgisPDSZoneparamsDialog
-from qgis_pds_WellFilterSetup import QgisPDSWellFilterSetupDialog
-from qgis_pds_templateList import QgisPDSTemplateListDialog
-from qgis_pds_wellsModel import *
+from .qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
+from .qgis_pds_zoneparams import QgisPDSZoneparamsDialog
+from .qgis_pds_WellFilterSetup import QgisPDSWellFilterSetupDialog
+from .qgis_pds_templateList import QgisPDSTemplateListDialog
+from .qgis_pds_wellsModel import *
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'wellsBrowserForm_base.ui'))
 
-class QgisPDSWellsBrowserForm(QtGui.QWidget, FORM_CLASS):
+class QgisPDSWellsBrowserForm(QWidget, FORM_CLASS):
     """Constructor."""
     def __init__(self, _iface, _db, getWellsFunc, _project, parent=None, selectedIds=None, selectedIdsCol=0, markedIdsCol=0 ,markedIds=None, isDisableUnmarkedItems=False, allowCheckRow=True ):
         super(QgisPDSWellsBrowserForm, self).__init__(parent)

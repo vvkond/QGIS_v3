@@ -4,15 +4,15 @@ import os
 import ast
 from qgis.core import *
 #from qgis.gui import QgsFieldExpressionWidget,QgsColorButtonV2
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+# from PyQt5 import QtGui, uic
+from qgis.PyQt.QtWidgets import *
+from qgis.PyQt import uic
 
 from QgisPDS.connections import create_connection
-from utils import *
+from .utils import *
 from QgisPDS.tig_projection import *
-from qgis_pds_wellsBrowserDialog import QgisPDSWellsBrowserDialog
-from bblInit import Fields, layer_to_labeled
+from .qgis_pds_wellsBrowserDialog import QgisPDSWellsBrowserDialog
+from .bblInit import Fields, layer_to_labeled
 
 ''' In *.ui replace <header>*.h</header>  to  <header>qgis.gui</header> if use qgis promotoves
     <header>[^<]*</header>
@@ -26,7 +26,7 @@ cFillColor="bufcol"
 cLineColor="lablcol"
   
 
-class QgisPDSWellsMarkDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
     def __init__(self, _iface, _project, layer, checkedWellIds=None, markedWellIds=None, checkedWellIdsColumn=0, parent=None):
         '''
             @param checkedWellIds: ids of wells(sldnid) for check by default in wellBrowser

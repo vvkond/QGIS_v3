@@ -3,6 +3,7 @@ from qgis.core import *
 from qgis.gui import QgsMessageBar
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
@@ -14,7 +15,7 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_wellfilter_base.ui'))
 
 
-class QgisWellFilterDialog(QtGui.QDialog, FORM_CLASS):
+class QgisWellFilterDialog(QDialog, FORM_CLASS):
     def __init__(self, _iface, wells, parent=None):
         """Constructor."""
         super(QgisWellFilterDialog, self).__init__(parent)

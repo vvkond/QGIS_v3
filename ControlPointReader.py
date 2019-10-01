@@ -9,9 +9,9 @@ from PyQt5.QtCore import *
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
-from tig_projection import *
-from ReaderBase import *
-from bblInit import FieldsForLabels, layer_to_labeled
+from .tig_projection import *
+from .ReaderBase import *
+from .bblInit import FieldsForLabels, layer_to_labeled
 
 
 class ControlPointReader(ReaderBase):
@@ -49,10 +49,7 @@ class ControlPointReader(ReaderBase):
                 sourceCrs = None
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr('Error'),
-                                                self.tr(u'Project projection read error {0}').format(
-                                                str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Project projection read error {0}').format(str(e)))
             return
 
 
@@ -134,14 +131,14 @@ class ControlPointReader(ReaderBase):
                     i = i + 1
                     cPoint = QgsFeature(layer.fields())
 
-                    pt = QgsPoint(x, y)
+                    pt = QgsPointXY(x, y)
                     if self.xform:
                         pt = self.xform.transform(pt)
                     
                     # if sourceCrs is not None:
-                    #     geom = QgsGeometry.fromPoint(xform.transform(pt))
+                    #     geom = QgsGeometry.fromPointXY(xform.transform(pt))
                     # else:
-                    geom = QgsGeometry.fromPoint(pt)
+                    geom = QgsGeometry.fromPointXY(pt)
                     cPoint.setGeometry(geom)
 
                     cPoint.setAttribute(self.setNoAttr, setNo)

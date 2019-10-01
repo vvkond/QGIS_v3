@@ -12,14 +12,14 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
-from connections import create_connection
-from utils import *
+from .connections import create_connection
+from .utils import *
 from QgisPDS.tig_projection import *
-from qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
-from qgis_pds_zoneparams import QgisPDSZoneparamsDialog
-from qgis_pds_templateList import QgisPDSTemplateListDialog
-from qgis_pds_wellsBrowserForm import *
-from bblInit import layer_to_labeled, FieldsForLabels, Fields
+from .qgis_pds_CoordFromZone import QgisPDSCoordFromZoneDialog
+from .qgis_pds_zoneparams import QgisPDSZoneparamsDialog
+from .qgis_pds_templateList import QgisPDSTemplateListDialog
+from .qgis_pds_wellsBrowserForm import *
+from .bblInit import layer_to_labeled, FieldsForLabels, Fields
 
 IS_DEBUG=False
 
@@ -191,7 +191,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                                 intervalName += ' erosion topTVD'
                             wellName = input_row[self.well_name_column_index]
                             pt = QgsPoint(x, y)
-                            l = QgsGeometry.fromPoint(pt)
+                            l = QgsGeometry.fromPointXY(pt)
                             feat = QgsFeature(self.layer.fields())
                             feat.setGeometry(l)
                             feat.setAttribute(Fields.WellId.name, wellName)
@@ -209,7 +209,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
             if not hasRecords and useErosion:
                 pt, wellName = self.getWellBottom(wellSql, id)
                 if pt:
-                    l = QgsGeometry.fromPoint(pt)
+                    l = QgsGeometry.fromPointXY(pt)
                     feat = QgsFeature(self.layer.fields())
                     feat.setGeometry(l)
                     feat.setAttribute(Fields.WellId.name, wellName)

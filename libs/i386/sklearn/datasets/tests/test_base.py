@@ -8,7 +8,9 @@ from pickle import dumps
 from functools import partial
 
 import pytest
+import joblib
 
+import numpy as np
 from sklearn.datasets import get_data_home
 from sklearn.datasets import clear_data_home
 from sklearn.datasets import load_files
@@ -22,12 +24,11 @@ from sklearn.datasets import load_breast_cancer
 from sklearn.datasets import load_boston
 from sklearn.datasets import load_wine
 from sklearn.datasets.base import Bunch
+from sklearn.datasets.base import _refresh_cache
 from sklearn.datasets.tests.test_common import check_return_X_y
 
-from sklearn.externals.six import b, u
 from sklearn.externals._pilutil import pillow_installed
 
-from sklearn.utils.testing import assert_false
 from sklearn.utils.testing import assert_equal
 from sklearn.utils.testing import assert_raises
 
@@ -56,7 +57,7 @@ def test_category_dir_1(load_files_root):
     test_category_dir1 = tempfile.mkdtemp(dir=load_files_root)
     sample_file = tempfile.NamedTemporaryFile(dir=test_category_dir1,
                                               delete=False)
-    sample_file.write(b("Hello World!\n"))
+    sample_file.write(b"Hello World!\n")
     sample_file.close()
     yield str(test_category_dir1)
     _remove_dir(test_category_dir1)
@@ -77,7 +78,7 @@ def test_data_home(data_home):
 
     # clear_data_home will delete both the content and the folder it-self
     clear_data_home(data_home=data_home)
-    assert_false(os.path.exists(data_home))
+    assert not os.path.exists(data_home)
 
     # if the folder is missing it will be created again
     data_home = get_data_home(data_home=data_home)
@@ -97,7 +98,7 @@ def test_default_load_files(test_category_dir_1, test_category_dir_2,
     assert_equal(len(res.filenames), 1)
     assert_equal(len(res.target_names), 2)
     assert_equal(res.DESCR, None)
-    assert_equal(res.data, [b("Hello World!\n")])
+    assert_equal(res.data, [b"Hello World!\n"])
 
 
 def test_load_files_w_categories_desc_and_encoding(
@@ -108,7 +109,7 @@ def test_load_files_w_categories_desc_and_encoding(
     assert_equal(len(res.filenames), 1)
     assert_equal(len(res.target_names), 1)
     assert_equal(res.DESCR, "test")
-    assert_equal(res.data, [u("Hello World!\n")])
+    assert_equal(res.data, ["Hello World!\n"])
 
 
 def test_load_files_wo_load_content(
@@ -125,6 +126,14 @@ def test_load_sample_images():
         res = load_sample_images()
         assert_equal(len(res.images), 2)
         assert_equal(len(res.filenames), 2)
+        images = res.images
+
+        # assert is china image
+        assert np.all(images[0][0, 0, :] ==
+                      np.array([174, 201, 231], dtype=np.uint8))
+        # assert is flower image
+        assert np.all(images[1][0, 0, :] ==
+                      np.array([2, 19, 13], dtype=np.uint8))
         assert res.DESCR
     except ImportError:
         warnings.warn("Could not load sample images, PIL is not available.")
@@ -265,3 +274,55 @@ def test_bunch_dir():
     # check that dir (important for autocomplete) shows attributes
     data = load_iris()
     assert "data" in dir(data)
+
+
+def test_refresh_cache(monkeypatch):
+    # uses pytests monkeypatch fixture
+    # https://docs.pytest.org/en/latest/monkeypatch.html
+
+    def _load_warn(*args, **kwargs):
+        # raise the warning from "externals.joblib.__init__.py"
+        # this is raised when a file persisted by the old joblib is loaded now
+        msg = ("sklearn.externals.joblib is deprecated in 0.21 and will be "
+               "removed in 0.23. Please import this functionality directly "
+               "from joblib, which can be installed with: pip install joblib. "
+               "If this warning is raised when loading pickled models, you "
+               "may need to re-serialize those models with scikit-learn "
+               "0.21+.")
+        warnings.warn(msg, DeprecationWarning)
+        return 0
+
+    def _load_warn_unrelated(*args, **kwargs):
+        warnings.warn("unrelated warning", DeprecationWarning)
+        return 0
+
+    def _dump_safe(*args, **kwargs):
+        pass
+
+    def _dump_raise(*args, **kwargs):
+        # this happens if the file is read-only and joblib.dump fails to write
+        # on it.
+        raise IOError()
+
+    # test if the dataset spesific warning is raised if load raises the joblib
+    # warning, and dump fails to dump with new joblib
+    monkeypatch.setattr(joblib, "load", _load_warn)
+    monkeypatch.setattr(joblib, "dump", _dump_raise)
+    msg = "This dataset will stop being loadable in scikit-learn"
+    with pytest.warns(DeprecationWarning, match=msg):
+        _refresh_cache('test', 0)
+
+    # make sure no warning is raised if load raises the warning, but dump
+    # manages to dump the new data
+    monkeypatch.setattr(joblib, "load", _load_warn)
+    monkeypatch.setattr(joblib, "dump", _dump_safe)
+    with pytest.warns(None) as warns:
+        _refresh_cache('test', 0)
+    assert len(warns) == 0
+
+    # test if an unrelated warning is still passed through and not suppressed
+    # by _refresh_cache
+    monkeypatch.setattr(joblib, "load", _load_warn_unrelated)
+    monkeypatch.setattr(joblib, "dump", _dump_safe)
+    with pytest.warns(DeprecationWarning, match="unrelated warning"):
+        _refresh_cache('test', 0)

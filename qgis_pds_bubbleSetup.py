@@ -2,13 +2,15 @@
 
 from PyQt5 import QtGui, uic, QtCore
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from qgis import core, gui
-from qgis.gui import QgsColorButtonV2, QgsFieldExpressionWidget, QgsFieldProxyModel, QgsColorDialogV2
+from qgis.gui import QgsColorButton, QgsFieldExpressionWidget, QgsColorDialog
+from qgis.core import QgsFieldProxyModel
 # from qgis.gui import *
 # from qgscolorbuttonv2 import QgsColorButtonV2
 from collections import namedtuple
-from qgis_pds_production import *
-from bblInit import *
+from .qgis_pds_production import *
+from .bblInit import *
 import ast
 import math
 import xml.etree.cElementTree as ET
@@ -233,7 +235,7 @@ class ColorDelegate(QStyledItemDelegate):
         self.initStyleOption(option, index)
 
         self.newColor = QColor(index.data(Qt.DecorationRole))
-        colorEd = QgsColorDialogV2(parent)
+        colorEd = QgsColorDialog(parent)
         colorEd.setColor(self.newColor)
         return colorEd
 
@@ -261,7 +263,7 @@ class ColorDelegate(QStyledItemDelegate):
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_bubblesetup_base.ui'))
 
-class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
+class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
     def __init__(self, iface, layer, parent=None):
         super(QgisPDSBubbleSetup, self).__init__(parent)
 
@@ -329,7 +331,7 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
                     break
 
         if self.bubbleProps is None:
-            registry = QgsSymbolLayerV2Registry.instance()
+            registry = QgsSymbolLayerRegistry.instance()
             bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
             if bubbleMeta is not None:
                 bubbleLayer = bubbleMeta.createSymbolLayer({})
@@ -748,8 +750,8 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
                                                                     self.attributeModel.index(row, AttributeTableModel.ColorLineColumn)
                                                                     , Qt.DisplayRole)
                                                                     )
-                        ET.SubElement(diag, 'value', backColor=QgsSymbolLayerV2Utils.encodeColor(backColor),
-                                      lineColor=QgsSymbolLayerV2Utils.encodeColor(lineColor),
+                        ET.SubElement(diag, 'value', backColor=QgsSymbolLayerUtils.encodeColor(backColor),
+                                      lineColor=QgsSymbolLayerUtils.encodeColor(lineColor),
                                       fieldName=expression).text = str(percent)
 
                         key = '{0}_{1}'.format(d.diagrammId, row)
@@ -811,8 +813,8 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
                                                             , Qt.DisplayRole)
                                                             )
                 slice = {}
-                slice['backColor'] = QgsSymbolLayerV2Utils.encodeColor(backColor)
-                slice['lineColor'] = QgsSymbolLayerV2Utils.encodeColor(lineColor)
+                slice['backColor'] = QgsSymbolLayerUtils.encodeColor(backColor)
+                slice['lineColor'] = QgsSymbolLayerUtils.encodeColor(lineColor)
                 slice['expression'] = expression
                 # key = '{0}_{1}'.format(d.diagrammId, row)
                 slices.append(slice)
@@ -828,9 +830,9 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
 
         plugin_dir = os.path.dirname(__file__)
 
-        registry = QgsSymbolLayerV2Registry.instance()
+        registry = QgsSymbolLayerRegistry.instance()
 
-        symbol = QgsMarkerSymbolV2()
+        symbol = QgsMarkerSymbol()
         bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
         if bubbleMeta is not None:
             bubbleProps = {}
@@ -843,12 +845,12 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
             bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
-                bubbleLayer.setSizeUnit(QgsSymbolV2.MM)
+                bubbleLayer.setSizeUnit(QgsSymbol.MM)
                 symbol.changeSymbolLayer(0, bubbleLayer)
         else:
-            symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayerV2())
+            symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer())
 
-        renderer = QgsRuleBasedRendererV2(symbol)
+        renderer = QgsRuleBasedRenderer(symbol)
         root_rule = renderer.rootRule()
         root_rule.children()[0].setLabel(u'Круговые диаграммы')
 
@@ -863,10 +865,10 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
             bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
-                bubbleLayer.setSizeUnit(QgsSymbolV2.MM)
-                symbol1 = QgsMarkerSymbolV2()
+                bubbleLayer.setSizeUnit(QgsSymbol.MM)
+                symbol1 = QgsMarkerSymbol()
                 symbol1.changeSymbolLayer(0, bubbleLayer)
-                rule = QgsRuleBasedRendererV2.Rule(symbol1)
+                rule = QgsRuleBasedRenderer.Rule(symbol1)
                 rule.setLabel(u'Сноски')
                 root_rule.appendChild(rule)
 
@@ -883,14 +885,14 @@ class QgisPDSBubbleSetup(QtGui.QDialog, FORM_CLASS):
                 index = self.attributeModel.index(row, AttributeTableModel.DescrColumn)
                 name = self.attributeModel.data(index, Qt.DisplayRole)
 
-                m = QgsSimpleMarkerSymbolLayerV2()
+                m = QgsSimpleMarkerSymbolLayer()
                 m.setSize(4)
-                m.setSizeUnit(QgsSymbolV2.MM)
+                m.setSizeUnit(QgsSymbol.MM)
                 m.setColor(backColor)
-                symbol = QgsMarkerSymbolV2()
+                symbol = QgsMarkerSymbol()
                 symbol.changeSymbolLayer(0, m)
 
-                rule = QgsRuleBasedRendererV2.Rule(symbol)
+                rule = QgsRuleBasedRenderer.Rule(symbol)
                 rule.setLabel(name)
                 rule.setFilterExpression(u'\"SymbolCode\"=-1')
                 root_rule.appendChild(rule)

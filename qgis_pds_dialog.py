@@ -23,7 +23,8 @@
 
 import os
 
-from PyQt5 import QtGui, uic
+from qgis.PyQt import QtWidgets, QtGui, uic
+from qgis.PyQt.QtWidgets import *
 from qgis.gui import QgsMessageBar
 from qgis.core import  QgsMessageLog
 from .db import Sqlite
@@ -31,7 +32,7 @@ from .connections import create_connection
 from QgisPDS.utils import to_unicode
 from os.path import abspath
 import json
-from utils import ping
+from .utils import ping
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_dialog_base.ui'))
@@ -65,13 +66,12 @@ class Db(object):
         return self.db.execute_assoc('select id, name from tools t order by name, id')
 
 
-class QgisPDSDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSDialog(QDialog, FORM_CLASS):
     def __init__(self, iface, parent=None):
         """Constructor."""
-        super(QgisPDSDialog, self).__init__(parent)
-        
+        super().__init__(parent)
+
         self.setupUi(self)
-        
         self.iface = iface
         self.db_path = abspath(os.path.join(os.path.dirname(__file__), u'TigLoader.sqlite'))
         self._fillProjectList(self.db_path)
@@ -95,11 +95,10 @@ class QgisPDSDialog(QtGui.QDialog, FORM_CLASS):
            
     def _fillProjectList(self, db_path):
         self.tableWidget.setRowCount(0)
-        
         if os.path.isfile(db_path):
             db = Db(db_path)
         else:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'File not exists - ')+db_path, QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'File not exists - ')+db_path, QMessageBox.Ok)
             return
                        
         try:
@@ -114,13 +113,13 @@ class QgisPDSDialog(QtGui.QDialog, FORM_CLASS):
                     for project, host, server in projects:
                         self.tableWidget.insertRow(row)
 
-                        item = QtGui.QTableWidgetItem(host)
+                        item = QTableWidgetItem(host)
                         self.tableWidget.setItem(row, 0, item)
 
-                        item = QtGui.QTableWidgetItem(server)
+                        item = QTableWidgetItem(server)
                         self.tableWidget.setItem(row, 1, item)
 
-                        item = QtGui.QTableWidgetItem(project)
+                        item = QTableWidgetItem(project)
                         self.tableWidget.setItem(row, 2, item)
 
                         port = conn_row['options']['port']
@@ -136,7 +135,7 @@ class QgisPDSDialog(QtGui.QDialog, FORM_CLASS):
                         row += 1
                 
         except Exception as e:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(str(e)), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(str(e)), QMessageBox.Ok)
      
     def _createProjectRecord(self, host, server, project, port, user, password, ctype, path):
         return {
@@ -181,9 +180,6 @@ class QgisPDSDialog(QtGui.QDialog, FORM_CLASS):
             result = self.db.execute('SELECT PROJECT_NAME, PROJECT_HOST, PROJECT_SERVER FROM project WHERE PROJECT_NAME <> \'global\' ')
             return result
         except Exception as e:
-            #print 'Connection {0}: {1}'.format(connection.name, str(e))
-            self.iface.messageBar().pushMessage(self.tr("Error"), 
-                            self.tr(u'Connection {0}: {1}').format(connection.name, str(e)), 
-                            level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'Connection {0}: {1}').format(connection.name, str(e)))
             return None
 

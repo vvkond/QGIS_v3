@@ -142,7 +142,7 @@ cCOND_VOL='COND_VOL'
 #===============================================================================
 def log(*args):
     if IS_STANDALONE:
-        print " ".join(map(str,args))
+        print(" ".join(map(str,args)))
     else:
         from qgis.core import QgsMessageLog 
         QgsMessageLog.logMessage(" ".join(map(str,args)), tag="QgisPDS.DCA")

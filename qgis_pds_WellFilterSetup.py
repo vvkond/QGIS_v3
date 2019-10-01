@@ -6,16 +6,17 @@ from qgis.core import *
 from qgis.gui import QgsMapLayerComboBox, QgsFieldComboBox
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from utils import *
+from .utils import *
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_wellFilterSetup_base.ui'))
 
-class QgisPDSWellFilterSetupDialog(QtGui.QDialog, FORM_CLASS):
+class QgisPDSWellFilterSetupDialog(QDialog, FORM_CLASS):
 
     WELLNAME_FILTER = 'wellname'
     FULLNAME_FILTER = 'fullname'
