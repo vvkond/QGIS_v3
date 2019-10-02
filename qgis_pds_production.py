@@ -129,6 +129,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.readSettings()
         # --- update GUI  on input parametrs and settings
         self.mDynamicCheckBox.setEnabled(  (not self.isFondLayer) and (not self.isCurrentProd) )
+        if not self.mDynamicCheckBox.isEnabled():  self.mDynamicCheckBox.setChecked( False)
         self.mDynamicSumRelativeChkBx.setEnabled( self.mDynamicCheckBox.isChecked() and (not self.isCurrentProd) and (not self.isFondLayer))
         self.startDateEdit.setEnabled(not self.isFondLayer and (not self.isCurrentProd or (self.isCurrentProd and self.mDynamicCheckBox.isChecked())))
         self.firstDate.setEnabled(    not self.isFondLayer and (not self.isCurrentProd or (self.isCurrentProd and self.mDynamicCheckBox.isChecked())))
@@ -2626,8 +2627,13 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
     # 
     #===========================================================================
     def on_mDynamicCheckBox_toggled(self, checked):
-        self.startDateEdit.setEnabled(checked)
-        self.firstDate.setEnabled(checked)
+        if self.mDynamicCheckBox.isEnabled() and self.isCurrentProd:
+            self.startDateEdit.setEnabled(checked)
+            self.firstDate.setEnabled(checked)
+        else:
+            self.startDateEdit.setEnabled(True)
+            self.firstDate.setEnabled(True)
+            
     #===========================================================================
     # 
     #===========================================================================
