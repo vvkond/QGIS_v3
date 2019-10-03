@@ -74,7 +74,7 @@ class ControlPointReader(ReaderBase):
         layer.setCustomProperty("qgis_pds_type", "pds_controlpoints")
 
         palyr = QgsPalLayerSettings()
-        palyr.readFromLayer(layer)
+        # palyr.readFromLayer(layer)
         palyr.enabled = True
         palyr.fieldName = 'parameter'
         palyr.placement = QgsPalLayerSettings.OverPoint
@@ -85,7 +85,9 @@ class ControlPointReader(ReaderBase):
         palyr.fontSizeInMapUnits = False
         palyr=layer_to_labeled(palyr)  #---enable EasyLabel            
         # palyr.setDataDefinedProperty(QgsPalLayerSettings.Size, True, True, '8', '')
-        palyr.writeToLayer(layer)
+        palyr = QgsVectorLayerSimpleLabeling(palyr)
+        layer.setLabelsEnabled(True)
+        layer.setLabeling(palyr)
 
         layer.commitChanges()
 

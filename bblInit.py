@@ -424,7 +424,13 @@ def set_QgsPalLayerSettings_datadefproperty(
                        ,expr=None
                        ,field=None
                        ):
-    palyr.setDataDefinedProperty(prop, active, useExpr, expr, field)    
+    newProp = None
+    if useExpr:
+        newProp = QgsProperty.fromExpression(expr)
+    else:
+        newProp = QgsProperty.fromField(field)
+    palyr.dataDefinedProperties().setProperty(prop, newProp)
+    # palyr.setDataDefinedProperty(prop, active, useExpr, expr, field)
 #===============================================================================
 # 
 #===============================================================================

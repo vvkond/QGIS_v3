@@ -234,7 +234,7 @@ def lonlat_add_list(lon, lat, x, y):
     return geoPt.x(), geoPt.y()
 
 def createLayerName(layerName):
-    layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
+    layerList = QgsProject.instance().mapLayersByName(layerName)
     if len(layerList):
         layerName = layerName + u'  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
     return layerName

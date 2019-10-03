@@ -770,9 +770,9 @@ class DCA():
                 iT=oil.loc[stream.index[0],'Time']
                 eT=oil.loc[stream.index[len(stream)-1],'Time']
                 #Sometimes there are more that 1 record per a time
-                if type(iT) <> np.int64:
+                if type(iT) != np.int64:
                     iT=oil.loc[stream.index[0],'Time'][0]
-                if type(eT) <> np.int64:
+                if type(eT) != np.int64:
                     eT=oil.loc[stream.index[len(stream)-1],'Time'][0]
                 log('iT= ', iT)
                 log('eT=', eT)

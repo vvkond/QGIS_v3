@@ -86,7 +86,7 @@ class QgisPDSCPointsDialog(QDialog, FORM_CLASS):
 #                self.iface.messageBar().pushMessage(self.tr("Error"),
 #                    self.tr(u'Read control points from project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
             if self.layer is not None:
-                QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+                QgsProject.instance().addMapLayer(self.layer)
 
         return
 
