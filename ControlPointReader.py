@@ -83,7 +83,7 @@ class ControlPointReader(ReaderBase):
         palyr.distInMapUnits = True
         palyr.displayAll = True
         palyr.fontSizeInMapUnits = False
-        palyr=layer_to_labeled(palyr)  #---enable EasyLabel            
+        palyr=layer_to_labeled(palyr)  #---enable EasyLabel
         # palyr.setDataDefinedProperty(QgsPalLayerSettings.Size, True, True, '8', '')
         palyr = QgsVectorLayerSimpleLabeling(palyr)
         layer.setLabelsEnabled(True)

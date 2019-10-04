@@ -129,11 +129,22 @@ class ContoursReader(ReaderBase):
         if self.isShowSymbCategrized:
             categories = []
             for ss in uniqSymbols:
-                symbol = QgsSymbolV2.defaultSymbol(layer.geometryType())
-                category = QgsRendererCategoryV2(ss, symbol, ss)
+                symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                category = QgsRendererCategory(ss, symbol, ss)
                 categories.append(category)
-            renderer = QgsCategorizedSymbolRendererV2(self.subsetNameAttr, categories)
-            layer.setRendererV2(renderer)
+            renderer = QgsCategorizedSymbolRenderer(self.subsetNameAttr, categories)
+            layer.setRenderer(renderer)
+        else:
+            try:
+                r = layer.renderer()
+                if len(r.categories()) > 0:
+                    symbol = r.categories()[0].symbol()
+                    r.deleteAllCategories()
+                    for ss in uniqSymbols:
+                        symbol = QgsSymbol.defaultSymbol(layer.geometryType())
+                        r.addCategory(QgsRendererCategory(ss, symbol, ss))
+            except:
+                pass
 
         return layer
 
@@ -165,7 +176,8 @@ class ContoursReader(ReaderBase):
                     continue
 
                 i = 0
-                polyLine = []  
+                polyLine = []
+                polygon = []
                 cPoint = QgsFeature(layer.fields())              
                 for x in xCoords:
                     y = yCoords[i]
@@ -178,12 +190,13 @@ class ContoursReader(ReaderBase):
                     if self.xform:
                         pt = self.xform.transform(pt)
                     polyLine.append(pt)
+                    polygon.append(QgsPointXY(pt.x(), pt.y()))
 
                     i = i + 1
 
                 if len(polyLine):
                     if self.dataType == 1 and not self.dialog.mLoadAsContourCheckBox.isChecked():
-                        cPoint.setGeometry(QgsGeometry.fromPolygon([polyLine]))
+                        cPoint.setGeometry(QgsGeometry.fromPolygonXY([polygon]))
                     else:
                         cPoint.setGeometry(QgsGeometry.fromPolyline(polyLine))
                     

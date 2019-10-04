@@ -253,37 +253,23 @@ def makeShpFileName(scheme='', layerName='', makeUniq = True, ext=".shp"):
     return prjPath + layerFile
 
 def memoryToShp(layer, scheme, layerName):
-    settings = QSettings()
-    systemEncoding = settings.value('/UI/encoding', 'System')
-
     ln = layerName.replace('/', '-').replace('\\', '-').replace('>', '-').replace('<', '-').replace(' ', '')[:MAX_FILE_NAME_SIZE-26]
-    layerFile = u'/{0}_{1}_{2}.shp'.format(scheme, ln, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
+    layerFile = u'{0}_{1}'.format(ln, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
 
     (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
-    if not os.path.exists(prjPath):
-        os.mkdir(prjPath)
 
-    layerFileName = prjPath + layerFile
+    layerFileName = prjPath + u'_{0}.gpkg'.format(scheme)
 
-    provider = layer.dataProvider()
-    fields = provider.fields()
-    writer = QgsVectorFileWriter(layerFileName, systemEncoding,
-                          fields,
-                          provider.wkbType(), provider.crs())
-    features = layer.getFeatures()
-    for f in features:
-        try:
-            l = f.geometry()
-            feat = QgsFeature(f)
-            feat.setGeometry(l)
-            writer.addFeature(feat)
-        except:
-            pass
-
-    del writer
+    options = QgsVectorFileWriter.SaveVectorOptions()
+    if os.path.exists(layerFileName):
+        options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+    options.layerName = layerFile
+    _writer = QgsVectorFileWriter.writeAsVectorFormat(layer, layerFileName, options)
+    if _writer and _writer[0] > 0:
+        QgsMessageLog.logMessage(u"Layer write:{} error: {}".format(layer.name(), _writer), "QgisPDS.error", Qgis.Critical)
 
     layerName = createLayerName(layerName)
-
+    layerFileName = layerFileName+'|layername=' + layerFile
     return QgsVectorLayer(layerFileName, layerName, 'ogr')
 
 def plugin_path():
