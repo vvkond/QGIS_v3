@@ -1,1 +1,1 @@
-pylupdate4 QgisPDS.pro
+pylupdate5 QgisPDS.pro

@@ -184,6 +184,9 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
     def layerType(self):
         return BubbleSymbolLayer.LAYERTYPE
 
+    def bounds(self, point, context):
+        return QRectF(point, QSizeF(1,1))
+
     def properties(self):
         props = { "showLineouts" : 'True' if self.showLineouts else 'False',
                  "showLabels" : 'True' if self.showLabels else 'False',
@@ -330,8 +333,6 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
         for f in self.attrsUsed:
             res.add(f)
 
-        print('UsedAttrs', res)
-
         return res
 
     def renderPoint(self, point, context):
@@ -349,7 +350,7 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
         ctx = context.renderContext()
 
         attrs = feature.attributes()
-        print([attr for attr in feature if attr is not None])
+        # print([attr for attr in feature if attr is not None])
 
         labelTemplate = ''
         diagramms = []
@@ -378,17 +379,18 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
                         newSlices = []
                         for slice in slices:
                             expName = slice['expName']
-                            if self.dataDefinedProperties().hasProperty(expName):
-                                (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0 )
-                                if val != NULL:
-                                    self.DEBUG and QgsMessageLog.logMessage('val={},koef={},scale={} '.format(val, koef, scale), 'BubbleSymbolLayer') #DEBUG                                   
-                                    sum = sum + val
-                                    bc = QgsSymbolLayerUtils.decodeColor(slice['backColor'])
-                                    lc = QgsSymbolLayerUtils.decodeColor(slice['lineColor'])
-                                    newSlice = DiagrammSlice(backColor=bc, lineColor=lc, percent=val)
-                                    newSlices.append(newSlice)
-                            else:
-                                QgsMessageLog.logMessage('No DDF ' + str(expName), 'BubbleSymbolLayer')
+                            val = feature.attribute(slice["expression"])
+                            # if self.dataDefinedProperties().hasProperty(expName):
+                            #     (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0 )
+                            if val and val != NULL:
+                                self.DEBUG and QgsMessageLog.logMessage('val={},koef={},scale={} '.format(val, koef, scale), 'BubbleSymbolLayer') #DEBUG
+                                sum = sum + val
+                                bc = QgsSymbolLayerUtils.decodeColor(slice['backColor'])
+                                lc = QgsSymbolLayerUtils.decodeColor(slice['lineColor'])
+                                newSlice = DiagrammSlice(backColor=bc, lineColor=lc, percent=val)
+                                newSlices.append(newSlice)
+                            # else:
+                            #     QgsMessageLog.logMessage('No DDF ' + str(expName), 'BubbleSymbolLayer')
 
                         if sum != 0.0:
                             ds = 0.0
@@ -508,7 +510,6 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
                     xVal = ctx.convertToPainterUnits(float(attrs[self.mXIndex]), QgsUnitTypes.RenderMillimeters)
                 if attrs[self.mYIndex]:
                     yVal = ctx.convertToPainterUnits(float(attrs[self.mYIndex]), QgsUnitTypes.RenderMillimeters)
-                print(xVal, yVal)
                 widthVal = 10
 
                 #if xVal != 0 or yVal != 0:

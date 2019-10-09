@@ -240,9 +240,11 @@ class QgisPDS:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
-        # locale = QSettings().value('locale/userLocale')[0:2]
-        locale = QSettings().value('locale/userLocale')
-        print(locale)
+        locale = 'ru'
+        try:
+            locale = QSettings().value('locale/userLocale')[0:2]
+        except:
+            pass
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
@@ -258,7 +260,7 @@ class QgisPDS:
 
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&PDS')
+        self.menu = self.tr(u'&PUMA+')
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'QgisPDS')
         self.toolbar.setObjectName(u'QgisPDS')
