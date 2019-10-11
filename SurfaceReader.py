@@ -54,6 +54,11 @@ class SurfaceReader(ReaderBase):
             #---load default style
             if self.styleName is not None:
                 load_style(layer=layer, style_path=os.path.join(plugin_path() ,STYLE_DIR ,self.styleName+".qml"))
+                try:
+                    #Assume QgsSingleBandGrayRenderer
+                    layer.renderer()
+                except:
+                    pass
             
             # if layer.isValid() is True:
             #     layer.setCrs( QgsCoordinateReferenceSystem(4326, QgsCoordinateReferenceSystem.EpsgCrsId) )
@@ -139,6 +144,7 @@ class SurfaceReader(ReaderBase):
                 data = numpy.rot90(data)
                 nodata = 1E+10
                 numpy.minimum(data, nodata, out=data)
+                print(numpy.nanmin(data), numpy.nanmax(data))
                 
                 if self.xform:
                     pt = QgsPoint(min_x, min_y)
