@@ -152,7 +152,7 @@ class QgisPDSWellsBrowserForm(QWidget, FORM_CLASS):
         if id_col is not None:
             id_bckp=self.wellItemModel.id_col
             self.wellItemModel.id_col=id_col
-        for numRow in xrange(self.wellItemProxyModel.rowCount()):
+        for numRow in range(self.wellItemProxyModel.rowCount()):
             index = self.wellItemProxyModel.index(numRow, 0)
             checked = self.wellItemProxyModel.data(index, Qt.CheckStateRole)
             if checked == Qt.Checked:

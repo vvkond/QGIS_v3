@@ -1,5 +1,6 @@
 from __future__ import division
 
+from qgis.core import QgsProject
 import struct
 
 #from pyproj import Proj
@@ -78,7 +79,7 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
                 raise Exception(u"Please convert layer to '{}' projection before save".format(destSrc.projectionAcronym()))
         #--- read LL
         else:
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
     #------------------------------------------------
     elif CRS_FIX_IDX==1: #SHIR. lat/lon entered in Pulkovo_GKZone9N as WGS84_Zone9N and converrted to WGS84. Need convert WGS84->WGS84_Zone9N and read as Pulkovo_GKZone9N X without 9
         #--- read XY 

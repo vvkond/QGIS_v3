@@ -37,7 +37,7 @@ class SurfaceReader(ReaderBase):
     def createLayer(self, layerName, pdsProject, groupSetId, defaultValue):
         layer = None
 
-        fileName, layerName = self.readData(groupSetId,prefix=pdsProject['project'])
+        fileName, layerName, minVal, maxVal = self.readData(groupSetId,prefix=pdsProject['project'])
 
         if fileName is not None:
 #            settings = QSettings()
@@ -56,7 +56,9 @@ class SurfaceReader(ReaderBase):
                 load_style(layer=layer, style_path=os.path.join(plugin_path() ,STYLE_DIR ,self.styleName+".qml"))
                 try:
                     #Assume QgsSingleBandGrayRenderer
-                    layer.renderer()
+                    enh = layer.renderer().contrastEnhancement()
+                    enh.setMinimumValue(minVal)
+                    enh.setMaximumValue(maxVal)
                 except:
                     pass
             
@@ -77,11 +79,13 @@ class SurfaceReader(ReaderBase):
 
 
         self.proj4String = QgisProjectionConfig.get_default_layer_prj_epsg()
+        projectionString = self.proj4String
         try:
             self.tig_projections = TigProjections(db=self.db)
             proj = self.tig_projections.get_projection(self.tig_projections.default_projection_id)
             if proj is not None:
                 self.proj4String = 'PROJ4:'+proj.qgis_string
+                projectionString = proj.qgis_string
                 destSrc = QgsCoordinateReferenceSystem()
                 destSrc.createFromProj4(proj.qgis_string)
                 sourceCrs = None
@@ -144,8 +148,11 @@ class SurfaceReader(ReaderBase):
                 data = numpy.rot90(data)
                 nodata = 1E+10
                 numpy.minimum(data, nodata, out=data)
-                print(numpy.nanmin(data), numpy.nanmax(data))
-                
+
+                masked = numpy.ma.masked_greater_equal(data, nodata-1)
+                minVal = numpy.amin(masked)
+                maxVal = numpy.amax(masked)
+
                 if self.xform:
                     pt = QgsPoint(min_x, min_y)
                     pt = self.xform.transform(pt)
@@ -174,8 +181,9 @@ class SurfaceReader(ReaderBase):
                 output_raster.SetGeoTransform(geotransform)
                 srs = osr.SpatialReference()
                 # srs.ImportFromEPSG(4326)
-                srs.ImportFromProj4(self.proj4String)
+                srs.ImportFromProj4(projectionString)
                 output_raster.SetProjection( srs.ExportToWkt() )
+
 
                 output_raster = None
                 driver = None
@@ -185,4 +193,4 @@ class SurfaceReader(ReaderBase):
             
             #end if
 
-        return fileName, layerName
+        return fileName, layerName, minVal, maxVal

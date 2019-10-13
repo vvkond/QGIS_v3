@@ -18,7 +18,7 @@ from .bblInit import STYLE_DIR, Fields, FieldsWellLayer,\
     FieldsForLabels,\
     set_QgsPalLayerSettings_datadefproperty, layer_to_labeled,\
     setLayerFieldsAliases
-from .utils import plugin_path, load_styles_from_dir, load_style, edit_layer
+from .utils import plugin_path, load_styles_from_dir, load_style, edit_layer, memoryToShp
 
 debuglevel = 4
 
@@ -79,54 +79,60 @@ class QgisPDSWells(QObject):
         layer.commitChanges()
         self.db.disconnect()
 
-        settings = QSettings()
-        systemEncoding = settings.value('/UI/encoding', 'System')
-        scheme = self.project['project']
-        layerFile = '/{0}_wells_{1}.shp'.format(scheme, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
-
-        (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
-        if not os.path.exists(prjPath):
-            os.mkdir(prjPath)
-
-        layerFileName = prjPath + layerFile
-        provider = layer.dataProvider()
-        fields = provider.fields()
-        writer = QgsVectorFileWriter(layerFileName, systemEncoding,
-                              fields,
-                              provider.geometryType(), provider.crs())
-
-        features = layer.getFeatures()
-        for f in features:
-            try:
-                l = f.geometry()
-                feat = QgsFeature(f)
-                feat.setGeometry(l)
-                writer.addFeature(feat)
-            except:
-                pass
-
-        del writer
-
+        # settings = QSettings()
+        # systemEncoding = settings.value('/UI/encoding', 'System')
+        # scheme = self.project['project']
+        # layerFile = '/{0}_wells_{1}.shp'.format(scheme, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
+        #
+        # (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
+        # if not os.path.exists(prjPath):
+        #     os.mkdir(prjPath)
+        #
+        # layerFileName = prjPath + layerFile
+        # provider = layer.dataProvider()
+        # fields = provider.fields()
+        # writer = QgsVectorFileWriter(layerFileName, systemEncoding,
+        #                       fields,
+        #                       provider.geometryType(), provider.crs())
+        #
+        # features = layer.getFeatures()
+        # for f in features:
+        #     try:
+        #         l = f.geometry()
+        #         feat = QgsFeature(f)
+        #         feat.setGeometry(l)
+        #         writer.addFeature(feat)
+        #     except:
+        #         pass
+        #
+        # del writer
+        #
         layerName = 'PDS Wells'
-        layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
-        if len(layerList):
-            layerName = layerName + '  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
+        # layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
+        # if len(layerList):
+        #     layerName = layerName + '  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
+        #
+        # layer = QgsVectorLayer(layerFileName, layerName, 'ogr')
+        # QgsMapLayerRegistry.instance().addMapLayer(layer)
 
-        layer = QgsVectorLayer(layerFileName, layerName, 'ogr')
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
+        layer = memoryToShp(layer, self.project['project'], layerName)
 
         # layer.startEditing()
         layer.setCustomProperty("qgis_pds_type", "pds_wells")
         layer.setCustomProperty("pds_project", str(self.project))
 
         palyr = QgsPalLayerSettings()
-        palyr.readFromLayer(layer)
+        # palyr.readFromLayer(layer)
         palyr.fieldName = Fields.WellId.name
         palyr=layer_to_labeled(palyr)  #---enable EasyLabel
-        palyr.writeToLayer(layer)
+        palyr = QgsVectorLayerSimpleLabeling(palyr)
+        layer.setLabelsEnabled(True)
+        layer.setLabeling(palyr)
 
         # layer.commitChanges()
         setLayerFieldsAliases(layer)
+
+        QgsProject.instance().addMapLayer(layer)
 
         return layer
 
@@ -134,7 +140,7 @@ class QgisPDSWells(QObject):
         if self.project is None:
             QgsMessageLog.logMessage(self.tr(u'No current PDS project'), tag="QgisPDS.error")
             self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'No current PDS project'), level=QgsMessageBar.CRITICAL)
+                self.tr(u'No current PDS project'))
 
             return False
 
@@ -154,8 +160,7 @@ class QgisPDSWells(QObject):
         except Exception as e:
             QgsMessageLog.logMessage(self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e)), tag="QgisPDS.error")
             self.iface.messageBar().pushMessage(self.tr("Error")
-                                                ,self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e))
-                                                ,level=QgsMessageBar.CRITICAL)
+                                                ,self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e)))
             return False
         return True
 
@@ -217,7 +222,7 @@ class QgisPDSWells(QObject):
                 if (filterWellIds is not None) and (wellId not in filterWellIds):
                     continue
                 elif lng and lat and (allWells or wellId in self.wellIdList):
-                    pt = QgsPoint(lng, lat)
+                    pt = QgsPointXY(lng, lat)
                     
                     if self.xform:
                         pt = self.xform.transform(pt)

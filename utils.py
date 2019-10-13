@@ -8,7 +8,7 @@ from qgis.PyQt.QtCore import *
 import numpy
 import time
 # from processing.tools.vector import VectorWriter
-from qgis.core import QgsVectorFileWriter, QgsWkbTypes
+from qgis.core import QgsVectorFileWriter, QgsWkbTypes, QgsProject
 import os
 import json
 import sys
@@ -166,12 +166,16 @@ class edit_layer:
         self.layer=layer
         self.isVisible=False
     def __enter__(self):
-        self.isVisible= iface.legendInterface().isLayerVisible(self.layer)
-        iface.legendInterface().setLayerVisible(self.layer, False)
+        node = QgsProject.instance().layerTreeRoot().findLayer(self.layer)
+        if node:
+            self.isVisible = node.isItemVisibilityCheckedRecursive()
+            node.setItemVisibilityChecked(False)
         start_edit_layer(self.layer)
     def __exit__(self, type, value, traceback):
         stop_edit_layer(self.layer)
-        iface.legendInterface().setLayerVisible(self.layer, self.isVisible)        
+        node = QgsProject.instance().layerTreeRoot().findLayer(self.layer)
+        if node:
+            node.setItemVisibilityChecked(self.isVisible)
 
 
 def load_styles_from_dir(layer,styles_dir,switchActiveStyle=True):

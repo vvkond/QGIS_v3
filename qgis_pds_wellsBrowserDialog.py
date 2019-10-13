@@ -34,7 +34,7 @@ class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
     def initDb(self):
         if self.project is None:
             self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'No current PDS project'), level=QgsMessageBar.CRITICAL)
+                self.tr(u'No current PDS project'))
 
             return False
 
@@ -54,8 +54,7 @@ class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
         except Exception as e:
             self.iface.messageBar().pushMessage(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                    scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                    scheme, str(e)))
             return False
         return True
 

@@ -320,7 +320,6 @@ class QgisPDS:
 
     def disconnectFromLayers(self):
         layers = QgsProject.instance().mapLayers().values()
-        print(layers)
 
         for layer in layers:
             if not layer.type() == 0:
@@ -1162,21 +1161,21 @@ class QgisPDS:
       
 
     def createWellLayer(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load wells'))
-                return
-    
-            dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
-            if dlg.exec_():
-                wells = QgisPDSWells(self.iface, self.currentProject ,styleName=WELL_STYLE,styleUserDir=USER_WELL_STYLE_DIR  )
-                wells.setWellList(dlg.getWellIds())
-                layer = wells.createWellLayer()
-                if layer is not None:
-                    layer.attributeValueChanged.connect(self.pdsLayerModified)
-            del dlg
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load wells'))
+            return
+
+        dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
+        if dlg.exec_():
+            wells = QgisPDSWells(self.iface, self.currentProject ,styleName=WELL_STYLE,styleUserDir=USER_WELL_STYLE_DIR  )
+            wells.setWellList(dlg.getWellIds())
+            layer = wells.createWellLayer()
+            if layer is not None:
+                layer.attributeValueChanged.connect(self.pdsLayerModified)
+        del dlg
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
 
 
     def createWellDeviationLayer(self):
