@@ -5,8 +5,8 @@ import os
 from qgis.gui         import QgsMessageBar
 from qgis.PyQt.QtCore import *
 
-from PyQt5 import QtWidgets, QtGui, uic
-from PyQt5.QtWidgets import *
+from qgis.PyQt import QtWidgets, QtGui, uic
+from qgis.PyQt.QtWidgets import *
 from qgis.PyQt.QtGui import *
 from collections import namedtuple
 
@@ -170,11 +170,12 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             for reservoir_part_code,order_num in reservoirs:
                 reservoirName = to_unicode("".join(reservoir_part_code))
                 self.reservoirs.append(NAMES(name=reservoirName, selected=True))
-                item = QtGui.QListWidgetItem(reservoirName)
+                item = QListWidgetItem(reservoirName)
                 isSelected = item.text() in self.mSelectedReservoirs
                 if self.reservoirsListWidget.isEnabled():
                     self.reservoirsListWidget.addItem(item)
-                    self.reservoirsListWidget.setItemSelected(item, isSelected)
+                    item.setSelected(isSelected)
+                    # self.reservoirsListWidget.setItemSelected(item, isSelected)
                 elif isSelected:
                     self.reservoirsListWidget.addItem(item)
 

@@ -126,7 +126,7 @@ class WithQtProgressBar():
         self.progress.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
         self.progress.setMaximum(maximum)
         self.progressMessageBar.layout().addWidget(self.progress)
-        self.iface.messageBar().pushWidget(self.progressMessageBar, self.iface.messageBar().INFO)
+        self.iface.messageBar().pushWidget(self.progressMessageBar, Qgis.Info)
         QCoreApplication.processEvents();time.sleep(0.02)        
         return self.progress
     def __del__(self):

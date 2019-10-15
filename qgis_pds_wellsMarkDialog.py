@@ -6,6 +6,7 @@ from qgis.core import *
 #from qgis.gui import QgsFieldExpressionWidget,QgsColorButtonV2
 # from PyQt5 import QtGui, uic
 from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtGui import *
 from qgis.PyQt import uic
 
 from QgisPDS.connections import create_connection
@@ -89,6 +90,10 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
         #--- check enabled widgets
         fields_info=[field_info for field_info in self.fields_info if field_info[4].isEnabled()]
         #QgsMessageLog.logMessage(u"Marks :{}".format(str(field_info)), tag="QgisPDS.markWells")
+
+        saveLabelField = None
+        if self.layer.labeling() and self.layer.labeling().settings():
+            saveLabelField = self.layer.labeling().settings().fieldName
         
         pr = self.layer.dataProvider()
         #---1 clear column if need
@@ -101,6 +106,7 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
                     f_ids.append(field_index)
             pr.deleteAttributes(f_ids)            
             self.layer.updateFields() # tell the vector layer to fetch changes from the provider
+
         #---2 create columns if need
         for field_info in fields_info:
             f_name=   field_info[0]
@@ -112,8 +118,9 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
                 self.layer.updateFields() # tell the vector layer to fetch changes from the provider
                 field_index = self.layer.fields().indexFromName(f_name)
             if e_widget is not None:
-                self.layer.editFormConfig().setWidgetType(field_index, e_widget) #set editorWidget directly to layer
-        self.layer.updateFields() # tell the vector layer to fetch changes from the provider                
+                self.layer.setEditorWidgetSetup(field_index, QgsEditorWidgetSetup(e_widget, {}))
+        self.layer.updateFields() # tell the vector layer to fetch changes from the provider
+
         #---3 set values
         f_ids=[]
         for field_info in fields_info:
@@ -129,7 +136,7 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
             feature_filter=None
             if self.isNeedFilterWellIds:
                 expr_str='\"{0}\" in (\'{1}\')'.format(Fields.WellId.name,"','".join(self.filterWellNames))
-                QgsMessageLog.logMessage(u"Expr:{}".format(expr_str), tag="QgisPDS.markWells")
+                QgsMessageLog.logMessage(u"Expr:{}".format(expr_str), "QgisPDS.markWells", Qgis.Info)
                 expr = QgsExpression(expr_str)        #--- search in layer record with that WELL_ID
                 feature_filter=QgsFeatureRequest(expr)
             for feature in (self.layer.getFeatures() if feature_filter is None else self.layer.getFeatures(feature_filter)):
@@ -146,12 +153,12 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
                     self.layer.changeAttributeValue(r_id, f_id, res)
             #self.layer.updateFeature(feature)
             self.layer.commitChanges()
+
         #---4 add rendering rules
         if self.chkBoxAddDrawRule.isChecked():
             palyr = QgsPalLayerSettings()
-            palyr.readFromLayer(self.layer)
             palyr.enabled = True
-            #palyr.fieldName = Fields.WellId.name
+            palyr.fieldName = saveLabelField
             palyr.placement= QgsPalLayerSettings.OverPoint
             palyr.quadOffset = QgsPalLayerSettings.QuadrantAboveRight
             palyr.labelOffsetInMapUnits = False
@@ -159,10 +166,14 @@ class QgisPDSWellsMarkDialog(QDialog, FORM_CLASS):
             palyr.displayAll = True
             palyr.fontSizeInMapUnits = False
             palyr=layer_to_labeled(palyr)  #---enable EasyLabel
-            palyr.writeToLayer(self.layer)            
+            palyr = QgsVectorLayerSimpleLabeling(palyr)
+            self.layer.setLabelsEnabled(True)
+            self.layer.setLabeling(palyr)
+
+        self.iface.mapCanvas().refreshAllLayers()
 
 
-    #===============================================================================
+        #===============================================================================
     # from PyQt5.QtGui import *
     # from PyQt5.QtCore import *
     # pr=l.dataProvider()

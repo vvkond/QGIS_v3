@@ -79,42 +79,7 @@ class QgisPDSWells(QObject):
         layer.commitChanges()
         self.db.disconnect()
 
-        # settings = QSettings()
-        # systemEncoding = settings.value('/UI/encoding', 'System')
-        # scheme = self.project['project']
-        # layerFile = '/{0}_wells_{1}.shp'.format(scheme, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
-        #
-        # (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
-        # if not os.path.exists(prjPath):
-        #     os.mkdir(prjPath)
-        #
-        # layerFileName = prjPath + layerFile
-        # provider = layer.dataProvider()
-        # fields = provider.fields()
-        # writer = QgsVectorFileWriter(layerFileName, systemEncoding,
-        #                       fields,
-        #                       provider.geometryType(), provider.crs())
-        #
-        # features = layer.getFeatures()
-        # for f in features:
-        #     try:
-        #         l = f.geometry()
-        #         feat = QgsFeature(f)
-        #         feat.setGeometry(l)
-        #         writer.addFeature(feat)
-        #     except:
-        #         pass
-        #
-        # del writer
-        #
         layerName = 'PDS Wells'
-        # layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
-        # if len(layerList):
-        #     layerName = layerName + '  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
-        #
-        # layer = QgsVectorLayer(layerFileName, layerName, 'ogr')
-        # QgsMapLayerRegistry.instance().addMapLayer(layer)
-
         layer = memoryToShp(layer, self.project['project'], layerName)
 
         # layer.startEditing()

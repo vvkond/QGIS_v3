@@ -72,7 +72,7 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
         #---  save XY /save LL
         elif isSave:
             if sourceCrs.projectionAcronym()==destSrc.projectionAcronym():
-                return QgsCoordinateTransform(sourceCrs ,destSrc)
+                return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
             else:
                 QgsMessageLog.logMessage(u"Please convert layer to '{}' projection before save".format(destSrc.projectionAcronym()), tag="QgisPDS.error")
                 QgsMessageLog.logMessage(u"Warning!!!!.Need realized check of destSrc ellipsoid and conversion of data to it. For example to 'layer crs'->PulkovoGK9N->_qgis_", tag="QgisPDS.error")
@@ -91,7 +91,7 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             sourceCrs=QgsCoordinateReferenceSystem(WGS84)
             destSrc=QgsCoordinateReferenceSystem(WGS84_UTM_ZONE9N)
             QgsMessageLog.logMessage(u"changed to source->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
         #---no need conversion
         elif sourceCrs==destSrc:
             return None
@@ -103,7 +103,7 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             sourceCrs=QgsCoordinateReferenceSystem(WGS84_UTM_ZONE9N)
             destSrc=QgsCoordinateReferenceSystem(WGS84)
             QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
         #---save mapset. Need convert to Pulkovo9N and then save as PDS projection!!!!!!
         elif isSave and not toLL:
             # destSrc.srsid()==QgsCoordinateReferenceSystem(QgisProjectionConfig.get_default_latlon_prj_epsg()).srsid():
@@ -115,9 +115,9 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             class fake_transform():
                 def __init__(self):
                     QgsMessageLog.logMessage(u"source->dest crs {0}: {1}".format(sourceCrs_1.srsid(),destSrc_2.srsid()), tag="QgisPDS.debug")
-                    self.trans1=QgsCoordinateTransform(sourceCrs_1 ,destSrc_1)
+                    self.trans1=QgsCoordinateTransform(sourceCrs_1 ,destSrc_1, QgsProject.instance())
                     QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs_1.srsid(),destSrc_1.srsid()), tag="QgisPDS.debug")
-                    self.trans2=QgsCoordinateTransform(sourceCrs_2 ,destSrc_2)
+                    self.trans2=QgsCoordinateTransform(sourceCrs_2 ,destSrc_2, QgsProject.instance())
                     QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs_2.srsid(),destSrc_2.srsid()), tag="QgisPDS.debug")
                     pass
                 def transform(self,geom):
@@ -133,27 +133,27 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             sourceCrs=QgsCoordinateReferenceSystem(WGS84_UTM_ZONE9N)
             destSrc=destSrc
             QgsMessageLog.logMessage(u"changed to source->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
         #---save mapset
         elif isSave and not toLL:
             QgsMessageLog.logMessage(u"Save:\nsource->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
             sourceCrs=sourceCrs
             destSrc=QgsCoordinateReferenceSystem(WGS84_UTM_ZONE9N)
             QgsMessageLog.logMessage(u"changed to source->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
         #---save LL
         elif isSave and toLL:
             raise "Not realized yet"
             sourceCrs=QgsCoordinateReferenceSystem(WGS84_UTM_ZONE9N)
             destSrc=QgsCoordinateReferenceSystem(WGS84)
             QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs.srsid(),destSrc.srsid()), tag="QgisPDS.debug")
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
         #---no need conversion
         elif sourceCrs==destSrc:
             return None
         #---read LL
         else:
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
     #------------------------------------------------
     elif CRS_FIX_IDX==3: #KARAS
         #--- read XY  or source=dest
@@ -168,9 +168,9 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             class fake_transform():
                 def __init__(self):
                     QgsMessageLog.logMessage(u"source->dest crs {0}: {1}".format(sourceCrs_1.srsid(),destSrc_2.srsid()), tag="QgisPDS.debug")
-                    self.trans1=QgsCoordinateTransform(sourceCrs_1 ,destSrc_1)
+                    self.trans1=QgsCoordinateTransform(sourceCrs_1 ,destSrc_1, QgsProject.instance())
                     QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs_1.srsid(),destSrc_1.srsid()), tag="QgisPDS.debug")
-                    self.trans2=QgsCoordinateTransform(sourceCrs_2 ,destSrc_2)
+                    self.trans2=QgsCoordinateTransform(sourceCrs_2 ,destSrc_2, QgsProject.instance())
                     QgsMessageLog.logMessage(u"Save:\nchanged to source->dest crs {0}: {1}".format(sourceCrs_2.srsid(),destSrc_2.srsid()), tag="QgisPDS.debug")
                     pass
                 def transform(self,geom):
@@ -178,7 +178,7 @@ def get_qgis_crs_transform(sourceCrs,destSrc,CRS_FIX_IDX=0,isSave=False,toLL=Fal
             return fake_transform()
         #--- read LL
         else:
-            return QgsCoordinateTransform(sourceCrs ,destSrc)
+            return QgsCoordinateTransform(sourceCrs ,destSrc, QgsProject.instance())
     
     else:
         return None    

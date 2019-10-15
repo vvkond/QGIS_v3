@@ -244,7 +244,7 @@ class QgisPDSWellsBrowserForm(QWidget, FORM_CLASS):
     @pyqtSlot()
     def on_mSaveWellList_clicked(self):
         well_ids = []
-        for numRow in xrange(self.wellItemProxyModel.rowCount()):
+        for numRow in range(self.wellItemProxyModel.rowCount()):
             index = self.wellItemProxyModel.index(numRow, 0)
             checked = self.wellItemProxyModel.data(index, Qt.CheckStateRole)
             if checked == Qt.Checked:

@@ -8,14 +8,14 @@ from PyQt5.QtGui import *
 from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
-from QgisPDS.utils import to_unicode
+from QgisPDS.utils import to_unicode, memoryToShp
 from .tig_projection import *
 import numpy
 import ast
 import os
 import time
 
-from .bblInit import STYLE_DIR, Fields
+from .bblInit import STYLE_DIR, Fields, layer_to_labeled
 from .utils import load_styles_from_dir, load_style, plugin_path, edit_layer,\
     WithQtProgressBar
 
@@ -62,8 +62,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
 
     def initDb(self):
         if self.project is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'No current PDS project'), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr(u'No current PDS project'))
 
             return False
 
@@ -83,8 +82,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
         except Exception as e:
             self.iface.messageBar().pushMessage(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                    scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                    scheme, str(e)))
             return False
         return True
 
@@ -131,67 +129,67 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
         self.layer.commitChanges()
         self.db.disconnect()
 
-        settings = QSettings()
-        systemEncoding = settings.value('/UI/encoding', 'System')
-        scheme = self.project['project']
-        layerFile = '/{0}_deviations_{1}.shp'.format(scheme, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
-
-        (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
-        if not os.path.exists(prjPath):
-            os.mkdir(prjPath)
-
-        layerFileName = prjPath + layerFile
-        provider = self.layer.dataProvider()
-        fields = provider.fields()
-        writer = QgsVectorFileWriter(layerFileName, systemEncoding,
-                              fields,
-                              provider.geometryType(), provider.crs())
-
-        features = self.layer.getFeatures()
-        for f in features:
-            try:
-                l = f.geometry()
-                feat = QgsFeature(f)
-                feat.setGeometry(l)
-                writer.addFeature(feat)
-            except:
-                pass
-
-        del writer
+        # settings = QSettings()
+        # systemEncoding = settings.value('/UI/encoding', 'System')
+        # scheme = self.project['project']
+        # layerFile = '/{0}_deviations_{1}.shp'.format(scheme, time.strftime('%d_%m_%Y_%H_%M_%S', time.localtime()))
+        #
+        # (prjPath, prjExt) = os.path.splitext(QgsProject.instance().fileName())
+        # if not os.path.exists(prjPath):
+        #     os.mkdir(prjPath)
+        #
+        # layerFileName = prjPath + layerFile
+        # provider = self.layer.dataProvider()
+        # fields = provider.fields()
+        # writer = QgsVectorFileWriter(layerFileName, systemEncoding,
+        #                       fields,
+        #                       provider.geometryType(), provider.crs())
+        #
+        # features = self.layer.getFeatures()
+        # for f in features:
+        #     try:
+        #         l = f.geometry()
+        #         feat = QgsFeature(f)
+        #         feat.setGeometry(l)
+        #         writer.addFeature(feat)
+        #     except:
+        #         pass
+        #
+        # del writer
 
         layerName = 'Well deviations'
-        layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
-        if len(layerList):
-            layerName = layerName + '  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
+        # layerList = QgsMapLayerRegistry.instance().mapLayersByName(layerName)
+        # if len(layerList):
+        #     layerName = layerName + '  ' + time.strftime('%d-%m-%Y %H:%M:%S', time.localtime())
+        #
+        # #Register layer
+        # self.layer = QgsVectorLayer(layerFileName, layerName, 'ogr')
 
-        #Register layer
-        self.layer = QgsVectorLayer(layerFileName, layerName, 'ogr')
-        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        self.layer = memoryToShp(self.layer, self.project['project'], layerName)
+        QgsProject.instance().addMapLayer(self.layer)
 
         self.layer.setCustomProperty("qgis_pds_type", "pds_well_deviations")
         self.layer.setCustomProperty("pds_project", str(self.project))
 
         #Set default style
         palyr = QgsPalLayerSettings()
-        palyr.readFromLayer(self.layer)
         palyr.enabled = True
         palyr.fieldName = self.attrWellId
-        palyr.setDataDefinedProperty(QgsPalLayerSettings.Size, True, True, '8', '')
-        palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionX, True, False, '', self.attrLablX)
-        palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionY, True, False, '', self.attrLablY)
-        palyr.writeToLayer(self.layer)
+        palyr = layer_to_labeled(palyr)
+        palyr = QgsVectorLayerSimpleLabeling(palyr)
+        self.layer.setLabelsEnabled(True)
+        self.layer.setLabeling(palyr)
 
-
-        line = QgsSymbolV2.defaultSymbol(self.layer.geometryType())
+        line = QgsSymbol.defaultSymbol(self.layer.geometryType())
 
         # Create an marker line.
-        marker_line = QgsMarkerLineSymbolLayerV2()
-        marker_line.setPlacement(QgsMarkerLineSymbolLayerV2.LastVertex)
+        marker_line = QgsMarkerLineSymbolLayer()
+        marker_line.setPlacement(QgsMarkerLineSymbolLayer.LastVertex)
         line.appendSymbolLayer(marker_line)
 
         # Add the style to the line layer.
-        renderer = QgsSingleSymbolRendererV2(line)
-        self.layer.setRendererV2(renderer)
+        renderer = QgsSingleSymbolRenderer(line)
+        self.layer.setRenderer(renderer)
 
         #---load user styles
         if self.styleUserDir is not None:
@@ -268,18 +266,18 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
                 if (filterWellIds is not None) and (wellId not in filterWellIds):
                     continue
                 elif lng and lat and (allWells or wellId in self.wellIdList):
-                    pt = QgsPoint(lng, lat)
+                    pt = QgsPointXY(lng, lat)
 
                     if self.xform:
                         pt = self.xform.transform(pt)
 
                     startX = pt.x()
                     startY = pt.y()
-                    polyLine = [pt]
+                    polyLine = [QgsPoint(startX, startY)]
 
                     blob_x = numpy.frombuffer(self.db.blobToString(row[21]), '>f').astype('d')
                     blob_y = numpy.frombuffer(self.db.blobToString(row[22]), '>f').astype('d')
-                    for ip in xrange(len(blob_x)):
+                    for ip in range(len(blob_x)):
                         dx = blob_x[ip]
                         dy = blob_y[ip]
                         pt = QgsPoint(startX+dx, startY+dy)

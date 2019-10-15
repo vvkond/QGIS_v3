@@ -978,37 +978,34 @@ class QgisPDS:
                 if dlg.getLayer() is not None:
                     dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
         except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+            QgsMessageLog.logMessage(u"{}".format(str(e)), "QgisPDS.error", Qgis.Critical)
                     
 
     def createFondlayer(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
-                return
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Сохраните проект перед загрузкой'))
+            return
+        currentLayer = self.iface.activeLayer()
+        dlg = QgisPDSProductionDialog(self.currentProject, self.iface, isOnlyFond=True)
+        if dlg.isInitialised():
+            result = dlg.exec_()
+            if dlg.getLayer() is not None:
+                dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
+        if self.iface.activeLayer()!=currentLayer:
             currentLayer = self.iface.activeLayer()
-            dlg = QgisPDSProductionDialog(self.currentProject, self.iface, isOnlyFond=True)
-            if dlg.isInitialised():
-                result = dlg.exec_()
-                if dlg.getLayer() is not None:
-                    dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
-            if self.iface.activeLayer()!=currentLayer:
-                currentLayer = self.iface.activeLayer()
-                if currentLayer is None:
-                    return
-                #--- zonation move
-                dlg  = QgisPDSCoordFromZoneDialog(self.currentProject, self.iface, currentLayer)
-                dlg.exec_()
-        
-                #---transite
-                dlg = QgisPDSTransitionsDialog(self.currentProject, self.iface, currentLayer, allow_split_layer=False)
-                dlg.exec_()
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+            if currentLayer is None:
+                return
+            #--- zonation move
+            dlg  = QgisPDSCoordFromZoneDialog(self.currentProject, self.iface, currentLayer)
+            dlg.exec_()
+
+            #---transite
+            dlg = QgisPDSTransitionsDialog(self.currentProject, self.iface, currentLayer, allow_split_layer=False)
+            dlg.exec_()
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
                 
-        
-
-
 
     def loadPressure(self):
         try:
@@ -1127,37 +1124,36 @@ class QgisPDS:
             
     
     def markLayers(self):
-        try:
-            for currentLayer in self.iface.legendInterface().selectedLayers():
-                self.markWells(currentLayer)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        for currentLayer in self.iface.layerTreeView().selectedLayers():
+            self.markWells(currentLayer)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
 
         
     def markWells(self,currentLayer=None):
-        try:
-            if currentLayer is None or (not isinstance(currentLayer,QgsMapLayer))  :  currentLayer = self.iface.activeLayer()
-            if currentLayer.type() != QgsMapLayer.VectorLayer:
-                return
-            pr = currentLayer.dataProvider()
-    
-            projStr = currentLayer.customProperty("pds_project", str(self.currentProject))
-            proj = ast.literal_eval(projStr)
-    
-            currentLayer.blockSignals(True)
-            filter_str=currentLayer.subsetString()
-            currentLayer.setSubsetString(None)
-            
-            layerWellNames,_=currentLayer.getValues(Fields.WellId.name)
-            
-            dlg = QgisPDSWellsMarkDialog(self.iface, self.currentProject, layer=currentLayer ,  checkedWellIds=layerWellNames, checkedWellIdsColumn=1, markedWellIds=layerWellNames)
-            if dlg.exec_():
-                pass
-            del dlg
-            currentLayer.setSubsetString(filter_str)
-            currentLayer.blockSignals(False)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        if currentLayer is None or (not isinstance(currentLayer,QgsMapLayer))  :  currentLayer = self.iface.activeLayer()
+        if currentLayer.type() != QgsMapLayer.VectorLayer:
+            return
+        pr = currentLayer.dataProvider()
+
+        projStr = currentLayer.customProperty("pds_project", str(self.currentProject))
+        proj = ast.literal_eval(projStr)
+
+        currentLayer.blockSignals(True)
+        filter_str=currentLayer.subsetString()
+        currentLayer.setSubsetString(None)
+
+        layerWellNames,_=QgsVectorLayerUtils.getValues(currentLayer, Fields.WellId.name)
+        dlg = QgisPDSWellsMarkDialog(self.iface, self.currentProject, layer=currentLayer ,  checkedWellIds=layerWellNames, checkedWellIdsColumn=1, markedWellIds=layerWellNames)
+        if dlg.exec_():
+            pass
+        del dlg
+        currentLayer.setSubsetString(filter_str)
+        currentLayer.blockSignals(False)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
       
 
     def createWellLayer(self):
@@ -1179,21 +1175,21 @@ class QgisPDS:
 
 
     def createWellDeviationLayer(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
-                return
-    
-            dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
-            if dlg.exec_():
-                wells = QgisPDSDeviation(self.iface, self.currentProject ,styleName=DEVI_STYLE,styleUserDir=USER_DEVI_STYLE_DIR  )
-                wells.setWellList(dlg.getWellIds())
-                layer = wells.createWellLayer()
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
+            return
+
+        dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
+        if dlg.exec_():
+            wells = QgisPDSDeviation(self.iface, self.currentProject ,styleName=DEVI_STYLE,styleUserDir=USER_DEVI_STYLE_DIR  )
+            wells.setWellList(dlg.getWellIds())
+            layer = wells.createWellLayer()
 
             # if layer is not None:
             #     layer.attributeValueChanged.connect(self.pdsLayerModified)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
             
 
         
