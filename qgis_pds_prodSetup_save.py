@@ -342,8 +342,8 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
 
         editLayer.startEditing()
 
-        idxOffX = editLayerProvider.fieldNameIndex('LablOffX')
-        idxOffY = editLayerProvider.fieldNameIndex('LablOffY')
+        idxOffX = editLayerProvider.fields().lookupField('LablOffX')
+        idxOffY = editLayerProvider.fields().lookupField('LablOffY')
         if idxOffX < 0 or idxOffY < 0:
             editLayerProvider.addAttributes(
                 [QgsField("LablOffX", QVariant.Double),

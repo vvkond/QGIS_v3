@@ -892,7 +892,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                 zoneStat = QgsZonalStatistics(layer, self.out_raster_path, '', 1, QgsZonalStatistics.Sum)
                 zoneStat.calculateStatistics(None)
                 #--recalculate zoneStat result by multiple it to raster cell size in current map unit!!!!
-                sum_col=layer.fieldNameIndex('sum')
+                sum_col=layer.fields().lookupField('sum')
                 layer.startEditing()
                 for feature in layer.getFeatures():
                     feature['sum']

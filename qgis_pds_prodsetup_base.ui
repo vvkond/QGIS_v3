@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
-    <height>597</height>
+    <width>1107</width>
+    <height>697</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>1080</width>
-        <height>531</height>
+        <width>1087</width>
+        <height>648</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
@@ -105,47 +105,43 @@
          <property name="checked">
           <bool>false</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout">
-            <item>
-             <widget class="QRadioButton" name="isUpdateExistDiagram">
-              <property name="text">
-               <string>Обновить текущие диаграммы</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="isUseDefaultStyle">
-              <property name="text">
-               <string>Использовать стиль по умолчанию</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="isAppendToStyle">
-              <property name="text">
-               <string>Добавить к текущему стилю</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="isAppendToEachLastSymbol">
-              <property name="text">
-               <string>Добавить ко всем последним символам текущего стиля</string>
-              </property>
-              <property name="checked">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QRadioButton" name="isUpdateExistDiagram">
+            <property name="text">
+             <string>Обновить текущие диаграммы</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="isUseDefaultStyle">
+            <property name="text">
+             <string>Использовать стиль по умолчанию</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="isAppendToStyle">
+            <property name="text">
+             <string>Добавить к текущему стилю</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="isAppendToEachLastSymbol">
+            <property name="text">
+             <string>Добавить ко всем последним символам текущего стиля</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -250,7 +246,7 @@
             <property name="frameShadow">
              <enum>QFrame::Raised</enum>
             </property>
-            <layout class="QGridLayout" name="fluidGridLayout" rowstretch="0,0,0,0">
+            <layout class="QGridLayout" name="fluidGridLayout" rowstretch="0,0,0,0" columnstretch="0,1">
              <item row="1" column="0">
               <widget class="QLabel" name="label_7">
                <property name="text">
@@ -270,7 +266,7 @@
                <property name="title">
                 <string>Подписи</string>
                </property>
-               <layout class="QGridLayout" name="labelGridLayout">
+               <layout class="QGridLayout" name="labelGridLayout" columnstretch="0,1">
                 <property name="leftMargin">
                  <number>9</number>
                 </property>
@@ -289,7 +285,7 @@
                    <double>1.000000000000000</double>
                   </property>
                   <property name="value">
-                   <double>100.000000000000000</double>
+                   <double>7.000000000000000</double>
                   </property>
                  </widget>
                 </item>
@@ -384,6 +380,9 @@
                   </property>
                  </widget>
                 </item>
+                <item row="0" column="1">
+                 <widget class="QgsColorButton" name="labelColorEdit"/>
+                </item>
                </layout>
               </widget>
              </item>
@@ -399,6 +398,12 @@
                 </size>
                </property>
               </spacer>
+             </item>
+             <item row="0" column="1">
+              <widget class="QgsColorButton" name="backColorEdit"/>
+             </item>
+             <item row="1" column="1">
+              <widget class="QgsColorButton" name="lineColorEdit"/>
              </item>
             </layout>
            </widget>
@@ -688,6 +693,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QgsColorButton</class>
+   <extends>QToolButton</extends>
+   <header>qgscolorbutton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

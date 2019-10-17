@@ -69,7 +69,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
     @property
     def db(self):
         if self._db is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)            
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
         else:
             return self._db
     @db.setter
@@ -112,7 +112,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.project = project
         
         if self.project is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
             return
         else:
             self.setWindowTitle(self.windowTitle() + ' - ' + self.tr(u'project: {0}').format(self.project['project']))
@@ -370,11 +370,13 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         #---
 #         self.iface.mainWindow().statusBar().showMessage("Processed {} %".format(int(0)))
 #         self.iface.mainWindow().statusBar().clearMessage()        
-        #---        
+        #---
+        self.createProductionLayer()
         try:
-            self.createProductionLayer()
+            # self.createProductionLayer()
+            pass
         except Exception as e:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), str(e), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), str(e), QMessageBox.Ok)
         self.iface.messageBar().clearWidgets()
         #---
         
@@ -490,7 +492,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             #layerName=u"kurovdag_m2_Cumulative production - PS01_zeh3,AP02_2_z2,Iob-AP02_z1, PS01_z2,IIa-AP02_z1,PS02z1,IIb-AP02_z1,IIb1-AP02_z1,IIc-AP02_z1,IIc1-AP02_z1,IIc2_AP02_z1,IIc3-AP02_z1,IIc4-AP02_z1,IId-AP02_z1,IIe-AP02_z1,IIob12.shp"
             self.layer = QgsVectorLayer(self.uri, layerName, "memory")
             if self.layer is None:
-                QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Layer create error'), QtGui.QMessageBox.Ok)
+                QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Layer create error'), QMessageBox.Ok)
                 return
             self.layer = memoryToShp(self.layer, self.project['project'], layerName)
             if self.isFondLayer:
@@ -502,24 +504,9 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             self.layer.setCustomProperty("pds_project",                 str(self.project)                      )
             self.layer.setCustomProperty("pds_prod_SelectedReservoirs", str(self.mSelectedReservoirs)          )
             self.layer.setCustomProperty("pds_prod_PhaseFilter",        str(self.mPhaseFilter)                 )
-            
 
-            # symbolList = self.layer.rendererV2().symbols()
-            # symbol = QgsSymbolV2.defaultSymbol(self.layer.geometryType())
-
-            registry = QgsSymbolLayerV2Registry.instance()
-            
-            # marker = QgsMarkerSymbolV2()
-            #
-            # bubbleMeta = registry.symbolLayerMetadata('BubbleMarker')
-            # if bubbleMeta is not None:
-            #     bubbleLayer = bubbleMeta.createSymbolLayer({})
-            #     marker.changeSymbolLayer(0, bubbleLayer)
-            #     renderer = QgsSingleSymbolRendererV2(marker)
-            #     self.layer.setRendererV2(renderer)
-            
             palyr = QgsPalLayerSettings()
-            palyr.readFromLayer(self.layer)
+            # palyr.readFromLayer(self.layer)
             palyr.enabled = True
             palyr.fieldName = Fields.WellId.name
             palyr.placement= QgsPalLayerSettings.OverPoint
@@ -535,7 +522,10 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             #palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionY,True,False,'', Fields.lably.name)
             #palyr.setDataDefinedProperty(QgsPalLayerSettings.OffsetXY, True, True, 'format(\'%1,%2\', "labloffx" , "labloffy")', '')
 
-            palyr.writeToLayer(self.layer)
+            # palyr.writeToLayer(self.layer)
+            palyr = QgsVectorLayerSimpleLabeling(palyr)
+            self.layer.setLabelsEnabled(True)
+            self.layer.setLabeling(palyr)
             
             if self.isFondLayer:
                 if self.fondLoadConfig.isWell:
@@ -578,7 +568,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                                  , fondStartDate= self.fondStartDate, fondEndDate=self.fondEndDate
                                  , reservoirs=    self.mSelectedReservoirs
                                   )
-        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        QgsProject.instance().addMapLayer(self.layer)
         bblInit.setAliases(self.layer)
         setLayerFieldsAliases(self.layer,force=True)
         
@@ -611,7 +601,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         # self.project = ast.literal_eval(prjStr)
 
         if self.project is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
             return
         else:
             pass
@@ -701,7 +691,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.mPhaseFilterText = ""
         
         if len(self.mSelectedReservoirs) < 1:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'), QMessageBox.Ok)
             return
     
         self.productions = self.layer.dataProvider()     
@@ -720,7 +710,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         IS_DEBUG and QgsMessageLog.logMessage(u"bubble calculated in  in {}".format((time.time() - time_start)/60), tag="QgisPDS.readProduction");time_start=time.time()
         
         #--- READ NON PRODUCTION WELLS(NOT SELECTED)
-        liftMethodIdx = self.layer.fieldNameIndex(Fields.LiftMethod.name)
+        liftMethodIdx = self.layer.fields().lookupField(Fields.LiftMethod.name)
         self._readAllWells()
         IS_DEBUG and QgsMessageLog.logMessage(u"well read in  in {}".format((time.time() - time_start)/60), tag="QgisPDS.readProduction"); time_start=time.time()
 
@@ -736,19 +726,19 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             ############################
             ####### TEST BLOCK
             ############################
-            cDays      =        self.layer.fieldNameIndex(Fields.Days.name             )
-            cSymbol    =        self.layer.fieldNameIndex(Fields.Symbol.name           )
-            cSymbolId  =        self.layer.fieldNameIndex(Fields.SymbolId.name         )
-            cSymbolName=        self.layer.fieldNameIndex(Fields.SymbolName.name       )
-            cResState  =        self.layer.fieldNameIndex(Fields.resstate.name        )
-            cMovingRes =        self.layer.fieldNameIndex(Fields.movingres.name       )
-            cMultiProd =        self.layer.fieldNameIndex(Fields.multiprod.name       )
-            cStartDate =        self.layer.fieldNameIndex(Fields.startDate.name       )
-            cRole      =        self.layer.fieldNameIndex(Fields.WellRole.name         )
-            cStatus    =        self.layer.fieldNameIndex(Fields.WellStatus.name       )
-            cStatusReason    =  self.layer.fieldNameIndex(Fields.WellStatusReason.name )
-            cStatusInfo       = self.layer.fieldNameIndex(Fields.WellStatusInfo.name   )
-            cInitRole  =        self.layer.fieldNameIndex(Fields.WellInitRole.name     )
+            cDays      =        self.layer.fields().lookupField(Fields.Days.name             )
+            cSymbol    =        self.layer.fields().lookupField(Fields.Symbol.name           )
+            cSymbolId  =        self.layer.fields().lookupField(Fields.SymbolId.name         )
+            cSymbolName=        self.layer.fields().lookupField(Fields.SymbolName.name       )
+            cResState  =        self.layer.fields().lookupField(Fields.resstate.name        )
+            cMovingRes =        self.layer.fields().lookupField(Fields.movingres.name       )
+            cMultiProd =        self.layer.fields().lookupField(Fields.multiprod.name       )
+            cStartDate =        self.layer.fields().lookupField(Fields.startDate.name       )
+            cRole      =        self.layer.fields().lookupField(Fields.WellRole.name         )
+            cStatus    =        self.layer.fields().lookupField(Fields.WellStatus.name       )
+            cStatusReason    =  self.layer.fields().lookupField(Fields.WellStatusReason.name )
+            cStatusInfo       = self.layer.fields().lookupField(Fields.WellStatusInfo.name   )
+            cInitRole  =        self.layer.fields().lookupField(Fields.WellInitRole.name     )
                         
             attr_2_upd=[  ###old column             old_col_id       new_col    
                           [Fields.Days.name             ,cDays             ,  Fields.Days.name              ]
@@ -798,14 +788,14 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                         attrFirstDebitVol    = bblInit.attrFluidFirstDebitVol(    fl.code)
                         attrFirstDebitMass   = bblInit.attrFluidFirstDebitMass(   fl.code)
                         
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMass),             feature.attribute(attrMass)            )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrVol),              feature.attribute(attrVol)             )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMaxDebitMass),     feature.attribute(attrMaxDebitMass)    )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMaxDebitVol),      feature.attribute(attrMaxDebitVol)     )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMaxDebitDateMass), feature.attribute(attrMaxDebitDateMass))
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMaxDebitDateVol),  feature.attribute(attrMaxDebitDateVol) )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrFirstDebitVol),    feature.attribute(attrFirstDebitVol)   )
-                        self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrFirstDebitMass),   feature.attribute(attrFirstDebitMass)  )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMass),             feature.attribute(attrMass)            )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrVol),              feature.attribute(attrVol)             )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMaxDebitMass),     feature.attribute(attrMaxDebitMass)    )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMaxDebitVol),      feature.attribute(attrMaxDebitVol)     )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMaxDebitDateMass), feature.attribute(attrMaxDebitDateMass))
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMaxDebitDateVol),  feature.attribute(attrMaxDebitDateVol) )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrFirstDebitVol),    feature.attribute(attrFirstDebitVol)   )
+                        self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrFirstDebitMass),   feature.attribute(attrFirstDebitMass)  )
 
                     num +=1
                 #--- add new well if need
@@ -857,8 +847,8 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.mPhaseFilterText = ""
 
         if len(self.mSelectedReservoirs) < 1:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'),
-                                       QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'),
+                                       QMessageBox.Ok)
             return
 
         self.productions = self.layer.dataProvider()
@@ -882,19 +872,19 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             ############################
             ####### TEST BLOCK
             ############################
-            cDays =             self.layer.fieldNameIndex(Fields.Days.name             )
-            cSymbol =           self.layer.fieldNameIndex(Fields.Symbol.name           )
-            cSymbolId =         self.layer.fieldNameIndex(Fields.SymbolId.name         )
-            cSymbolName =       self.layer.fieldNameIndex(Fields.SymbolName.name       )
-            cResState =         self.layer.fieldNameIndex(Fields.resstate.name         )
-            cMovingRes =        self.layer.fieldNameIndex(Fields.movingres.name        )
-            cMultiProd =        self.layer.fieldNameIndex(Fields.multiprod.name        )
-            cStartDate =        self.layer.fieldNameIndex(Fields.startDate.name        )
-            cRole      =        self.layer.fieldNameIndex(Fields.WellRole.name         )
-            cStatus    =        self.layer.fieldNameIndex(Fields.WellStatus.name       )
-            cStatusReason    =  self.layer.fieldNameIndex(Fields.WellStatusReason.name )
-            cStatusInfo       = self.layer.fieldNameIndex(Fields.WellStatusInfo.name   ) 
-            cInitRole  =        self.layer.fieldNameIndex(Fields.WellInitRole.name     )           
+            cDays =             self.layer.fields().lookupField(Fields.Days.name             )
+            cSymbol =           self.layer.fields().lookupField(Fields.Symbol.name           )
+            cSymbolId =         self.layer.fields().lookupField(Fields.SymbolId.name         )
+            cSymbolName =       self.layer.fields().lookupField(Fields.SymbolName.name       )
+            cResState =         self.layer.fields().lookupField(Fields.resstate.name         )
+            cMovingRes =        self.layer.fields().lookupField(Fields.movingres.name        )
+            cMultiProd =        self.layer.fields().lookupField(Fields.multiprod.name        )
+            cStartDate =        self.layer.fields().lookupField(Fields.startDate.name        )
+            cRole      =        self.layer.fields().lookupField(Fields.WellRole.name         )
+            cStatus    =        self.layer.fields().lookupField(Fields.WellStatus.name       )
+            cStatusReason    =  self.layer.fields().lookupField(Fields.WellStatusReason.name )
+            cStatusInfo       = self.layer.fields().lookupField(Fields.WellStatusInfo.name   )
+            cInitRole  =        self.layer.fields().lookupField(Fields.WellInitRole.name     )
             
             attr_2_upd = [  ###old column       old_col_id       new_col
                   [Fields.Days.name             ,cDays             ,  Fields.Days.name              ]
@@ -971,11 +961,11 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                                     attrMass = bblInit.attrFluidMass(fl.code)
                                     attrVol = bblInit.attrFluidVolume(fl.code)
                                     self.layer.changeAttributeValue(f.id()
-                                                                    , self.layer.fieldNameIndex(attrMass)
+                                                                    , self.layer.fields().lookupField(attrMass)
                                                                     , sumMass[fl_id]
                                                                     )
                                     self.layer.changeAttributeValue(f.id()
-                                                                    , self.layer.fieldNameIndex(attrVol)
+                                                                    , self.layer.fields().lookupField(attrVol)
                                                                     , sumVols[fl_id]
                                                                     )
                         self.layer.commitChanges()  # --- commit each row
@@ -1006,9 +996,9 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                                 attrMass = bblInit.attrFluidMass(fl.code)
                                 attrVol = bblInit.attrFluidVolume(fl.code)
                         
-                                self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMass),
+                                self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMass),
                                                                 feature.attribute(attrMass))
-                                self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrVol),
+                                self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrVol),
                                                                 feature.attribute(attrVol))
                         
                             num += 1
@@ -1046,8 +1036,8 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.mPhaseFilterText = ""
 
         if len(self.mSelectedReservoirs) < 1:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'),
-                                       QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Reservoir is not selected'),
+                                       QMessageBox.Ok)
             return
 
         self.productions = self.layer.dataProvider()
@@ -1067,16 +1057,16 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             ############################
             ####### TEST BLOCK
             ############################
-            cDays =       self.layer.fieldNameIndex(  Fields.Days.name      )
-            cSymbol =     self.layer.fieldNameIndex(  Fields.Symbol.name    )
-            cSymbolId =   self.layer.fieldNameIndex(  Fields.SymbolId.name  )
-            cSymbolName = self.layer.fieldNameIndex(  Fields.SymbolName.name)
-            cResState =   self.layer.fieldNameIndex(  Fields.resstate.name )
-            cMovingRes =  self.layer.fieldNameIndex(  Fields.movingres.name)
-            cMultiProd =  self.layer.fieldNameIndex(  Fields.multiprod.name)
-            cStartDate =  self.layer.fieldNameIndex(  Fields.startDate.name)
-            cRole      =  self.layer.fieldNameIndex(  Fields.WellRole.name  )
-            cStatus    =  self.layer.fieldNameIndex(  Fields.WellStatus.name)
+            cDays =       self.layer.fields().lookupField(  Fields.Days.name      )
+            cSymbol =     self.layer.fields().lookupField(  Fields.Symbol.name    )
+            cSymbolId =   self.layer.fields().lookupField(  Fields.SymbolId.name  )
+            cSymbolName = self.layer.fields().lookupField(  Fields.SymbolName.name)
+            cResState =   self.layer.fields().lookupField(  Fields.resstate.name )
+            cMovingRes =  self.layer.fields().lookupField(  Fields.movingres.name)
+            cMultiProd =  self.layer.fields().lookupField(  Fields.multiprod.name)
+            cStartDate =  self.layer.fields().lookupField(  Fields.startDate.name)
+            cRole      =  self.layer.fields().lookupField(  Fields.WellRole.name  )
+            cStatus    =  self.layer.fields().lookupField(  Fields.WellStatus.name)
             attr_2_upd = [  ###old column       old_col_id       new_col
                   [Fields.Days.name,       cDays,       Fields.Days.name        ]
                 , [Fields.Symbol.name,     cSymbol,     Fields.Symbol.name      ]
@@ -1112,9 +1102,9 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                         for fl in bblInit.fluidCodes:  # --- update production attributes
                             attrMass = bblInit.attrFluidMass(   fl.code )
                             attrVol  = bblInit.attrFluidVolume( fl.code )
-                            self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrMass),
+                            self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrMass),
                                                             feature.attribute(attrMass))
-                            self.layer.changeAttributeValue(f.id(), self.layer.fieldNameIndex(attrVol),
+                            self.layer.changeAttributeValue(f.id(), self.layer.fields().lookupField(attrVol),
                                                             feature.attribute(attrVol))
                         num += 1
                     # --- add new well if need
@@ -1468,7 +1458,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                             map(lambda prodwell:str(prodwell.sldnid),prodWells)
                             ,prodWells
                             ))   
-        well_ids_500=[map(lambda prodwell:str(prodwell.sldnid),prodWells[i:i + 500]) for i in xrange(0, len(prodWells), 500)]
+        well_ids_500=[map(lambda prodwell:str(prodwell.sldnid),prodWells[i:i + 500]) for i in range(0, len(prodWells), 500)]
             
             
         time_start=time.time()
@@ -2154,7 +2144,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                     
 
                     if lon and lat and lon != NULL and lat != NULL:
-                        pt = QgsPoint(lon, lat)
+                        pt = QgsPointXY(lon, lat)
                         if self.xform:
                             pt = self.xform.transform(pt)
                         well.setGeometry(QgsGeometry.fromPointXY(pt))
@@ -2282,11 +2272,11 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             well.setAttribute (Fields.WellId.name,    well_name)
             well.setAttribute (Fields.Latitude.name,  lat      )
             well.setAttribute (Fields.Longitude.name, lon      )
-            if symbolId >= 0:
+            if symbolId.symbol >= 0:
                 well.setAttribute (Fields.SymbolId.name  , plugin_dir+"/svg/WellSymbol"+str(symbolId.symbol+1).zfill(3)+".svg")
                 well.setAttribute (Fields.Symbol.name    , symbolId.symbol+1                                                  )
                 well.setAttribute (Fields.SymbolName.name, symbolId.wellRole                                                  )
-            pt = QgsPoint(lon if lon is not None else 0, lat if lat is not None else 0)
+            pt = QgsPointXY(lon if lon is not None else 0, lat if lat is not None else 0)
             if self.xform:
                 pt = self.xform.transform(pt)
             well.setGeometry(QgsGeometry.fromPointXY(pt))

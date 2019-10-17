@@ -516,7 +516,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                     if val:
                         maxValue = max(maxValue, float(val))
         else:
-            attributeNumber = self.currentLayer.fieldNameIndex(sizeFieldNameOrExp)
+            attributeNumber = self.currentLayer.fields().lookupField(sizeFieldNameOrExp)
             maxValue = float(self.currentLayer.maximumValue(attributeNumber))
 
         self.scaleEdit.setValue(maxValue);
@@ -649,14 +649,14 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         editLayer.startEditing()
 
-        idxOffX = editLayerProvider.fieldNameIndex('labloffx')
-        idxOffY = editLayerProvider.fieldNameIndex('labloffy')
+        idxOffX = editLayerProvider.fields().lookupField('labloffx')
+        idxOffY = editLayerProvider.fields().lookupField('labloffy')
         if idxOffX < 0 or idxOffY < 0:
             editLayerProvider.addAttributes(
                 [QgsField("labloffx", QVariant.Double),
                  QgsField("labloffy", QVariant.Double)])
 
-        if editLayerProvider.fieldNameIndex('LablOffset') < 0:
+        if editLayerProvider.fields().lookupField('LablOffset') < 0:
             editLayerProvider.addAttributes([QgsField('LablOffset', QVariant.String)])
 
         # if editLayerProvider.fieldNameIndex(OLD_NEW_FIELDNAMES[1]) < 0:
@@ -665,7 +665,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         # if editLayerProvider.fieldNameIndex('bbllabels') < 0:
         #     editLayerProvider.addAttributes([QgsField('bbllabels', QVariant.String)])
 
-        if editLayerProvider.fieldNameIndex('bubblesize') < 0:
+        if editLayerProvider.fields().lookupField('bubblesize') < 0:
             editLayerProvider.addAttributes([QgsField('bubblesize', QVariant.Double)])
 
 
@@ -776,10 +776,10 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             offset = diagrammSize if diagrammSize < d.scaleMaxRadius else d.scaleMaxRadius
             LablOffset = feature.attribute('labloffset')
             if LablOffset is None or LablOffset == NULL:
-                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('labloffx'), offset/3)
-                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('labloffy'), -offset/3)
+                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('labloffx'), offset/3)
+                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('labloffy'), -offset/3)
 
-            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('bubblesize'), diagrammSize)
+            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('bubblesize'), diagrammSize)
 
             # compressedStr = str(diagramms)  # ET.tostring(root)
             # if not editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex(OLD_NEW_FIELDNAMES[0]),

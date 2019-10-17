@@ -384,8 +384,8 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
 
         editLayer.startEditing()
 
-        idxOffX = editLayerProvider.fieldNameIndex('LablOffX')
-        idxOffY = editLayerProvider.fieldNameIndex('LablOffY')
+        idxOffX = editLayerProvider.fields().lookupField('LablOffX')
+        idxOffY = editLayerProvider.fields().lookupField('LablOffY')
         if idxOffX < 0 or idxOffY < 0:
             editLayerProvider.addAttributes(
                 [QgsField("LablOffX", QVariant.Double),
@@ -474,13 +474,13 @@ class QgisPDSProdSetup(QtGui.QDialog, FORM_CLASS):
 
             offset = diagrammSize if diagrammSize < maxDiagrammSize else maxDiagrammSize
             if feature.attribute('LablOffset') is None:
-                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('LablOffX'), offset/3)
-                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('LablOffY'), -offset/3)
+                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablOffX'), offset/3)
+                editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablOffY'), -offset/3)
 
-            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('BubbleSize'), diagrammSize)
-            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('BubbleFields'),
+            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('BubbleSize'), diagrammSize)
+            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('BubbleFields'),
                                            ET.tostring(root))
-            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('ScaleType'), scaleType)
+            editLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('ScaleType'), scaleType)
 
         editLayer.commitChanges()
 

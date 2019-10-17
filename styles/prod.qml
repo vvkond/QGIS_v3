@@ -318,7 +318,7 @@
     <property key="fluid_line_color_oil" value="218,165,32,255"/>
     <property key="fluid_line_color_pfl" value="0,0,0,255"/>
     <property key="fluid_line_color_pw" value="154,205,50,255"/>
-    <property key="labelSize" value="100"/>
+    <property key="labelSize" value="7"/>
     <property key="labelTemplate" value="%1-%3-%2/%6"/>
     <property key="labeling" value="pal"/>
     <property key="labeling/addDirectionSymbol" value="false"/>

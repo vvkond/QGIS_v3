@@ -350,9 +350,9 @@ def setLayerFieldsAliases(layer,force=False):
             if isinstance(field,AttributeField) and field.alias!="":
                 #QgsMessageLog.logMessage(u"{}  {}".format(str(field),type(field)), tag="QgisPDS.debug")
                 #QgsMessageLog.logMessage(u"\t{} {}".format(field.name,field.alias), tag="QgisPDS.debug")
-                idx = layer.fieldNameIndex(field.name)
+                idx = layer.fields().lookupField(field.name)
                 if idx >= 0:
-                    layer.addAttributeAlias(idx, field.alias)
+                    layer.setFieldAlias(idx, field.alias)
                     #QgsMessageLog.logMessage(u"\t+{}".format(idx), tag="QgisPDS.debug")
     
     
@@ -878,7 +878,7 @@ class bblInit:
     @staticmethod
     def checkFieldExists(layer, fieldName, fieldType, fieldLen=20, fieldPrec=5):
         provider = layer.dataProvider()
-        newIdx = layer.fieldNameIndex(fieldName)
+        newIdx = layer.fields().lookupField(fieldName)
         if newIdx < 0:
             if layer.isEditable(): layer.commitChanges()            
             with edit_layer(layer):
@@ -889,7 +889,7 @@ class bblInit:
     @staticmethod
     def checkQgsFieldExists(layer, qgsfield): 
         provider = layer.dataProvider()
-        newIdx = layer.fieldNameIndex(qgsfield.name())
+        newIdx = layer.fields().lookupField(qgsfield.name())
         if newIdx < 0:
             if layer.isEditable(): layer.commitChanges()            
             with edit_layer(layer):
@@ -903,7 +903,7 @@ class bblInit:
         provider = layer.dataProvider()
 
         def copyValue(feature, newName, oldName, alias):
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
                 val=None
                 try:
@@ -912,7 +912,7 @@ class bblInit:
                         layer.changeAttributeValue(feature.id(), idx, float(val))
                 except KeyError:
                     pass
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
                 
         if layer.isEditable(): layer.commitChanges() 
         with edit_layer(layer):
@@ -922,7 +922,7 @@ class bblInit:
                 oldName =None
                 if fl.componentId is not None:
                     oldName = bblInit.attrFluidMassOld(fl.componentId)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
                     needCopyData = True
@@ -931,74 +931,74 @@ class bblInit:
                 newName = bblInit.attrFluidVolume(fl.code)
                 if fl.componentId is not None:                
                     oldName = bblInit.attrFluidVolumeOld(fl.componentId)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
                     needCopyData = True
 
                 # Check max debit fields mass
                 newName = bblInit.attrFluidMaxDebitMass(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
 
                 # Check max debit date fields mass
                 newName = bblInit.attrFluidMaxDebitDateMass(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Date, QString(""), 50, 0)])
 
                 # Check max debit fields volume
                 newName = bblInit.attrFluidMaxDebitVol(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
 
                 # Check max debit date fields volume
                 newName = bblInit.attrFluidMaxDebitDateVol(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Date, QString(""), 50, 0)])
 
                 # Check first debit fields mass
                 newName = bblInit.attrFluidFirstDebitMass(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
 
                 # Check first debit fields volume
                 newName = bblInit.attrFluidFirstDebitVol(fl.code)
-                newIdx = layer.fieldNameIndex(newName)
+                newIdx = layer.fields().lookupField(newName)
                 if newIdx < 0:
                     provider.addAttributes([QgsField(newName, QVariant.Double, QString(""), 20, 5)])
             #Check wellrole fields
             newName = u'wellrole'
             oldName =None
-            newIdx = layer.fieldNameIndex(newName)
+            newIdx = layer.fields().lookupField(newName)
             if newIdx < 0:
                 provider.addAttributes([QgsField(newName, QVariant.String, QString(""), 20, 5)])
             #Check wellstatus fields
             newName = u'wellstatus'
             oldName =None
-            newIdx = layer.fieldNameIndex(newName)
+            newIdx = layer.fields().lookupField(newName)
             if newIdx < 0:
                 provider.addAttributes([QgsField(newName, QVariant.String, QString(""), 20, 5)])
             #Check wellstatusinfo fields
             newName = u'wsinfo'
             oldName =None
-            newIdx = layer.fieldNameIndex(newName)
+            newIdx = layer.fields().lookupField(newName)
             if newIdx < 0:
                 provider.addAttributes([QgsField(newName, QVariant.String, QString(""), 20, 5)])
             #Check wellstatusreason fields
             newName = u'wsreason'
             oldName =None
-            newIdx = layer.fieldNameIndex(newName)
+            newIdx = layer.fields().lookupField(newName)
             if newIdx < 0:
                 provider.addAttributes([QgsField(newName, QVariant.String, QString(""), 20, 5)])
             #Check initrole fields
             newName = u'initrole'
             oldName =None
-            newIdx = layer.fieldNameIndex(newName)
+            newIdx = layer.fields().lookupField(newName)
             if newIdx < 0:
                 provider.addAttributes([QgsField(newName, QVariant.String, QString(""), 20, 5)])
 
@@ -1041,58 +1041,58 @@ class bblInit:
             # mass fields
             newName = bblInit.attrFluidMass(fl.code)
             alias = bblInit.aliasFluidMass(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # volume fields
             newName = bblInit.attrFluidVolume(fl.code)
             alias = bblInit.aliasFluidVolume(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # Max debit fields mass
             newName = bblInit.attrFluidMaxDebitMass(fl.code)
             alias = bblInit.aliasFluidMaxDebitMass(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # Max debit date fields mass
             newName = bblInit.attrFluidMaxDebitDateMass(fl.code)
             alias = bblInit.aliasFluidMaxDebitDateMass(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # Max debit fields volume
             newName = bblInit.attrFluidMaxDebitVol(fl.code)
             alias = bblInit.aliasFluidMaxDebitVol(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # Max debit date fields volume
             newName = bblInit.attrFluidMaxDebitDateVol(fl.code)
             alias = bblInit.aliasFluidMaxDebitDateVol(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # First debit fields mass
             newName = bblInit.attrFluidFirstDebitMass(fl.code)
             alias = bblInit.aliasFluidFirstDebitMass(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
             # First debit fields volume
             newName = bblInit.attrFluidFirstDebitVol(fl.code)
             alias = bblInit.aliasFluidFirstDebitVol(fl.alias)
-            idx = layer.fieldNameIndex(newName)
+            idx = layer.fields().lookupField(newName)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
 
         #other fields
         for name,alias in [
@@ -1107,9 +1107,9 @@ class bblInit:
                             #,[u'wsreason'  ,u'причина смены статуса']
                             #,[u'initrole'  ,u'первоначальное назначение']
                             ]:
-            idx = layer.fieldNameIndex(name)
+            idx = layer.fields().lookupField(name)
             if idx >= 0:
-                layer.addAttributeAlias(idx, alias)
+                layer.setFieldAlias(idx, alias)
                 
 
 

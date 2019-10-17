@@ -110,14 +110,14 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
                                      [C_TRANSITE,QVariant.String]
                                     ,[C_TARGET,QVariant.String]
                                     ]:
-            fieldIdx[fieldName] = self.editLayer.dataProvider().fieldNameIndex(fieldName)
+            fieldIdx[fieldName] = self.editLayer.dataProvider().fields().lookupField(fieldName)
             if fieldIdx[fieldName] < 0:
                 with edit_layer(self.editLayer):
                     self.editLayer.dataProvider().addAttributes([QgsField(fieldName, fieldType)])
-                    fieldIdx[fieldName] = self.editLayer.dataProvider().fieldNameIndex(fieldName)
-        wellIdIdx = self.editLayer.dataProvider().fieldNameIndex('Well identifier')
+                    fieldIdx[fieldName] = self.editLayer.dataProvider().fields().lookupField(fieldName)
+        wellIdIdx = self.editLayer.dataProvider().fields().lookupField('Well identifier')
         if wellIdIdx < 0:
-            wellIdIdx = self.editLayer.dataProvider().fieldNameIndex(Fields.WellId.name)
+            wellIdIdx = self.editLayer.dataProvider().fields().lookupField(Fields.WellId.name)
         
         subsetStr=self.editLayer.subsetString()
         
@@ -193,9 +193,9 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
         with edit_layer(self.editLayer):
             self.editLayer.setSubsetString('')
 
-            wellIdIdx = self.editLayer.dataProvider().fieldNameIndex('Well identifier')
+            wellIdIdx = self.editLayer.dataProvider().fields().lookupField('Well identifier')
             if wellIdIdx < 0:
-                wellIdIdx = self.editLayer.dataProvider().fieldNameIndex('well_id')
+                wellIdIdx = self.editLayer.dataProvider().fields().lookupField('well_id')
 
             fCount = float(self.editLayer.featureCount()) + 1.0
             features = self.editLayer.dataProvider().getFeatures()

@@ -124,9 +124,9 @@ class QgisPDSSelectMapTool(QgsMapToolEmitPoint):
     def activate(self):
         self.canvas.setCursor(Qt.CrossCursor)
         self.reset()
-        self.emit(SIGNAL("activated()"))
+        self.activated.emit()
 
 
     def deactivate(self):
-        self.emit(SIGNAL("deactivated()"))
+        self.deactivated.emit()
         self.rubberBand.reset()

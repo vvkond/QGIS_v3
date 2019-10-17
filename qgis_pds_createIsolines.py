@@ -170,7 +170,7 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
             myStyle = QgsStyleV2().defaultStyle()
             ramp = myStyle.colorRamp('Spectral')
 
-            idx = contourLayer.fieldNameIndex('Z')
+            idx = contourLayer.fields().lookupField('Z')
             uniqSymbols = contourLayer.uniqueValues(idx)
             count = len(uniqSymbols)
             categories = []

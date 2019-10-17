@@ -144,14 +144,14 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
         if sel is None:
             return
 
-        idxMd = dataProvider.fieldNameIndex('MD')
-        idxTvd = dataProvider.fieldNameIndex('TVD')
+        idxMd = dataProvider.fields().lookupField('MD')
+        idxTvd = dataProvider.fields().lookupField('TVD')
         if idxMd < 0:
             dataProvider.addAttributes([QgsField("MD", QVariant.Double)])
         if idxTvd < 0:
             dataProvider.addAttributes([QgsField("TVD", QVariant.Double)])
 
-        idx1 = dataProvider.fieldNameIndex('Well identifier')
+        idx1 = dataProvider.fields().lookupField('Well identifier')
         self.showProgressBar(msg="Update well location", maximum=self.editLayer.featureCount())
         now=time.time()
         

@@ -572,10 +572,11 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 
 class BabbleSymbolLayerWidget(QgsSymbolLayerWidget, FORM_CLASS):
     def __init__(self, parent=None, vectorLayer = None):
-        super().__init__(self, parent, vectorLayer)
+        super().__init__(parent, vectorLayer)
 
         self.setupUi(self)
 
+        self.DEBUG = False
         self.layer = None
         self.expressionIndex = 0
 
@@ -598,36 +599,34 @@ class BabbleSymbolLayerWidget(QgsSymbolLayerWidget, FORM_CLASS):
     def on_editTemplateStr_txt_changed(self,val):
         self.DEBUG and QgsMessageLog.logMessage('on_editTemplateStr_txt_changed', 'BubbleSymbolLayer')
         self.layer.templateStr=val
-        self.emit(SIGNAL("changed()"))
+        self.changed.emit()
         pass
 
     def on_editDiagrammStr_txt_changed(self):
         self.DEBUG and QgsMessageLog.logMessage('on_editDiagrammStr_txt_changed', 'BubbleSymbolLayer')
         self.layer.diagrammStr=self.editDiagrammStr.toPlainText()
-        self.emit(SIGNAL("changed()"))
-        
-        pass
+        self.changed.emit()
 
     def on_showLineouts_toggled(self, value):
         self.DEBUG and QgsMessageLog.logMessage('on_showLineouts_toggled', 'BubbleSymbolLayer')
         self.layer.showLineouts = value
-        self.emit(SIGNAL("changed()"))
+        self.changed.emit()
 
     def on_showLabels_toggled(self, value):
         self.DEBUG and QgsMessageLog.logMessage('on_showLabels_toggled', 'BubbleSymbolLayer')
         self.layer.showLabels = value
-        self.emit(SIGNAL("changed()"))
+        self.changed.emit()
 
     def on_showDiagramms_toggled(self, value):
         self.DEBUG and QgsMessageLog.logMessage('on_showDiagramms_toggled', 'BubbleSymbolLayer')
         self.layer.showDiagramms = value
-        self.emit(SIGNAL("changed()"))
+        self.changed.emit()
 
     @pyqtSlot(float)
     def on_mLabelSizeSpinBox_valueChanged(self, value):
         self.DEBUG and QgsMessageLog.logMessage('on_mLabelSizeSpinBox_valueChanged', 'BubbleSymbolLayer')
         self.layer.labelSize = value
-        self.emit(SIGNAL("changed()"))
+        self.changed.emit()
 
 
 class BabbleSymbolLayerMetadata(QgsSymbolLayerAbstractMetadata):

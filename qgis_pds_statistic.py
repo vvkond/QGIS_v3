@@ -87,7 +87,7 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
             return
 
         provider = self.currentLayer.dataProvider()
-        fieldIndex = provider.fieldNameIndex(fieldName)
+        fieldIndex = provider.fields().lookupField(fieldName)
         if fieldIndex < 0:
             return
 

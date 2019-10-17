@@ -368,16 +368,16 @@ class QgisPDS:
             originY = editGeom.asPoint().y()
             pixelOrig = tr.transform(QgsPoint(originX, originY))
 
-            idxOffX = editLayerProvider.fieldNameIndex('labloffx')
-            idxOffY = editLayerProvider.fieldNameIndex('labloffy')
+            idxOffX = editLayerProvider.fields().lookupField('labloffx')
+            idxOffY = editLayerProvider.fields().lookupField('labloffy')
             if idxOffX < 0 or idxOffY < 0:
                 editLayerProvider.addAttributes(
                     [QgsField("labloffx", QVariant.Double),
                      QgsField("labloffy", QVariant.Double)])
-                idxOffX = editLayerProvider.fieldNameIndex('labloffx')
-                idxOffY = editLayerProvider.fieldNameIndex('labloffy')
+                idxOffX = editLayerProvider.fields().lookupField('labloffx')
+                idxOffY = editLayerProvider.fields().lookupField('labloffy')
 
-            if editLayerProvider.fieldNameIndex('labloffset') < 0:
+            if editLayerProvider.fields().lookupField('labloffset') < 0:
                 editLayerProvider.addAttributes([QgsField("labloffset", QVariant.Double)])
 
             if idxOffX < 0 or idxOffY < 0:
@@ -394,9 +394,9 @@ class QgisPDS:
                 pixelOffset = tr.transform(QgsPoint(newFinalX, originY))
                 mmOffset = (pixelOffset.x() - pixelOrig.x()) / xMm
 
-                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('LablX'), None)
+                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablX'), None)
                 editedLayer.changeAttributeValue(FeatureId, idxOffX, mmOffset)
-                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('labloffset'), 1)
+                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('labloffset'), 1)
 
             if fieldname.lower() == 'lably':
                 if variant == NULL:  # case when user unpins the label > sets arrow back to arrow based on point location
@@ -408,9 +408,9 @@ class QgisPDS:
                 pixelOffset = tr.transform(QgsPoint(originX, newFinalY))
                 mmOffset = (pixelOffset.y() - pixelOrig.y()) / xMm
 
-                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('LablY'), None)
+                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablY'), None)
                 editedLayer.changeAttributeValue(FeatureId, idxOffY, mmOffset)
-                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('labloffset'), 1)
+                editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('labloffset'), 1)
 
 
     @property
@@ -428,7 +428,7 @@ class QgisPDS:
                 enabled = bblInit.isProductionLayer(layer)
                 enabledWell = bblInit.isWellLayer(layer)
                 enabledFond= bblInit.isFondLayer(layer)
-                runAppEnabled = layer.fieldNameIndex(self.sldnidFieldName) >= 0
+                runAppEnabled = layer.fields().lookupField(self.sldnidFieldName) >= 0
 
                 if self.iface.mapCanvas().mapTool() == self.selectMapTool:
                     if self.selectMapTool:
@@ -438,7 +438,7 @@ class QgisPDS:
                             self.selectMapTool.reset()
                             
                 field_names = [field.name() for field in layer.dataProvider().fields()]
-                self.actionMarkWells.setEnabled(Fields.WellId.name in field_names)                              
+                self.actionMarkWells.setEnabled(Fields.WellId.name in field_names)
         except:
             pass
 
@@ -491,9 +491,9 @@ class QgisPDS:
             for l in self.labelPositions:
                 curLayer = ll[l.layerID]  
                 if curLayer is not None:
-                    curLayer.changeAttributeValue(l.featureId, curLayer.fieldNameIndex('LablWidth'), l.width)  
-                    curLayer.changeAttributeValue(l.featureId, curLayer.fieldNameIndex('LablOffX'), l.labelRect.xMinimum())      
-                    curLayer.changeAttributeValue(l.featureId, curLayer.fieldNameIndex('LablOffY'), l.labelRect.yMinimum())                       
+                    curLayer.changeAttributeValue(l.featureId, curLayer.fields().lookupField('LablWidth'), l.width)
+                    curLayer.changeAttributeValue(l.featureId, curLayer.fields().lookupField('LablOffX'), l.labelRect.xMinimum())
+                    curLayer.changeAttributeValue(l.featureId, curLayer.fields().lookupField('LablOffY'), l.labelRect.yMinimum())
                         
                 
         for lay in commitLayers:
@@ -967,18 +967,18 @@ class QgisPDS:
       
             
     def createProductionlayer(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
-                return
-    
-            dlg = QgisPDSProductionDialog(self.currentProject, self.iface)
-            if dlg.isInitialised():
-                result = dlg.exec_()
-                if dlg.getLayer() is not None:
-                    dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), "QgisPDS.error", Qgis.Critical)
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
+            return
+
+        dlg = QgisPDSProductionDialog(self.currentProject, self.iface)
+        if dlg.isInitialised():
+            result = dlg.exec_()
+            if dlg.getLayer() is not None:
+                dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), "QgisPDS.error", Qgis.Critical)
                     
 
     def createFondlayer(self):
@@ -1194,11 +1194,11 @@ class QgisPDS:
 
         
     def refreshWells(self, layer, project, isRefreshKoords, isRefreshData, isSelectedOnly, isAddMissing, isDeleteMissing, filterWellIds=None):
-        try:
-            wells = QgisPDSWells(self.iface, project)
-            wells.loadWells(layer, isRefreshKoords, isRefreshData, isSelectedOnly, isAddMissing, isDeleteMissing, filterWellIds=filterWellIds)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        wells = QgisPDSWells(self.iface, project)
+        wells.loadWells(layer, isRefreshKoords, isRefreshData, isSelectedOnly, isAddMissing, isDeleteMissing, filterWellIds=filterWellIds)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
 
 
     def loadWellDeviations(self, layer, project, isRefreshKoords, isRefreshData, isSelectedOnly, isAddMissing, isDeleteMissing, filterWellIds=None):
@@ -1243,7 +1243,7 @@ class QgisPDS:
 
     def wellCoordFromZone(self):
         try:
-            selectedLayers = self.iface.legendInterface().selectedLayers()
+            selectedLayers = self.iface.layerTreeView().selectedLayers()
             map( lambda currentLayer:currentLayer.blockSignals(True),selectedLayers)
             
             currentLayer = self.iface.activeLayer()
@@ -1263,7 +1263,7 @@ class QgisPDS:
 
     def transiteWells(self):
         try:
-            selectedLayers = self.iface.legendInterface().selectedLayers()
+            selectedLayers = self.iface.layerTreeView().selectedLayers()
             currentLayer = self.iface.activeLayer()
             if currentLayer is None:
                 return
@@ -1278,59 +1278,55 @@ class QgisPDS:
         
 
     def refreshLayer(self):
-        try:
-    #        threads = []
-            for currentLayer in self.iface.legendInterface().selectedLayers():
-                self.refreshcurrentLayer(currentLayer)
-    #             process = Thread(target=self.refreshcurrentLayer, args=[currentLayer])
-    #             process.start()
-    #             threads.append(process)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        for currentLayer in self.iface.layerTreeView().selectedLayers():
+            self.refreshcurrentLayer(currentLayer)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
     
         
         
     def refreshcurrentLayer( self,currentLayer=None):
-        try:
-            if currentLayer is None:  currentLayer = self.iface.activeLayer()
-            if currentLayer.type() != QgsMapLayer.VectorLayer:
-                return
-            pr = currentLayer.dataProvider()
-    
-            projStr = currentLayer.customProperty("pds_project", str(self.currentProject))
-            proj = ast.literal_eval(projStr)
-    
-            currentLayer.blockSignals(True)
-            filter_str=currentLayer.subsetString()
-            currentLayer.setSubsetString(None)
-            
-            prop = currentLayer.customProperty("qgis_pds_type")
-            layerWellIds,_=currentLayer.getValues(Fields.Sldnid.name)
-            
-            if prop == "pds_wells":
-                dlg = QgisPDSRefreshSetup(self.iface, self.currentProject, filterWellIds=layerWellIds)
-                if dlg.exec_():
-                    self.refreshWells(currentLayer, self.currentProject, dlg.isRefreshKoords,
-                                      dlg.isRefreshData, dlg.isSelectedOnly, dlg.isAddMissing, dlg.isDeleteMissing
-                                      ,filterWellIds=dlg.filterWellIds if dlg.isNeedFilterWellIds else None
-                                      )
-            elif prop == "pds_fond":
-                self.refreshProduction(currentLayer, self.currentProject, isOnlyFond=True)                
-            elif prop == "pds_current_production":
-                self.refreshProduction(currentLayer, self.currentProject, isCurrentProd=True)
-            elif prop == "pds_cumulative_production":
-                self.refreshProduction(currentLayer, self.currentProject, isCurrentProd=False)
-            elif prop == "pds_well_deviations":
-                dlg = QgisPDSRefreshSetup(self.iface, self.currentProject, filterWellIds=layerWellIds)
-                if dlg.exec_():
-                    self.loadWellDeviations(currentLayer, self.currentProject, dlg.isRefreshKoords,
-                                            dlg.isRefreshData, dlg.isSelectedOnly, dlg.isAddMissing, dlg.isDeleteMissing
-                                            ,filterWellIds=dlg.filterWellIds if dlg.isNeedFilterWellIds else None
-                                            )
-            currentLayer.setSubsetString(filter_str)
-            currentLayer.blockSignals(False)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        if currentLayer is None:  currentLayer = self.iface.activeLayer()
+        if currentLayer.type() != QgsMapLayer.VectorLayer:
+            return
+        pr = currentLayer.dataProvider()
+
+        projStr = currentLayer.customProperty("pds_project", str(self.currentProject))
+        proj = ast.literal_eval(projStr)
+
+        currentLayer.blockSignals(True)
+        filter_str=currentLayer.subsetString()
+        currentLayer.setSubsetString(None)
+
+        prop = currentLayer.customProperty("qgis_pds_type")
+        layerWellIds,_=  QgsVectorLayerUtils.getValues(currentLayer, Fields.Sldnid.name)
+
+        if prop == "pds_wells":
+            dlg = QgisPDSRefreshSetup(self.iface, self.currentProject, filterWellIds=layerWellIds)
+            if dlg.exec_():
+                self.refreshWells(currentLayer, self.currentProject, dlg.isRefreshKoords,
+                                  dlg.isRefreshData, dlg.isSelectedOnly, dlg.isAddMissing, dlg.isDeleteMissing
+                                  ,filterWellIds=dlg.filterWellIds if dlg.isNeedFilterWellIds else None
+                                  )
+        elif prop == "pds_fond":
+            self.refreshProduction(currentLayer, self.currentProject, isOnlyFond=True)
+        elif prop == "pds_current_production":
+            self.refreshProduction(currentLayer, self.currentProject, isCurrentProd=True)
+        elif prop == "pds_cumulative_production":
+            self.refreshProduction(currentLayer, self.currentProject, isCurrentProd=False)
+        elif prop == "pds_well_deviations":
+            dlg = QgisPDSRefreshSetup(self.iface, self.currentProject, filterWellIds=layerWellIds)
+            if dlg.exec_():
+                self.loadWellDeviations(currentLayer, self.currentProject, dlg.isRefreshKoords,
+                                        dlg.isRefreshData, dlg.isSelectedOnly, dlg.isAddMissing, dlg.isDeleteMissing
+                                        ,filterWellIds=dlg.filterWellIds if dlg.isNeedFilterWellIds else None
+                                        )
+        currentLayer.setSubsetString(filter_str)
+        currentLayer.blockSignals(False)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
             
 
        
@@ -1526,9 +1522,9 @@ class QgisPDS:
             exeName = tigdir + '/../bin/' + appName
 
         if not os.path.exists(exeName):
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'),
+            QMessageBox.critical(None, self.tr(u'Error'),
                                        appName + ': ' + self.tr(u'file not found.\nPlease set TIGDIR variable'.format(appName)),
-                                       QtGui.QMessageBox.Ok)
+                                       QMessageBox.Ok)
             return
 
         runStr = exeName + ' ' + args
