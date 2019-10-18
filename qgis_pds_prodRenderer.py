@@ -22,10 +22,10 @@
  ***************************************************************************/
 """
 
-from PyQt5 import uic
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt import uic
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import *
 from .bblInit import *
@@ -37,7 +37,7 @@ import re
 from datetime import datetime
 
 try:
-    from PyQt5.QtCore import QString
+    from qgis.PyQt.QtCore import QString
 except ImportError:
     # we are using Python3 so QString is not defined
     QString = type("")
@@ -69,7 +69,7 @@ def float_t(val):
         QgsMessageLog.logMessage("incorrect val for float {}={}\n{}".format(type(val),val,str(e)), 'BubbleSymbolLayer')
         #raise Exception("incorrect val for float {}={}\n{}".format(type(val),val,str(e)))
 
-class BubbleSymbolLayer(QgsMarkerSymbolLayer):
+class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
     LAYERTYPE="BubbleDiagramm"
     DIAGRAMM_FIELDS = 'DIAGRAMM_FIELDS'
@@ -160,8 +160,9 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
                                 idx = idx + 1
                                     
         except Exception as e:
-            QgsMessageLog.logMessage('Evaluate diagram props: ' + str(e), 'BubbleSymbolLayer')
-        self.DEBUG and QgsMessageLog.logMessage('BubbleSymbolLayer rendered init in : {}'.format(str(datetime.now()-ts)), 'BubbleSymbolLayer')
+            self.DEBUG and QgsMessageLog.logMessage('Evaluate diagram props: ' + str(e), 'BubbleSymbolLayer')
+
+        self.DEBUG and QgsMessageLog.logMessage('{} rendered init in : {}'.format(self.__class__.__name__, str(datetime.now()-ts)), 'BubbleSymbolLayer')
 
         # try:
         #     if len(self.labelsStr) > 1:
@@ -185,7 +186,8 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
         return BubbleSymbolLayer.LAYERTYPE
 
     def bounds(self, point, context):
-        return QRectF(point, QSizeF(1,1))
+        res = super().bounds(point, context)
+        return res# QRectF(point, QSizeF(1,1))
 
     def properties(self):
         props = { "showLineouts" : 'True' if self.showLineouts else 'False',
@@ -546,6 +548,8 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
 
 
     def startRender(self, context):
+        super().startRender(context)
+
         self.fields = context.fields()
         self.attrsUsed = []
         if self.fields:
@@ -560,12 +564,13 @@ class BubbleSymbolLayer(QgsMarkerSymbolLayer):
             self.mDiagrammIndex= -1
 
         self.prepareExpressions(context)
-        super().startRender(context)
 
     def clone(self):
         return BubbleSymbolLayer(self.properties())
 
-
+    def create(props):
+        QgsMessageLog.logMessage('Creating', 'BubbleSymbolLayer')
+        return BubbleSymbolLayer(props)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_renderer_base.ui'))

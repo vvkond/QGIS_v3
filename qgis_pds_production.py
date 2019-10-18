@@ -494,6 +494,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             if self.layer is None:
                 QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Layer create error'), QMessageBox.Ok)
                 return
+
             self.layer = memoryToShp(self.layer, self.project['project'], layerName)
             if self.isFondLayer:
                 self.layer.setCustomProperty("qgis_pds_type", "pds_fond")

@@ -640,9 +640,7 @@ class QgisPDS:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToDatabaseMenu(
-                self.menu,
-                action)
+            self.iface.addPluginToDatabaseMenu(self.menu, action)
 
         self.actions.append(action)
 
@@ -923,7 +921,7 @@ class QgisPDS:
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
-            self.iface.removePluginDatabaseMenu( self.tr(u'&PDS'), action)
+            self.iface.removePluginDatabaseMenu( self.menu, action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar

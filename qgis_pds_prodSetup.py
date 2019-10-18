@@ -40,18 +40,8 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         # self.scaleEdit.setVisible(False)
         # self.mScaleEditLabel.setVisible(False)
 
-        # self.backColorEdit = QgsColorButton(self)
-        # self.fluidGridLayout.addWidget(self.backColorEdit, 0, 1)
         self.backColorEdit.colorChanged.connect(self.backColorChanged)
-
-        # self.lineColorEdit = QgsColorButton(self)
-        # self.fluidGridLayout.addWidget(self.lineColorEdit, 1, 1)
-        # QObject.connect(self.lineColorEdit, SIGNAL("colorChanged(const QColor &)"), self.lineColorChanged)
         self.lineColorEdit.colorChanged.connect(self.lineColorChanged)
-
-        # self.labelColorEdit = QgsColorButton(self)
-        # self.labelGridLayout.addWidget(self.labelColorEdit, 0, 1)
-        # QObject.connect(self.labelColorEdit, SIGNAL("colorChanged(const QColor &)"), self.labelColorChanged)
         self.labelColorEdit.colorChanged.connect(self.labelColorChanged)
 
         self.mIface = iface
@@ -234,7 +224,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         #     item.setData(Qt.UserRole, d)
         #     self.mDiagrammsListWidget.addItem(item)
 
-        if type(layer.renderer())!=QgsRuleBasedRenderer:
+        if type(layer.renderer()) is not QgsRuleBasedRenderer:
             self.isAppendToStyle.setEnabled(False)
             self.isAppendToEachLastSymbol.setEnabled(False)
             
@@ -742,18 +732,19 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
             allDiagramms.append(diagramm)
         diagrammStr = str(allDiagramms)        
         #---load user styles
-        if self.dailyProduction.isChecked():
-            load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_CURRENT_RENDER_STYLE_DIR),switchActiveStyle=False)
-        else:
-            load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_CUMMULATIVE_RENDER_STYLE_DIR),switchActiveStyle=False)
-        load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_RENDER_STYLE_DIR),switchActiveStyle=False)
+        # if self.dailyProduction.isChecked():
+        #     load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_CURRENT_RENDER_STYLE_DIR),switchActiveStyle=False)
+        # else:
+        #     load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_CUMMULATIVE_RENDER_STYLE_DIR),switchActiveStyle=False)
+        # load_styles_from_dir(layer=editLayer, styles_dir=os.path.join(plugin_path() ,STYLE_DIR, USER_PROD_RENDER_STYLE_DIR),switchActiveStyle=False)
         
         ########################################################
         #--- If append to current style and current style QgsRuleBasedRenderer
         ########################################################
         layerCurrentStyleRendere=editLayer.renderer()
 
-        if type(layerCurrentStyleRendere)==QgsRuleBasedRenderer:
+        registry = QgsApplication.symbolLayerRegistry()
+        if type(layerCurrentStyleRendere) is QgsRuleBasedRenderer:
             print('type is QgsRuleBasedRenderer')
             #------ITERATE OVER LAYER STYLE-RULES                
             rootRule=layerCurrentStyleRendere.rootRule()
@@ -780,18 +771,16 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
             elif self.isAppendToStyle.isChecked() or self.isAppendToEachLastSymbol.isChecked():
                 #rootRule.active()   rootRule.filterExpression()
                 if self.isAppendToEachLastSymbol.isChecked():
+                    print('Append to each')
                     for lastRule in qgs_get_last_child_rules(rootRule): 
-                        #lastRule.label()
-                        #lastRule.symbol()
-                        #lastRule.symbol().symbolLayers()[0]
                         # if current rule is Bubble rule,then go to parent rule
-                        if type(lastRule.symbol().symbolLayers()[0])==BubbleSymbolLayer:
+                        if type(lastRule.symbol().symbolLayers()[0]) is BubbleSymbolLayer:
                             symbolRule=lastRule.parent()
                         else:
                             symbolRule=lastRule
                         #------PDS CHART STYLE SYMBOL
                         symbol = QgsMarkerSymbol()
-                        bubbleMeta = QgsApplication.symbolLayerRegistry().symbolLayerMetadata('BubbleDiagramm')
+                        bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
                         if bubbleMeta is not None:
                             bubbleProps = {}
                             bubbleProps['showLineouts'] = self.showLineouts.isChecked()
@@ -800,25 +789,21 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                             bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
                             bubbleProps['diagrammStr'] = diagrammStr
                             bubbleProps['templateStr'] = templateStr
-                            bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+                            bubbleLayer = BubbleSymbolLayer(bubbleProps) #bubbleMeta.createSymbolLayer(bubbleProps)
                             if bubbleLayer:
                                 bubbleLayer.setSize(3)
                                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                                 symbol.changeSymbolLayer(0, bubbleLayer)
                         else:
                             symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
+
                         rule = QgsRuleBasedRenderer.Rule(symbol)
                         rule.setLabel(self.resultRuleName.text())  #rule.label()                        
                         symbolRule.appendChild(rule)
-                        #lastRule.symbol().changeSymbolLayer(0, bubbleLayer)
-                        pass
-                    #layerCurrentStyleRendere.rootRule().children()[0].setIsElse(True)
-                    #symbols = editLayer.renderer().symbols()
-                    pass
                 elif self.isAppendToStyle.isChecked():
                     #------PDS CHART STYLE SYMBOL
                     symbol = QgsMarkerSymbol()
-                    bubbleMeta = QgsApplication.symbolLayerRegistry().symbolLayerMetadata('BubbleDiagramm')
+                    bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
                     if bubbleMeta is not None:
                         bubbleProps = {}
                         bubbleProps['showLineouts'] = self.showLineouts.isChecked()
@@ -827,20 +812,20 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                         bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
                         bubbleProps['diagrammStr'] = diagrammStr
                         bubbleProps['templateStr'] = templateStr
-                        bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+                        bubbleLayer = BubbleSymbolLayer(bubbleProps) #bubbleMeta.createSymbolLayer(bubbleProps)
                         if bubbleLayer:
                             bubbleLayer.setSize(3)
                             bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                             symbol.changeSymbolLayer(0, bubbleLayer)
                     else:
-                        print('else')
-                        pass
-                        # symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
+                        symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
+
                     rule = QgsRuleBasedRenderer.Rule(symbol)
                     rule.setLabel(self.resultRuleName.text())  #rule.label()                     
                     rootRule.appendChild(rule)
                 else:
                     pass
+
                 #------ADD CIRCLE SYMBOLS
                 for key,ff in prods.items():
                     m = QgsSimpleMarkerSymbolLayer()
@@ -849,7 +834,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     m.setColor(ff.backColor)
                     symbol = QgsMarkerSymbol()
                     symbol.changeSymbolLayer(0, m)
-        
+
                     rule = QgsRuleBasedRenderer.Rule(symbol)
                     try:
                         newName = QCoreApplication.translate('bblInit', ff.name)
@@ -863,7 +848,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         #--- If Use default production style 
         ########################################################
         else:
-            print('load style')
+            QgsMessageLog.logMessage('Add new layer', "QgisPDS.prodSetup")
             load_style(layer=editLayer, style_path=os.path.join(plugin_dir ,STYLE_DIR ,PROD_RENDER_STYLE+".qml"), name=QCoreApplication.translate('bblInit', PROD_RENDER_STYLE))
             
             rootRules=[] # list of root rules for append them symbology
@@ -904,7 +889,6 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                 rootRules=[superRootRule]
             
             #---CREATE SYMBOLOGY for current style
-            registry = QgsApplication.symbolLayerRegistry()
             bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
             
             for rootRule in rootRules:
@@ -918,17 +902,16 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
                     bubbleProps['diagrammStr'] = diagrammStr
                     bubbleProps['templateStr'] = templateStr
-                    bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+                    bubbleLayer = BubbleSymbolLayer(bubbleProps) #bubbleMeta.createSymbolLayer(bubbleProps)
                     if bubbleLayer:
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                         symbol.changeSymbolLayer(0, bubbleLayer)
                 else:
                     symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
-                rule = QgsRuleBasedRenderer.Rule(symbol) #
+                rule = QgsRuleBasedRenderer.Rule(symbol)
                 rootRule.appendChild(rule)
-    
-                
+
                 #------LINES
                 if bubbleMeta and self.showLineouts.isChecked():
                     bubbleProps = {}
@@ -938,7 +921,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
                     bubbleProps['diagrammStr'] = diagrammStr
                     bubbleProps['templateStr'] = templateStr
-                    bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+                    bubbleLayer = BubbleSymbolLayer(bubbleProps) #bubbleMeta.createSymbolLayer(bubbleProps)
                     if bubbleLayer:
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
@@ -971,6 +954,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         
                     rule.setFilterExpression(u'\"{0}\"={1}'.format("SymbolCode", symId))
                     rootRule.appendChild(rule)
+
                 #------CIRCLE SYMBOLS
                 for key,ff in prods.items():
                     m = QgsSimpleMarkerSymbolLayer()
@@ -979,7 +963,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     m.setColor(ff.backColor)
                     symbol = QgsMarkerSymbol()
                     symbol.changeSymbolLayer(0, m)
-        
+
                     rule = QgsRuleBasedRenderer.Rule(symbol)
                     try:
                         newName = QCoreApplication.translate('bblInit', ff.name)
@@ -988,7 +972,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                         rule.setLabel(ff.name)
                     rule.setFilterExpression(u'\"SymbolCode\"=-1')
                     rootRule.appendChild(rule)
-        
+
                 #------ add arrow FROM_LOWER_RESERVOIR/FROM_UPPER_RESERVOIR
                 rule = QgsRuleBasedRenderer.Rule(None)
                 rule.setLabel(QCoreApplication.translate('bblInit', u'RESERVOIR_TRANSITION'))
@@ -1006,7 +990,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     sub_rule.setLabel(QCoreApplication.translate('bblInit', u'FROM_LOWER_RESERVOIR'))
                 except:
                     sub_rule.setLabel(u"FROM_LOWER_RESERVOIR")
-                sub_rule.setFilterExpression(u'\"{0}\"={1}'.format("resstate", "'FROM_LOWER_RESERVOIR'")) 
+                sub_rule.setFilterExpression(u'\"{0}\"={1}'.format("resstate", "'FROM_LOWER_RESERVOIR'"))
                 rule.appendChild(sub_rule)
                 #---------FROM_UPPER_RESERVOIR
                 symbol = QgsMarkerSymbol.createSimple({
@@ -1021,11 +1005,11 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     sub_rule.setLabel(QCoreApplication.translate('bblInit', u'FROM_UPPER_RESERVOIR'))
                 except:
                     sub_rule.setLabel(u'FROM_UPPER_RESERVOIR')
-                sub_rule.setFilterExpression(u'\"{0}\"={1}'.format("resstate", "'FROM_UPPER_RESERVOIR'")) 
+                sub_rule.setFilterExpression(u'\"{0}\"={1}'.format("resstate", "'FROM_UPPER_RESERVOIR'"))
                 rule.appendChild(sub_rule)
                 rootRule.appendChild(rule)
-        
-                #--------- 
+
+                #---------
                 renderer.setOrderByEnabled(True)
                 orderByClause = QgsFeatureRequest.OrderByClause('BubbleSize', False)
                 orderBy = QgsFeatureRequest.OrderBy([orderByClause])
@@ -1034,7 +1018,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                 #---------
                 rootRule.children()[0].setLabel(self.resultRuleName.text())
     
-        editLayer.triggerRepaint()
+        # editLayer.triggerRepaint()
         self.mIface.layerTreeView().refreshLayerSymbology(editLayer.id())
         self.mIface.mapCanvas().refreshAllLayers()
         return
