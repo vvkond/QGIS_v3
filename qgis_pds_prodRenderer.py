@@ -61,7 +61,7 @@ class DiagrammDesc:
 
 
 def float_t(val):
-    if (type(val) is QPyNullVariant and val.isNull()) or val is None:   #PyQt5.QtCore.QPyNullVariant:
+    if val is None or (val and val.isNull()):
         val=0.0
     try:
         return float(val)
@@ -108,21 +108,6 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
         except Exception as e:
             QgsMessageLog.logMessage('SET PROPERTY ERROR: ' +  str(e), 'BubbleSymbolLayer')
 
-        # self.attrsUsed = {OLD_NEW_FIELDNAMES[1],}
-        # self.setDataDefinedProperty(BubbleSymbolLayer.DIAGRAMM_FIELDS, QgsDataDefined(OLD_NEW_FIELDNAMES[1]))
-        # self.dataDefinedProperties().setProperty(100, QgsProperty.fromField(OLD_NEW_FIELDNAMES[1]))
-        # self.setDataDefinedProperty(BubbleSymbolLayer.LABEL_OFFSETX,   QgsDataDefined(BubbleSymbolLayer.LABEL_OFFSETX))
-        # self.dataDefinedProperties().setProperty(101, QgsProperty.fromField(BubbleSymbolLayer.LABEL_OFFSETX))
-        # self.setDataDefinedProperty(BubbleSymbolLayer.LABEL_OFFSETY,   QgsDataDefined(BubbleSymbolLayer.LABEL_OFFSETY))
-        # self.dataDefinedProperties().setProperty(102, QgsProperty.fromField(BubbleSymbolLayer.LABEL_OFFSETY))
-        # self.setDataDefinedProperty(BubbleSymbolLayer.BUBBLE_SIZE,     QgsDataDefined(BubbleSymbolLayer.BUBBLE_SIZE))
-        # self.dataDefinedProperties().setProperty(103, QgsProperty.fromField(BubbleSymbolLayer.BUBBLE_SIZE))
-        # self.setDataDefinedProperty(BubbleSymbolLayer.DIAGRAMM_LABELS, QgsDataDefined(BubbleSymbolLayer.DIAGRAMM_LABELS))
-        # self.dataDefinedProperties().setProperty(104, QgsProperty.fromField(BubbleSymbolLayer.DIAGRAMM_LABELS))
-        # if self.templateStr:
-        #     self.dataDefinedProperties().setProperty(105, QgsProperty.fromField('days'))
-        #     self.setDataDefinedProperty('DDF_Days', QgsDataDefined('days'))
-
 
         self.diagrammProps = None
         # self.labelsProps = None
@@ -158,7 +143,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
                                 #     self.dataDefinedProperties().setProperty(idx, QgsProperty.fromExpression('"{0}" + 0.0'.format(exp)))
                                 #     self.setDataDefinedProperty(expName, QgsDataDefined('"{0}" + 0.0'.format(exp)))
                                 idx = idx + 1
-                                    
+
         except Exception as e:
             self.DEBUG and QgsMessageLog.logMessage('Evaluate diagram props: ' + str(e), 'BubbleSymbolLayer')
 
@@ -187,7 +172,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
     def bounds(self, point, context):
         res = super().bounds(point, context)
-        return res# QRectF(point, QSizeF(1,1))
+        return res
 
     def properties(self):
         props = { "showLineouts" : 'True' if self.showLineouts else 'False',
@@ -352,13 +337,12 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
         ctx = context.renderContext()
 
         attrs = feature.attributes()
-        # print([attr for attr in feature if attr is not None])
 
         labelTemplate = ''
         diagramms = []
 
         try:
-            if len(self.diagrammProps) > 0:
+            if self.diagrammProps and len(self.diagrammProps) > 0:
                 '''
                  Get feature diagram size. New variant: from layer properties 
                 '''
@@ -566,11 +550,22 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
         self.prepareExpressions(context)
 
     def clone(self):
-        return BubbleSymbolLayer(self.properties())
+        m = BubbleSymbolLayer(self.properties())
+        self.copyDataDefinedProperties(m);
+        self.copyPaintEffect(m);
+        return m
 
     def create(props):
         QgsMessageLog.logMessage('Creating', 'BubbleSymbolLayer')
         return BubbleSymbolLayer(props)
+
+    def toSld(self, doc, element, props):
+        QgsMessageLog.logMessage('toSld', 'BubbleSymbolLayer')
+        super().toSld(doc, element, props)
+
+    def writeSldMarker(self, doc, element, props):
+        QgsMessageLog.logMessage('writeSldMarker', 'BubbleSymbolLayer')
+        super().writeSldMarker(doc, element, props)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_renderer_base.ui'))

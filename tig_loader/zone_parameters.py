@@ -115,13 +115,13 @@ class ZoneParameterCommon(object):
         SQL_CHARACTER = 4
 
         well_count = read_int()
-        for _i in xrange(well_count):
+        for _i in range(well_count):
             well_id = read_int()
             wint_ct = read_int()
-            for _j in xrange(wint_ct):
+            for _j in range(wint_ct):
                 zone_id = read_int()
                 para_ct = read_int()
-                for _k in xrange(para_ct):
+                for _k in range(para_ct):
                     type = read_int()
                     name = read_string(TIG_VARIABLE_SHORT_NAME_LEN).strip()
                     if type == SQL_FLOAT:
@@ -192,7 +192,7 @@ class ZoneParameterCommon(object):
         tvd = read_floats(self.deviation_tvd_column_index)
 
         jp = None
-        for ip in xrange(len(x) - 1):
+        for ip in range(len(x) - 1):
             if md[ip] <= depth <= md[ip + 1]:
                 jp = ip
 

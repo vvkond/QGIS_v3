@@ -290,7 +290,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
     @property
     def db(self):
         if self._db is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)            
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
         else:
             return self._db
     @db.setter

@@ -162,7 +162,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
 
         self._getProjection()
 
-        self.readReservoirOrders() # USED FOR LOWWER-UPPER analis.... @TODO: change it to use self._getReservoirs() result 
+        self.readReservoirOrders() # USED FOR LOWWER-UPPER analis.... @TODO: change it to use self._getReservoirs() result
 
         reservoirs = self._getReservoirs()
         self.reservoirs = []
@@ -175,7 +175,6 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
                 if self.reservoirsListWidget.isEnabled():
                     self.reservoirsListWidget.addItem(item)
                     item.setSelected(isSelected)
-                    # self.reservoirsListWidget.setItemSelected(item, isSelected)
                 elif isSelected:
                     self.reservoirsListWidget.addItem(item)
 
@@ -1153,7 +1152,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             sumMass[fl_id] = sumMass[fl_id] + prod.massVals[fl_id]
             sumVols[fl_id] = sumVols[fl_id] + prod.volumeVals[fl_id]
         days = prod.days
-        if days <= 0:
+        if not days or days <= 0:
             days = prod.stadat.daysTo(prod.enddat)
             IS_DEBUG and QgsMessageLog.logMessage( self.tr( u"calcProd: zero time value for well " ) + wellName, tag="QgisPDS.calcProd")
         if prod.stadat < self.mStartDate:
@@ -1668,7 +1667,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             stadat = QDateTime.fromString(row_dict["start_time_txt"], self.dateFormat)
             enddat = QDateTime.fromString(row_dict["end_time_txt"]  , self.dateFormat)
             days=row_dict["days"]
-            if not self.isFondLayer and row_dict["days"]>0 :
+            if not self.isFondLayer and days and days>0 :
                 for fluid in fluid_fields:
                     debit=row_dict[fluid.field]/days
                     if fluid.unit=="Mass":

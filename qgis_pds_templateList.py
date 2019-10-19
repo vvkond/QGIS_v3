@@ -4,10 +4,10 @@ import os
 import fnmatch
 from struct import unpack_from
 from qgis.core import *
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtCore import *
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
@@ -207,7 +207,7 @@ class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
             #Version
             values = lines[0].split('\t')
             if len(values) < 2 or int(values[1]) != 2:
-                QtGui.QMessageBox.critical(self, self.tr(u'Error'), self.tr(u'Version is not 2'), QtGui.QMessageBox.Ok)
+                QMessageBox.critical(self, self.tr(u'Error'), self.tr(u'Version is not 2'), QMessageBox.Ok)
                 return []
 
             #Number in list
@@ -216,7 +216,7 @@ class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
 
             #SLDNIDs
             ids = []
-            for i in xrange(4, 4+numIds):
+            for i in range(4, 4+numIds):
                 ids.append(int(lines[i]))
 
             return ids

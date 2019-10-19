@@ -70,7 +70,7 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
         self.mFieldComboBox.clear()
 
         layerName = self.mMapLayerComboBox.itemData(index)
-        self.currentLayer = QgsMapLayerRegistry.instance().mapLayer(layerName)
+        self.currentLayer = QgsProject.instance().mapLayer(layerName)
         if self.currentLayer is None:
             return
 
@@ -190,7 +190,7 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
         uri = u'file:///{0}?type=csv&geomType=none&subsetIndex=no&watchFile=no'.format(v_out_f)
         layer = QgsVectorLayer(uri, name, "delimitedtext")
         if layer:
-            QgsMapLayerRegistry.instance().addMapLayer(layer)
+            QgsProject.instance().addMapLayer(layer)
         else:
             self.iface.messageBar().pushMessage(self.tr("Error"),
                                                 self.tr(u'Text file layer create error'),

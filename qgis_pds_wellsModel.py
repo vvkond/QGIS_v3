@@ -4,9 +4,10 @@ import os
 import fnmatch
 from struct import unpack_from
 from qgis.core import *
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 from .qgis_pds_WellFilterSetup import *
 
 
@@ -220,10 +221,10 @@ class WellsItemsModel(QAbstractItemModel):
     def setModelData(self, _arrayData):
         if len(_arrayData) > 0:
             if len(_arrayData[0]) != len(self.headerdata):
-                QtGui.QMessageBox.critical(None, self.tr(u'Error'),
+                QMessageBox.critical(None, self.tr(u'Error'),
                                            self.tr(u'len(_arrayData) != len(self.headerdata) ({0} != {1})'.
                                                    format(len(_arrayData[0]), len(self.headerdata))),
-                                           QtGui.QMessageBox.Ok)
+                                           QMessageBox.Ok)
                 return
 
         self.beginResetModel()

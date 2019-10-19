@@ -46,7 +46,7 @@ class AttributeTableModel(QAbstractTableModel):
             row = 0
 
         self.beginInsertRows(parent, row, count + row - 1)
-        for i in xrange(0, count):
+        for i in range(0, count):
             newRow = ['', QColor(255, 0, 0), QColor(255, 0, 0), '', '']
             self.arraydata.insert(i + row, newRow)
 
@@ -55,7 +55,7 @@ class AttributeTableModel(QAbstractTableModel):
 
     def removeRows(self, row, count, parent = QModelIndex()):
         self.beginRemoveRows(parent, row, row + count -1)
-        for r in xrange(0, count):
+        for r in range(0, count):
             del self.arraydata[r + row]
         self.endRemoveRows()
 
@@ -163,7 +163,7 @@ class AttributeLabelTableModel(AttributeTableModel):
             row = 0
 
         self.beginInsertRows(parent, row, count + row - 1)
-        for i in xrange(0, count):
+        for i in range(0, count):
             newRow = ['', QColor(0, 0, 0), Qt.Unchecked, Qt.Unchecked, Qt.Unchecked, '']
             self.arraydata.insert(i + row, newRow)
 
@@ -548,10 +548,10 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            for row in xrange(self.filteredModel.rowCount()):
+            for row in range(self.filteredModel.rowCount()):
                 self.filteredModel.removeRow(row)
 
-            for row in xrange(self.labelFilteredModel.rowCount()):
+            for row in range(self.labelFilteredModel.rowCount()):
                 self.labelFilteredModel.removeRow(row)
 
             self.mDiagrammsListWidget.takeItem(idx)
@@ -684,7 +684,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             root = ET.Element("root")
             diagramms = []
             for d in self.layerDiagramms:
-                rows = [r for r in xrange(self.attributeModel.rowCount()) if
+                rows = [r for r in range(self.attributeModel.rowCount()) if
                         self.attributeModel.diagramm(r) == d.diagrammId]
 
                 koef = (d.scaleMaxRadius - d.scaleMinRadius) / d.scale
@@ -769,7 +769,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                     ET.SubElement(root, "label", labelText=templateStr)
                     # editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('bbllabels'), templateStr)
             except Exception as e:
-                QtGui.QMessageBox.critical(None, self.tr(u'Error'), str(e), QtGui.QMessageBox.Ok)
+                QMessageBox.critical(None, self.tr(u'Error'), str(e), QMessageBox.Ok)
                 break
 
 
@@ -791,7 +791,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         diagramms = []
         for d in self.layerDiagramms:
-            rows = [r for r in xrange(self.attributeModel.rowCount()) if
+            rows = [r for r in range(self.attributeModel.rowCount()) if
                     self.attributeModel.diagramm(r) == d.diagrammId]
 
             diagramm = {}

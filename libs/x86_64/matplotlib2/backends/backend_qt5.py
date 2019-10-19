@@ -1082,7 +1082,7 @@ def error_msg_qt(msg, parent=None):
         msg = ','.join(map(str, msg))
 
     QtWidgets.QMessageBox.warning(None, "matplotlib2",
-                                  msg, QtGui.QMessageBox.Ok)
+                                  msg, QMessageBox.Ok)
 
 
 def exception_handler(type, value, tb):

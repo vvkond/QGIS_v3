@@ -5,6 +5,7 @@ from qgis.gui import *
 from PyQt5 import QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
@@ -120,8 +121,8 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
 
         self.layer = QgsVectorLayer(self.uri, "Well deviations", "memory")
         if self.layer is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'),
-               self.tr(u'Error create wells layer'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'),
+               self.tr(u'Error create wells layer'), QMessageBox.Ok)
 
             return
 
@@ -242,7 +243,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
                         layer.deleteFeature(f.id())
             if len(deletedWells):
                 s = self.tr('Deleted from layer') + ': ' + ','.join(str(s) for s in deletedWells)
-                QtGui.QMessageBox.warning(None, self.tr(u'Deleted from layer'), s, QtGui.QMessageBox.Ok)
+                QMessageBox.warning(None, self.tr(u'Deleted from layer'), s, QMessageBox.Ok)
 
         self.showProgressBar(msg="Read wells from db", maximum=1)
         dbWells = self._readWells()

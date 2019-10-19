@@ -253,7 +253,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
     @property
     def input_raster(self):
         layerName = self.mNPTSurfaceComboBox.itemData(self.mNPTSurfaceComboBox.currentIndex())
-        lay = QgsMapLayerRegistry.instance().mapLayer(layerName)
+        lay = QgsProject.instance().mapLayer(layerName)
         if lay is not None:
             return lay
         else:
@@ -543,7 +543,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_points",uri), tag="QgisPDS.residual")
         self.temp_points = QgsVectorLayer(uri, "temp_points", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsMapLayerRegistry.instance().addMapLayer(self.temp_points)
+        QgsProject.instance().addMapLayer(self.temp_points)
         self.iface.legendInterface().setLayerVisible(self.temp_points, False)
 
     def create_temp_raster_polygons(self):
@@ -552,7 +552,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_raster_polygons",uri), tag="QgisPDS.residual")
         self.temp_raster_polygons_path = QgsVectorLayer(uri, "temp_raster_polygons", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        # QgsMapLayerRegistry.instance().addMapLayer(self.temp_raster_polygons_path)
+        # QgsProject.instance().addMapLayer(self.temp_raster_polygons_path)
 
     def create_output_nfpt_class(self):
         uri = "Point?crs={}".format(self.proj4String)
@@ -561,7 +561,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("TEMP_NFPT",uri), tag="QgisPDS.residual")
         self.nfpt_output_class = QgsVectorLayer(uri, "TEMP_NFPT", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsMapLayerRegistry.instance().addMapLayer(self.nfpt_output_class)
+        QgsProject.instance().addMapLayer(self.nfpt_output_class)
 
 
     def DeleteRows_management(self, layer):
@@ -673,7 +673,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format(self.out_feature_path,uri), tag="QgisPDS.residual")
         self.out_path = QgsVectorLayer(uri, basename(self.out_feature_path), "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsMapLayerRegistry.instance().addMapLayer(self.out_path)
+        QgsProject.instance().addMapLayer(self.out_path)
         self.iface.legendInterface().setLayerVisible(self.out_path, False)
 
         self.progress.setFormat( self.tr('Loading intervals...') )
@@ -832,7 +832,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                                                 self.tr(u'Raster layer add error'),
                                                 level=QgsMessageBar.CRITICAL)
         else:
-            QgsMapLayerRegistry.instance().addMapLayer(layer)
+            QgsProject.instance().addMapLayer(layer)
 
         out_raster = numpy.copy(saved_input_raster)
         for i in xrange(out_raster.shape[0]):
@@ -849,7 +849,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                                                 self.tr(u'Raster layer add error'),
                                                 level=QgsMessageBar.CRITICAL)
         else:
-            QgsMapLayerRegistry.instance().addMapLayer(layer)
+            QgsProject.instance().addMapLayer(layer)
 
         out_raster = numpy.copy(saved_input_raster)
         for i in xrange(out_raster.shape[0]):
@@ -866,9 +866,9 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                                                 self.tr(u'Raster layer add error'),
                                                 level=QgsMessageBar.CRITICAL)
         else:
-            QgsMapLayerRegistry.instance().addMapLayer(layer)
+            QgsProject.instance().addMapLayer(layer)
 
-        QgsMapLayerRegistry.instance().removeMapLayers( [self.temp_points.id()] )
+            QgsProject.instance().removeMapLayers( [self.temp_points.id()] )
 
         del gdal_input_raster
 
@@ -887,7 +887,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             layer = QgsVectorLayer(self.out_nfpt_path, basename(self.out_nfpt_path), 'ogr')
             IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
             if layer:
-                QgsMapLayerRegistry.instance().addMapLayer(layer)
+                QgsProject.instance().addMapLayer(layer)
                 # usage - 'QgsZonalStatistics(QgsVectorLayer, Rastr full path QString, QString attributePrefix="", int rasterBand=1, QgsZonalStatistics.Statistics stats=QgsZonalStatistics.Statistics(QgsZonalStatistics.Count|QgsZonalStatistics.Sum|QgsZonalStatistics.Mean))'
                 zoneStat = QgsZonalStatistics(layer, self.out_raster_path, '', 1, QgsZonalStatistics.Sum)
                 zoneStat.calculateStatistics(None)
@@ -902,7 +902,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                 self.iface.messageBar().pushMessage(self.tr("Error"),
                                                     self.tr(u'Residuals layer add error'),
                                                     level=QgsMessageBar.CRITICAL)
-            QgsMapLayerRegistry.instance().removeMapLayers([self.nfpt_output_class.id()])
+                QgsProject.instance().removeMapLayers([self.nfpt_output_class.id()])
         except Exception as e:
             self.iface.messageBar().pushMessage(self.tr("Error"),
                                                 str(e), level=QgsMessageBar.CRITICAL)
@@ -910,14 +910,14 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         #add CSV layer
         fileparts = os.path.split(csvFileName)
         try:
-            layerList = QgsMapLayerRegistry.instance().mapLayersByName(fileparts[1])
-            QgsMapLayerRegistry.instance().removeMapLayers(layerList)
+            layerList = QgsProject.instance().mapLayersByName(fileparts[1])
+            QgsProject.instance().removeMapLayers(layerList)
 
             uri = 'file:///%s?type=csv&geomType=none&subsetIndex=no&watchFile=no' % (csvFileName)
             IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(uri), tag="QgisPDS.residual")
             bh = QgsVectorLayer(uri, fileparts[1], "delimitedtext")
             IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-            QgsMapLayerRegistry.instance().addMapLayer(bh)
+            QgsProject.instance().addMapLayer(bh)
         except Exception as e:
             self.iface.messageBar().pushMessage(self.tr("Error"),
                                                 str(e), level=QgsMessageBar.CRITICAL)

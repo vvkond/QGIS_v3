@@ -49,7 +49,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             uri = u'file:///{0}?type=csv&geomType=none&subsetIndex=no&watchFile=no'.format(fileName)
             layer = QgsVectorLayer(uri, name, "delimitedtext")
             if layer:
-                QgsMapLayerRegistry.instance().addMapLayer(layer)
+                QgsProject.instance().addMapLayer(layer)
             else:
                 self.iface.messageBar().pushMessage(self.tr("Error"),
                                                     self.tr(u'Text file layer create error'),
@@ -166,8 +166,8 @@ class QgisOracleSql(QDialog, FORM_CLASS):
 
         layer = QgsVectorLayer(uri, layerName, "memory")
         if layer is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(
-                u'Error create wells layer'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(
+                u'Error create wells layer'), QMessageBox.Ok)
 
             return
 
@@ -207,7 +207,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
 
         layer.setCustomProperty("pds_project", str(self.project))
 
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer)
 
 
     def refreshFields(self):

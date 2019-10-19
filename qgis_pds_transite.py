@@ -5,9 +5,10 @@ import numpy
 from struct import unpack_from
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 from qgis.core import QgsVectorFileWriter, QgsWkbTypes
 
 from .db import Oracle
@@ -170,7 +171,7 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
         transiteName = u'transite_' +"_".join(map(str,selectedZonesNames))+"_" +self.editLayer.name()
         targetName = u'target_'+"_".join(map(str,selectedZonesNames))+"_" + self.editLayer.name()
         
-        reg = QgsMapLayerRegistry.instance()
+        reg = QgsProject.instance()
         reg.removeMapLayers(reg.mapLayersByName(transiteName))
         reg.removeMapLayers(reg.mapLayersByName(targetName))
 
@@ -182,13 +183,12 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
         transiteFields.append(QgsField("transite", QVariant.String))
         transiteWriter = QgsVectorFileWriter(transiteFileName, systemEncoding,
                                       transiteFields,
-                                      provider.wkbType(), provider.crs())
+                                      provider.wkbType(), provider.crs(), 'SHP')
 
         fields = self.editLayer.fields()
         targetWriter = QgsVectorFileWriter(targetFileName, systemEncoding,
                           fields,
-                          provider.wkbType(), provider.crs())
-
+                          provider.wkbType(), provider.crs(), 'SHP')
 
         with edit_layer(self.editLayer):
             self.editLayer.setSubsetString('')
@@ -212,9 +212,11 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
                     feat.setAttributes(f.attributes())
                     feat.setAttribute('transite', transites)
                     transiteWriter.addFeature(feat)
+                    print(feat)
                 elif self.isZoneTarget(wellId, sel):
                     feat = QgsFeature(f)
                     feat.setGeometry(l)
+                    print(feat)
                     targetWriter.addFeature(feat)
 
                 self.progress.setValue(index/fCount*100.0)
@@ -231,13 +233,16 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
 
         for layer in [targetLayer, transiteLayer]:
             palyr = QgsPalLayerSettings()
-            palyr.readFromLayer(layer)
+            # palyr.readFromLayer(layer)
             palyr=layer_to_labeled(palyr)  #---enable EasyLabel
-            palyr.writeToLayer(layer)
+            # palyr.writeToLayer(layer)
+            palyr = QgsVectorLayerSimpleLabeling(palyr)
+            layer.setLabelsEnabled(True)
+            layer.setLabeling(palyr)
             layer.setCustomProperty("qgis_pds_type", pds_type)
             layer.setCustomProperty("pds_project", pds_prj)
             
-            QgsMapLayerRegistry.instance().addMapLayer( layer )
+            QgsProject.instance().addMapLayer( layer )
 
         return selectedZonations, selectedZones
 
@@ -273,7 +278,7 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
                 settings.setValue("/PDS/Zonations/enableFilter",      'True' if self.enableFilterChkBox.isChecked() else 'False')
                 
             except Exception as e:
-                QtGui.QMessageBox.critical(None, self.tr(u'Error'), str(e), QtGui.QMessageBox.Ok)
+                QMessageBox.critical(None, self.tr(u'Error'), str(e), QMessageBox.Ok)
     
             self.iface.messageBar().clearWidgets()
         #show layers

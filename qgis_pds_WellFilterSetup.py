@@ -66,7 +66,7 @@ class QgisPDSWellFilterSetupDialog(QDialog, FORM_CLASS):
     def fillLayersComboBox(self):
         self.mLayerComboBox.clear()
         # self.mLayerComboBox.addItem('', '')
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             layerType = layer.type()
@@ -134,7 +134,7 @@ class QgisPDSWellFilterSetupDialog(QDialog, FORM_CLASS):
     @pyqtSlot(int)
     def on_mLayerComboBox_currentIndexChanged(self, index):
         layerId = self.mLayerComboBox.itemData(self.mLayerComboBox.currentIndex())
-        lay = QgsMapLayerRegistry.instance().mapLayer(layerId)
+        lay = QgsProject.instance().mapLayer(layerId)
         if lay is not None:
             self.fieldComboBox.setLayer(lay)
             self.restoreState()

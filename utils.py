@@ -43,18 +43,17 @@ class LayersHider():
         self.viz_layers=[]
     def hide(self):
         self.viz_layers=[]
-        for layer in self.iface.legendInterface().layers():
-            if self.iface.legendInterface().isLayerVisible(layer):
+        layers = QgsProject.instance().layerTreeRoot().children()
+        for layer in layers:
+            if layer.itemVisibilityChecked():
                 self.viz_layers.append(layer)
-                self.iface.legendInterface().setLayerVisible(layer, False)
-        self.iface.mapCanvas().refresh() #Repaints the canvas map/ Not work.BUG????
-        self.refresh_layers()
-        # self.iface.mapCanvas().refreshAllLayers() #Reload all layers, clear the cache and refresh the canvas 
+                layer.setItemVisibilityChecked(False)
+        self.iface.mapCanvas().refreshAllLayers()
     def show(self):
         for layer in self.viz_layers:
-            self.iface.legendInterface().setLayerVisible(layer, True)
-        self.iface.mapCanvas().refresh()#Repaints the canvas map/ Not work.BUG????
-        self.refresh_layers()
+            layer.setItemVisibilityChecked(True)
+        self.iface.mapCanvas().refreshAllLayers()
+
     def refresh_layers(self):
         for layer in self.iface.mapCanvas().layers():
             layer.triggerRepaint()

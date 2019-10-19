@@ -7,9 +7,10 @@ import ast
 from struct import unpack_from
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtWidgets import *
 
 from QgisPDS.db import Oracle
 from .connections import create_connection
@@ -116,7 +117,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
             self.layer = memoryToShp(self.layer, self.project['project'], layerName + '_' + zoneName)
 
             palyr = QgsPalLayerSettings()
-            palyr.readFromLayer(self.layer)
+            # palyr.readFromLayer(self.layer)
             palyr.enabled = True
             palyr.fieldName = layerName.strip()
             palyr.placement = QgsPalLayerSettings.OverPoint #QgsPalLayerSettings.AroundPoint
@@ -126,9 +127,12 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
             palyr.displayAll = True
             palyr.fontSizeInMapUnits = False
             palyr=layer_to_labeled(palyr)  #---enable EasyLabel            
-            palyr.writeToLayer(self.layer)
+            # palyr.writeToLayer(self.layer)
+            palyr = QgsVectorLayerSimpleLabeling(palyr)
+            self.layer.setLabelsEnabled(True)
+            self.layer.setLabeling(palyr)
 
-            QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+            QgsProject.instance().addMapLayer(self.layer)
 
         try:
             settings = QSettings()
@@ -190,7 +194,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                                 value = topZoneValue
                                 intervalName += ' erosion topTVD'
                             wellName = input_row[self.well_name_column_index]
-                            pt = QgsPoint(x, y)
+                            pt = QgsPointXY(x, y)
                             l = QgsGeometry.fromPointXY(pt)
                             feat = QgsFeature(self.layer.fields())
                             feat.setGeometry(l)
@@ -216,9 +220,9 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                     self.layer.addFeatures([feat])
 
         if len(wellsWithoutElev):
-            QtGui.QMessageBox.warning(None, self.tr(u'Warning'),
+            QMessageBox.warning(None, self.tr(u'Warning'),
                                        self.tr(u'No elevation in wells:') + '\n' + wellsWithoutElev,
-                                       QtGui.QMessageBox.Ok)
+                                       QMessageBox.Ok)
 
 
     def getWellBottom(self, sql, wellId):
@@ -230,7 +234,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                 wellName = rec[0]
                 lat = rec[5]
                 lng = rec[4]
-                pt = QgsPoint(lng, lat)
+                pt = QgsPointXY(lng, lat)
                 if self.xform:
                     pt = self.xform.transform(pt)
                 startX = pt.x()
@@ -244,7 +248,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                 if ip >= 0:
                     dx = blob_x[ip]
                     dy = blob_y[ip]
-                pt = QgsPoint(startX + dx, startY + dy)
+                pt = QgsPointXY(startX + dx, startY + dy)
                 break
 
         return (pt, wellName)
@@ -384,13 +388,13 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
         SQL_CHARACTER = 4
 
         well_count = read_int()
-        for _i in xrange(well_count):
+        for _i in range(well_count):
             well_id = read_int()
             wint_ct = read_int()
-            for _j in xrange(wint_ct):
+            for _j in range(wint_ct):
                 zone_id = read_int()
                 para_ct = read_int()
-                for _k in xrange(para_ct):
+                for _k in range(para_ct):
                     type = read_int()
                     name = read_string(TIG_VARIABLE_SHORT_NAME_LEN).strip()
                     if type == SQL_FLOAT:
@@ -474,7 +478,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
         jp = None
         jp1 = None
         lastIdx = len(x) - 1
-        for ip in xrange(lastIdx):
+        for ip in range(lastIdx):
             if md[ip] <= depth <= md[ip + 1]:
                 jp = ip
             if erosionDepth:
@@ -509,7 +513,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
 
         lng = input_row[self.well_lng_column_index]
         lat = input_row[self.well_lat_column_index]
-        pt = QgsPoint(lng, lat)
+        pt = QgsPointXY(lng, lat)
         if self.xform:
             pt = self.xform.transform(pt)
 

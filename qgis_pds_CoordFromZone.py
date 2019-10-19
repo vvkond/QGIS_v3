@@ -194,7 +194,7 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
         if self.__class__.__name__==QgisPDSCoordFromZoneDialog.__name__: #only for QgisPDSCoordFromZoneDialog
             item = QListWidgetItem(u'Устье')
             item.setData(Qt.UserRole, [USTJE, 0, 0, 0])
-            item.setTextColor(QtGui.QColor("red"))
+            item.setForeground(QtGui.QColor("red"))
             self.zoneListWidget.addItem(item)
         for si in self.zonationListWidget.selectedItems():
             self._fillZones(int(si.data(Qt.UserRole)))
@@ -202,7 +202,7 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
         if self.__class__.__name__==QgisPDSCoordFromZoneDialog.__name__: #only for QgisPDSCoordFromZoneDialog
             item = QListWidgetItem(u'Забой')
             item.setData(Qt.UserRole, [ZABOY, 0, 0, 0])
-            item.setTextColor(QtGui.QColor("red"))
+            item.setForeground(QtGui.QColor("red"))
             self.zoneListWidget.addItem(item)
         #items = self.zoneListWidget.findItems(u'Устье',Qt.MatchExactly)
         #if len(items) > 0:
@@ -298,7 +298,7 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
     def _calcOffset(self, lon, lat, x, y, md, tvd, depth):
         jp = None
         lastIdx = len(x) - 1
-        for ip in xrange(len(x) - 1):
+        for ip in range(len(x) - 1):
             if md[ip] <= depth <= md[ip + 1]:
                 jp = ip
 

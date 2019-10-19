@@ -287,7 +287,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             self.db.commit()
             return True
         except Exception as e:
-            QtGui.QMessageBox.critical(self, self.tr("Error"), str(e))
+            QMessageBox.critical(self, self.tr("Error"), str(e))
             return False
 
     def executeInsert(self, sql):
@@ -296,7 +296,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             self.db.commit()
             return True
         except Exception as e:
-            QtGui.QMessageBox.critical(self, self.tr("Error"), str(e))
+            QMessageBox.critical(self, self.tr("Error"), str(e))
             return False
 
     def saveToDb(self):
@@ -307,7 +307,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
         self.noDataValue = self.mEmptyValue.value()
 
         if len(groupNameToSave) < 2 or len(setNameToSave) < 2:
-            QtGui.QMessageBox.critical(self, self.tr(u'Save to PDS'), self.tr(u'Group or Set name is empty'))
+            QMessageBox.critical(self, self.tr(u'Save to PDS'), self.tr(u'Group or Set name is empty'))
             return
 
         # Set MAP_SET_TYPE
@@ -318,7 +318,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
         if self.groupNo >= 0:
             setNo = self.getSetNo(self.groupNo, groupNameToSave+'/'+setNameToSave)
             if setNo >= 0:
-                QtGui.QMessageBox.critical(self, self.tr(u'Save to PDS'), self.tr(u'Group/Set names already exists'))
+                QMessageBox.critical(self, self.tr(u'Save to PDS'), self.tr(u'Group/Set names already exists'))
                 return
 
         #Get _NO numbers
@@ -340,23 +340,23 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             self.keyFieldIndex = provider.fields().lookupField(self.keyFieldName)
 
             if self.mapSetType == 0 and self.keyFieldIndex < 0:
-                if QtGui.QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Key field name is not found. Proceed?'),
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                if QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Key field name is not found. Proceed?'),
+                                           QMessageBox.Yes | QMessageBox.No) == QMessageBox.No:
                     return
 
             if self.subsetFieldIndex < 0:
-                if QtGui.QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Subset field name is not found. Proceed?'),
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                if QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Subset field name is not found. Proceed?'),
+                                           QMessageBox.Yes | QMessageBox.No) == QMessageBox.No:
                     return
 
             if self.parameterFieldIndex < 0:
-                if QtGui.QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Parameter field name is not found. Proceed?'),
-                                           QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                if QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Parameter field name is not found. Proceed?'),
+                                           QMessageBox.Yes | QMessageBox.No) == QMessageBox.No:
                     return
 
             #Create Group/Set
             if not self.createGroupSet(groupNameToSave, setNameToSave):
-                QtGui.QMessageBox.critical(self, self.tr('Error'), self.tr('Param create error'))
+                QMessageBox.critical(self, self.tr('Error'), self.tr('Param create error'))
                 return
 
             isPointsGeom = 0
@@ -389,7 +389,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             elif isPointsGeom == 2:
                 self.processAsMultiPoints()
             else:
-                QtGui.QMessageBox.critical(self, self.tr('Error'), self.tr('Unknown geometry type'))
+                QMessageBox.critical(self, self.tr('Error'), self.tr('Unknown geometry type'))
                 return
 
         self.iface.messageBar().pushMessage(self.tr('{0}/{1} is saved.')

@@ -61,7 +61,7 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
     @property
     def input_raster(self):
         layerId = self.mSurfaceComboBox.itemData(self.mSurfaceComboBox.currentIndex())
-        lay = QgsMapLayerRegistry.instance().mapLayer(layerId)
+        lay = QgsProject.instance().mapLayer(layerId)
         if lay is not None:
             return lay
         else:
@@ -70,7 +70,7 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
     @property
     def input_fault(self):
         layerId = self.mFaultsComboBox.itemData(self.mFaultsComboBox.currentIndex())
-        lay = QgsMapLayerRegistry.instance().mapLayer(layerId)
+        lay = QgsProject.instance().mapLayer(layerId)
         if lay is not None:
             return lay
         else:
@@ -80,8 +80,8 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
     def createIsolines(self):
         raster = self.input_raster
         if not raster:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'),
-               self.tr(u'Raster layer is not selected'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'),
+               self.tr(u'Raster layer is not selected'), QMessageBox.Ok)
             return
 
         tmpGrid = getTempFilename('grd').replace('\\', '/')
@@ -93,8 +93,8 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
             runStr = 'gdal_translate -of GSAG -a_srs "{0}" "{1}" "{2}"'.format(raster.crs().toProj4(), sourceRasterName, tmpGrid)
             self.runProcess(runStr)
             if not os. path.exists(tmpGrid):
-                QtGui.QMessageBox.critical(None, self.tr(u'Error'),
-                   self.tr(u'Raster layer conversion error'), QtGui.QMessageBox.Ok)
+                QMessageBox.critical(None, self.tr(u'Error'),
+                   self.tr(u'Raster layer conversion error'), QMessageBox.Ok)
                 return
 
         settings = QSettings()
@@ -190,11 +190,11 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
             renderer.setSourceColorRamp(ramp)
             contourLayer.setRendererV2(renderer)
             contourLayer.commitChanges()
-            QgsMapLayerRegistry.instance().addMapLayer(contourLayer)
+            QgsProject.instance().addMapLayer(contourLayer)
 
         isolineLayer = QgsVectorLayer(isolinePath, isolineName, 'ogr')
         if isolineLayer:
-            QgsMapLayerRegistry.instance().addMapLayer(isolineLayer)
+            QgsProject.instance().addMapLayer(isolineLayer)
 
     def updateMinMax(self):
         raster = self.input_raster

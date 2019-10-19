@@ -66,7 +66,7 @@ class BlobSplitter(RowTransformer):
                 blob_datas[column_index] = blob.read(1, fixed_min_blob_size)
             output_row = list(input_row)
             offset = 0
-            for _i in xrange(output_rows_count):
+            for _i in range(output_rows_count):
                 next_offset = offset + element_size
                 for column_index in column_indexes:
                     output_row[column_index] = create_fake_blob(blob_datas[column_index][offset:next_offset])

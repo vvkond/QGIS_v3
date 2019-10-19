@@ -2,9 +2,10 @@
 
 from qgis.core import *
 from qgis.gui import *
-from PyQt5 import QtGui
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from qgis.PyQt import QtGui
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
 from QgisPDS.utils import to_unicode
@@ -62,8 +63,8 @@ class QgisPDSWells(QObject):
 
         layer = QgsVectorLayer(self.uri, "PDS Wells", "memory")
         if layer is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(
-                u'Error create wells layer'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(
+                u'Error create wells layer'), QMessageBox.Ok)
 
             return
         
@@ -167,7 +168,7 @@ class QgisPDSWells(QObject):
                         layer.deleteFeature(f.id())
             if len(deletedWells):
                 s = self.tr('Deleted from layer') + ': ' + ','.join(str(s) for s in deletedWells)
-                QtGui.QMessageBox.warning(None, self.tr(u'Warning'), s, QtGui.QMessageBox.Ok)
+                QMessageBox.warning(None, self.tr(u'Warning'), s, QMessageBox.Ok)
 
         dbWells = self._readWells()
         if dbWells is None:

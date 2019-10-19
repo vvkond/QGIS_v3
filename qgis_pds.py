@@ -910,6 +910,7 @@ class QgisPDS:
 
         self._metadata = BabbleSymbolLayerMetadata()
         QgsApplication.symbolLayerRegistry().addSymbolLayerType(self._metadata)
+
         #---REGISTER USER EXPRESSIONS
         QgsExpression.registerFunction(activeLayerCustomProperty)        
         QgsExpression.registerFunction(activeLayerReservoirs)
@@ -1006,18 +1007,18 @@ class QgisPDS:
                 
 
     def loadPressure(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
-                return
-    
-            dlg = QgisPDSPressure(self.currentProject, self.iface)
-            if dlg.isInitialised():
-                result = dlg.exec_()
-            if dlg.layer is not None:
-                dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before load'))
+            return
+
+        dlg = QgisPDSPressure(self.currentProject, self.iface)
+        if dlg.isInitialised():
+            result = dlg.exec_()
+        if dlg.layer is not None:
+            dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
                 
 
     def loadZonations(self):

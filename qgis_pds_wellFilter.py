@@ -51,12 +51,12 @@ class QgisWellFilterDialog(QDialog, FORM_CLASS):
         QSettings().setValue('PDS/WellFilter/filter', text)
 
     def on_mSelectAll_pressed(self):
-        for idx in xrange(self.proxy.rowCount()):
+        for idx in range(self.proxy.rowCount()):
             index1 = self.proxy.index(idx, 0)
             self.proxy.setData(index1, Qt.Checked, Qt.CheckStateRole)
 
     def on_mDeselectAll_pressed(self):
-        for idx in xrange(self.proxy.rowCount()):
+        for idx in range(self.proxy.rowCount()):
             index1 = self.proxy.index(idx, 0)
             self.proxy.setData(index1, Qt.Unchecked, Qt.CheckStateRole)
 

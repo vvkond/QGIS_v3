@@ -744,6 +744,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         layerCurrentStyleRendere=editLayer.renderer()
 
         registry = QgsApplication.symbolLayerRegistry()
+
         if type(layerCurrentStyleRendere) is QgsRuleBasedRenderer:
             print('type is QgsRuleBasedRenderer')
             #------ITERATE OVER LAYER STYLE-RULES                
@@ -893,7 +894,6 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
             
             for rootRule in rootRules:
                 #------PDS CHART SYMBOL
-                symbol = QgsMarkerSymbol()
                 if bubbleMeta is not None:
                     bubbleProps = {}
                     bubbleProps['showLineouts'] = 'False' if self.showLineouts.isChecked() else 'True'
@@ -906,11 +906,10 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     if bubbleLayer:
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
+                        symbol = QgsMarkerSymbol()
                         symbol.changeSymbolLayer(0, bubbleLayer)
-                else:
-                    symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
-                rule = QgsRuleBasedRenderer.Rule(symbol)
-                rootRule.appendChild(rule)
+                        rule = QgsRuleBasedRenderer.Rule(symbol)
+                        rootRule.appendChild(rule)
 
                 #------LINES
                 if bubbleMeta and self.showLineouts.isChecked():
@@ -925,33 +924,32 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                     if bubbleLayer:
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
-                        symbol1 = QgsMarkerSymbol()
-                        symbol1.changeSymbolLayer(0, bubbleLayer)
-                        qgs_set_symbol_render_level(symbol1, 10)
-                        rule = QgsRuleBasedRenderer.Rule(symbol1)
+                        symbol = QgsMarkerSymbol()
+                        symbol.changeSymbolLayer(0, bubbleLayer)
+                        qgs_set_symbol_render_level(symbol, 10)
+                        rule = QgsRuleBasedRenderer.Rule(symbol)
                         rule.setLabel(u'Скважины')
-                        
+
                         rootRule.appendChild(rule)
-        
+
                 # args = (self.standardDiagramms[code].name, self.standardDiagramms[code].scale)
                 sSize = self.mSymbolSize.value()
                 rootRule.children()[0].setLabel(diagLabel)
                 #------SVG SYMBOLS
                 for symId in uniqSymbols:
                     svg = QgsSvgMarkerSymbolLayer(plugin_dir + "/svg/WellSymbol" + str(symId).zfill(3) + ".svg")
-                    # svg.setPath(plugin_dir + "/svg/WellSymbol" + str(symId).zfill(3) + ".svg")
                     svg.setSize(sSize)
                     svg.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                     symbol = QgsMarkerSymbol()
                     symbol.changeSymbolLayer(0, svg)
                     qgs_set_symbol_render_level(symbol, 5)
-        
+
                     rule = QgsRuleBasedRenderer.Rule(symbol)
                     try:
                         rule.setLabel(QCoreApplication.translate('bblInit', uniqSymbols[symId]))
                     except:
                         rule.setLabel(uniqSymbols[symId])
-        
+
                     rule.setFilterExpression(u'\"{0}\"={1}'.format("SymbolCode", symId))
                     rootRule.appendChild(rule)
 

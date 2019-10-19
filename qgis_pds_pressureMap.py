@@ -32,7 +32,7 @@ class QgisPDSPressureDialog(QDialog, FORM_CLASS):
     @property
     def db(self):
         if self._db is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)            
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
         else:
             return self._db
     @db.setter
@@ -85,7 +85,7 @@ class QgisPDSPressureDialog(QDialog, FORM_CLASS):
         self.iface = iface
         self.project = project
         if self.project is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
             return
             
         self.mSelectedReservoirs = []
@@ -104,6 +104,8 @@ class QgisPDSPressureDialog(QDialog, FORM_CLASS):
         self.startDateEdit.setDateTime(self.mStartDate)
 
         self._getProjection()
+        if not self.db:
+            return
 
         self.readReservoirOrders()
 
@@ -147,11 +149,7 @@ class QgisPDSPressureDialog(QDialog, FORM_CLASS):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            QgsMessageLog.logMessage(u"Project projection read error {0}: {1}".format(scheme, str(e)), tag="QgisPDS.Error")
-#             self.progressMessageBar.pushCritical(self.tr("Error"),
-#                                                 self.tr(u'Project projection read error {0}: {1}').format(
-#                                                 scheme, str(e))
-#                                                 )
+            QgsMessageLog.logMessage(u"Project projection read error {0}: {1}".format(scheme, str(e)), "QgisPDS.Error")
             return
 
         
@@ -359,8 +357,8 @@ class QgisPDSPressure(QgisPDSPressureDialog):
         self.layer = QgsVectorLayer(self.uri, layerName, "memory")
 
         if self.layer is None:
-            QtGui.QMessageBox.critical(None, self.tr(u'Error'), self.tr(
-                u'Error create pressure layer'), QtGui.QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(
+                u'Error create pressure layer'), QMessageBox.Ok)
             return
 
         self.layer = memoryToShp(self.layer, self.project['project'], layerName)
@@ -459,7 +457,7 @@ class QgisPDSPressure(QgisPDSPressureDialog):
         self.writeSettings()
         self.db.disconnect()
 
-        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        QgsProject.instance().addMapLayer(self.layer)
         
 
     def _readDbWells(self):

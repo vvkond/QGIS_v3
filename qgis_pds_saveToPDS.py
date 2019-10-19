@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtCore import *
+from qgis.PyQt.QtCore import *
 from qgis.core import *
-from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtGui import *
+from qgis.PyQt import QtGui, uic, QtCore
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis import core, gui
 import os
 import ast
@@ -104,9 +105,9 @@ class QgisSaveWellsToPDS(QtGui.QDialog, FORM_CLASS):
             infoStr = infoStr + str(lastWell)
 
         if len(infoStr):
-            if QtGui.QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Save {0} well to PDS?\n({1})')
+            if QMessageBox.question(self, self.tr(u'Save to PDS'), self.tr(u'Save {0} well to PDS?\n({1})')
                                        .format(countToSave, infoStr),
-                                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) == QtGui.QMessageBox.No:
+                                        QMessageBox.Yes | QMessageBox.No) == QMessageBox.No:
                 return
         else:
             return
