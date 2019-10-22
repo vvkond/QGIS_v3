@@ -32,7 +32,7 @@ class QgisPDSPressureDialog(QDialog, FORM_CLASS):
     @property
     def db(self):
         if self._db is None:
-            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'No current PDS project'), QMessageBox.Ok)
+            QMessageBox.critical(None, self.tr(u'Error'), self.tr(u'Не выбран проект'), QMessageBox.Ok)
         else:
             return self._db
     @db.setter
@@ -329,8 +329,8 @@ class QgisPDSPressure(QgisPDSPressureDialog):
             # db.disconnect()
             return result
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), 
-                self.tr(u'Read production from project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                self.tr(u'Read production from project {0}: {1}').format(scheme, str(e)))
             return None
 
     def get_sql(self, value):
@@ -369,7 +369,6 @@ class QgisPDSPressure(QgisPDSPressureDialog):
         self.layer.setCustomProperty("pds_project", str(self.project))
 
         palyr = QgsPalLayerSettings()
-        palyr.readFromLayer(self.layer)
         palyr.enabled = True
         palyr.fieldName = self.attrPressure
         palyr.placement = QgsPalLayerSettings.OverPoint
@@ -385,8 +384,9 @@ class QgisPDSPressure(QgisPDSPressureDialog):
         #palyr.setDataDefinedProperty(QgsPalLayerSettings.Size, True, True, '8', '')
         #palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionX, True, False, '', 'LablX')
         #palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionY, True, False, '', 'LablY')
-        palyr.writeToLayer(self.layer)
-        
+        palyr = QgsVectorLayerSimpleLabeling(palyr)
+        layer.setLabelsEnabled(True)
+        layer.setLabeling(palyr)
         # self.layer.commitChanges()
 
 
@@ -468,5 +468,5 @@ class QgisPDSPressure(QgisPDSPressureDialog):
             
             return result
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr(u'Error'), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr(u'Error'), str(e))
             return None

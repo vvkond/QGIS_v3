@@ -126,8 +126,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         try:           
             self.db = self.connection.get_db(scheme)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), 
-                self.tr(u'Open project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                self.tr(u'Open project {0}: {1}').format(scheme, str(e)))
             return
 
         self.start_date = QDateTime().currentDateTime().toString(u'yyyy-MM-dd HH:mm:ss')
@@ -147,10 +147,9 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                scheme, str(e)))
             return
 
         self.mWellCoordComboBox.addItem(self.tr(u'Well top'), u'well_top')
@@ -170,10 +169,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         try:
             self.restoreSettings()
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Warning")
-                                                , self.tr(u'Cant restore last config: {}').format(str(e))
-                                                , level=QgsMessageBar.CRITICAL
-                                                )
+            self.iface.messageBar().pushCritical(self.tr("Warning")
+                                                , self.tr(u'Cant restore last config: {}').format(str(e)))
         self.fillRasterLayers()
         self.fillReservoirs()
         self.fillZonations()
@@ -613,9 +610,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         self.progress.setFormat('Loading input raster')
         raster_lay = self.input_raster
         if not raster_lay:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Input NPT raster is not selected'),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'Input NPT raster is not selected'))
             return
         extent = raster_lay.extent()
         gdal_input_raster = gdal.Open(raster_lay.source())
@@ -791,10 +787,9 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     layer_raster[layer_raster == noDataValue] = 0
                     assert len(layer_raster.shape) == 2
                     if layer_raster.shape[0] < input_raster.shape[0] or layer_raster.shape[1] < input_raster.shape[1]:
-                        self.iface.messageBar().pushMessage(self.tr("Error"),
+                        self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'PolygonToRaster_conversion made raster of size {0} which is less than input raster of size {1}').format(
-                                                layer_raster.shape, input_raster.shape),
-                                                level=QgsMessageBar.CRITICAL)
+                                                layer_raster.shape, input_raster.shape))
                         return False
                     if layer_raster.shape != input_raster.shape:
                         layer_raster = layer_raster[-input_raster.shape[0]:, -input_raster.shape[1]:]
@@ -828,9 +823,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         layer_out_raster_path=layer
         if layer is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Raster layer add error'),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'Raster layer add error'))
         else:
             QgsProject.instance().addMapLayer(layer)
 
@@ -845,9 +838,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         layer = QgsRasterLayer(self.out_production_raster_path, basename(self.out_production_raster_path))
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         if layer is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Raster layer add error'),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'Raster layer add error'))
         else:
             QgsProject.instance().addMapLayer(layer)
 
@@ -862,9 +854,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         layer = QgsRasterLayer(self.initial_raster_path, basename(self.initial_raster_path))
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         if layer is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Raster layer add error'),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'Raster layer add error'))
         else:
             QgsProject.instance().addMapLayer(layer)
 
@@ -899,13 +890,11 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     layer.changeAttributeValue(feature.id(), sum_col, feature['sum']*cell_area)#layer_out_raster_path.rasterUnitsPerPixelX()*layer_out_raster_path.rasterUnitsPerPixelY()) #feature['sum']*rastr.rasterUnitsPerPixelX()*rastr.rasterUnitsPerPixelY())
                 layer.commitChanges()
             else:
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                    self.tr(u'Residuals layer add error'),
-                                                    level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                    self.tr(u'Residuals layer add error'))
                 QgsProject.instance().removeMapLayers([self.nfpt_output_class.id()])
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
         #add CSV layer
         fileparts = os.path.split(csvFileName)
@@ -919,8 +908,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
             QgsProject.instance().addMapLayer(bh)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
         return
 

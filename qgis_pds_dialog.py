@@ -173,7 +173,7 @@ class QgisPDSDialog(QDialog, FORM_CLASS):
     def _getPDSProjects(self, options):
         connection = create_connection(options)        
         try:
-            QgsMessageLog.logMessage('Try connect to : ' + str(options), 'QgisPDS.debug')
+            # QgsMessageLog.logMessage('Try connect to : ' + str(options), 'QgisPDS.debug')
             if not ping(connection.host):
                 raise Exception("Can't find host {}".format(connection.host))
             self.db = connection.get_db('global')

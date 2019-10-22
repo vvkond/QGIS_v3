@@ -60,10 +60,9 @@ class QgisSaveWellsToPDS(QtGui.QDialog, FORM_CLASS):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id,isSave=True,toLL=True)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                    scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                    scheme, str(e)))
             return False
         return True
 
@@ -151,6 +150,5 @@ class QgisSaveWellsToPDS(QtGui.QDialog, FORM_CLASS):
             self.db.execute(sql)
             self.db.commit()
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Well insert error {0}: {1}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'Well insert error {0}: {1}').format(str(e)))

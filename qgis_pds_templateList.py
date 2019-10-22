@@ -20,12 +20,12 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(
 class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
     """Constructor."""
     def __init__(self, _db, currentId, simple=True, parent=None):
+        super(QgisPDSTemplateListDialog, self).__init__(parent)
+
         self.db = _db
         self.currentId = currentId
 
         if not simple:
-            super(QgisPDSTemplateListDialog, self).__init__(parent)
-
             self.setupUi(self)
 
             self.tableWidget.selectionModel().currentRowChanged.connect(self.currentRowChanged)
@@ -49,12 +49,13 @@ class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
 
     def fillTableWidget(self):
         sql = self.get_sql('template.sql')
-        records = self.db.execute(sql, app_name = 'brwwel')
+        records = self.db.execute(sql, app_name = u'brwwel')
+        # records = self.db.execute(sql)
         if not records:
             return
 
         row = 0
-        self.tableWidget.setSortingEnabled(False)
+        # self.tableWidget.setSortingEnabled(False)
         for input_row in records:
             self.tableWidget.insertRow(row)
             #QgsMessageLog.logMessage(u"template: {}".format(to_unicode(input_row[1])), tag="QgisPDS.debug")
@@ -81,7 +82,7 @@ class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
             row += 1
 
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
-        self.tableWidget.horizontalHeader().setResizeMode(1,QHeaderView.ResizeToContents) #QT5 .setSectionResizeMode #resize column to content
+        self.tableWidget.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeToContents) #QT5 .setSectionResizeMode #resize column to content
         self.tableWidget.resizeColumnsToContents()
         self.tableWidget.setSortingEnabled(True)
 
@@ -200,29 +201,31 @@ class QgisPDSTemplateListDialog(QDialog, FORM_CLASS):
 
 
     def parceCLob(self, lobObject):
-        try:
-            strToParce = lobObject.read()
-            lines = strToParce.split('\n')
+        # try:
+        strToParce = lobObject.read()
+        if type(strToParce) is bytes:
+            strToParce = strToParce.decode('utf-8')
+        lines = strToParce.split('\n')
 
-            #Version
-            values = lines[0].split('\t')
-            if len(values) < 2 or int(values[1]) != 2:
-                QMessageBox.critical(self, self.tr(u'Error'), self.tr(u'Version is not 2'), QMessageBox.Ok)
-                return []
+        #Version
+        values = lines[0].split('\t')
+        if len(values) < 2 or int(values[1]) != 2:
+            QMessageBox.critical(self, self.tr(u'Error'), self.tr(u'Version is not 2'), QMessageBox.Ok)
+            return []
 
-            #Number in list
-            values = lines[2].split('\t')
-            numIds = int(values[1])
+        #Number in list
+        values = lines[2].split('\t')
+        numIds = int(values[1])
 
-            #SLDNIDs
-            ids = []
-            for i in range(4, 4+numIds):
-                ids.append(int(lines[i]))
+        #SLDNIDs
+        ids = []
+        for i in range(4, 4+numIds):
+            ids.append(int(lines[i]))
 
-            return ids
+        return ids
 
-        except Exception as e:
-            QgsMessageLog.logMessage('CLOB: ' + str(e), 'QGisPDS')
+        # except Exception as e:
+        #     QgsMessageLog.logMessage('CLOB: ' + str(e), 'QGisPDS')
 
         return []
 

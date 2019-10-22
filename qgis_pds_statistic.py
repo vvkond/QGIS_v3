@@ -49,8 +49,8 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
 
             self.db = connection.get_db(scheme)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'Project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                self.tr(u'Project {0}: {1}').format(scheme, str(e)))
             return
 
     def fillLayersList(self):
@@ -192,6 +192,5 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
         if layer:
             QgsProject.instance().addMapLayer(layer)
         else:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Text file layer create error'),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'Text file layer create error'))

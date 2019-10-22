@@ -9,3 +9,4 @@ FROM
     left join tig_template t on t.TIG_INTERPRETER_SLDNID = i.TIG_USER_ID
 WHERE
     t.TIG_APPLICATION_NAME = :app_name
+--select :app_name from dual

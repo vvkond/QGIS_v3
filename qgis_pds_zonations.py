@@ -34,9 +34,13 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
             self.scheme = _project['project']
 
         self.isInitialized = False
+        self.layer = None
 
         """Constructor."""
         super(QgisPDSZonationsDialog, self).__init__(_project, _iface, None, parent)
+        if not self.db:
+            self.layer = None
+            return
 
         self.setWindowTitle(self.tr(u'Zonation parameters'))
         if self.scheme:
@@ -127,7 +131,6 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
             palyr.displayAll = True
             palyr.fontSizeInMapUnits = False
             palyr=layer_to_labeled(palyr)  #---enable EasyLabel            
-            # palyr.writeToLayer(self.layer)
             palyr = QgsVectorLayerSimpleLabeling(palyr)
             self.layer.setLabelsEnabled(True)
             self.layer.setLabeling(palyr)
@@ -161,9 +164,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
 
             return self.layer is not None
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'Layer create error {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'Layer create error {0}').format(str(e)))
             return False
 
     #===============================================================================

@@ -49,7 +49,7 @@ class CurrentProdRenderer(QgsMapLayerRenderer):
         self.loop.exec_()
 
         debug("[WORKER THREAD] Async request finished", 3)
-        self.iface.messageBar().pushMessage('Current PDS project:')
+        self.iface.messageBar().pushInfo('Current PDS project:')
 
         painter = self.context.painter()
         # painter.drawImage(0, 0, self.controller.img

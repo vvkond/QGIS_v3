@@ -26,14 +26,17 @@ class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
         self.plugin_dir = os.path.dirname(__file__)
         self.project = _project
         self.iface = _iface
-        self.initDb()
+        self.initialized = False
+        if not self.initDb():
+            return
 
         self.wellsBrowser = QgisPDSWellsBrowserForm(_iface, self.db, self.getAllWells, self.project, parent=self, selectedIds=selectedIds, selectedIdsCol=selectedIdsCol, markedIdsCol=markedIdsCol, markedIds=markedIds, isDisableUnmarkedItems=isDisableUnmarkedItems, allowCheckRow=allowCheckRow)
         self.verticalLayout.insertWidget(0, self.wellsBrowser)
+        self.initialized = True
 
     def initDb(self):
         if self.project is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                 self.tr(u'No current PDS project'))
 
             return False
@@ -52,7 +55,7 @@ class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
                                                     scheme, str(e)))
             return False
@@ -94,7 +97,7 @@ class QgisPDSWellsBrowserDialog(QDialog, FORM_CLASS):
 
             return wellList
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
         return wellList
 

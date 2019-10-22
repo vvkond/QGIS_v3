@@ -64,6 +64,7 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
 
             self.db = connection.get_db(scheme)
         except Exception as e:
+            self.db = None
             self.errorMessage(self.tr(u'{0}').format(str(e)))
             return
 
@@ -79,10 +80,9 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                scheme, str(e)))
 
         settings = QSettings()
         selectedZonations = settings.value("/PDS/Zonations/SelectedZonations/v"+self.scheme, [])
@@ -99,7 +99,7 @@ class QgisPDSCoordFromZoneDialog(QDialog, FORM_CLASS, WithQtProgressBar):
     # 
     #===========================================================================
     def errorMessage(self, msg):
-        self.iface.messageBar().pushMessage(self.tr("Error"), msg, level=QgsMessageBar.CRITICAL)
+        self.iface.messageBar().pushCritical(self.tr("Error"), msg)
     #===========================================================================
     # 
     #===========================================================================

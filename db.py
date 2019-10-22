@@ -235,7 +235,8 @@ class Oracle(Base):
         return code in self._reconnection_exception_codes
 
     def _execute(self, sql, cursor_id=None,**kwargs):
-        kwargs = {k.encode('ascii'): v.encode('ascii') if isinstance(v, unicode) else v for k, v in kwargs.items()}
+        # kwargs = {k.encode('utf-8'): v.encode('utf-8') if isinstance(v, unicode) else v for k, v in kwargs.items()}
+        kwargs = {k: v for k, v in kwargs.items()}
         attempts = 2
         while attempts > 0:
             attempts -= 1

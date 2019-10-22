@@ -1022,13 +1022,13 @@ class QgisPDS:
                 
 
     def loadZonations(self):
-        try:
-            dlg = QgisPDSZonationsDialog(self.currentProject, self.iface)
-            dlg.exec_()
-            if dlg.layer is not None:
-                dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        dlg = QgisPDSZonationsDialog(self.currentProject, self.iface)
+        dlg.exec_()
+        if dlg.layer is not None:
+            dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
 
     def placeLabels(self):
         self.renderComplete()
@@ -1162,12 +1162,13 @@ class QgisPDS:
             return
 
         dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
-        if dlg.exec_():
-            wells = QgisPDSWells(self.iface, self.currentProject ,styleName=WELL_STYLE,styleUserDir=USER_WELL_STYLE_DIR  )
-            wells.setWellList(dlg.getWellIds())
-            layer = wells.createWellLayer()
-            if layer is not None:
-                layer.attributeValueChanged.connect(self.pdsLayerModified)
+        if dlg.initialized:
+            if dlg.exec_():
+                wells = QgisPDSWells(self.iface, self.currentProject ,styleName=WELL_STYLE,styleUserDir=USER_WELL_STYLE_DIR  )
+                wells.setWellList(dlg.getWellIds())
+                layer = wells.createWellLayer()
+                if layer is not None:
+                    layer.attributeValueChanged.connect(self.pdsLayerModified)
         del dlg
         # except Exception as e:
         #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
@@ -1180,10 +1181,11 @@ class QgisPDS:
             return
 
         dlg = QgisPDSWellsBrowserDialog(self.iface, self.currentProject)
-        if dlg.exec_():
-            wells = QgisPDSDeviation(self.iface, self.currentProject ,styleName=DEVI_STYLE,styleUserDir=USER_DEVI_STYLE_DIR  )
-            wells.setWellList(dlg.getWellIds())
-            layer = wells.createWellLayer()
+        if dlg.initialized:
+            if dlg.exec_():
+                wells = QgisPDSDeviation(self.iface, self.currentProject ,styleName=DEVI_STYLE,styleUserDir=USER_DEVI_STYLE_DIR  )
+                wells.setWellList(dlg.getWellIds())
+                layer = wells.createWellLayer()
 
             # if layer is not None:
             #     layer.attributeValueChanged.connect(self.pdsLayerModified)

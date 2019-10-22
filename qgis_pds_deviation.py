@@ -63,7 +63,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
 
     def initDb(self):
         if self.project is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"), self.tr(u'No current PDS project'))
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'No current PDS project'))
 
             return False
 
@@ -81,7 +81,7 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
                                                     scheme, str(e)))
             return False
@@ -367,5 +367,5 @@ class QgisPDSDeviation(QObject, WithQtProgressBar):
             return self.db.execute(self.get_sql('WellBottoms.sql'))
 
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
             return None

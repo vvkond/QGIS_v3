@@ -104,8 +104,8 @@ class ControlPointReader(ReaderBase):
 
         #     xform = QgsCoordinateTransform(sourceCrs, destSrc)
         # else:
-        #     self.iface.messageBar().pushMessage(self.tr("Error"),
-        #         self.tr(u'Project projection read error'), level=QgsMessageBar.CRITICAL)
+        #     self.iface.messageBar().pushCritical(self.tr("Error"),
+        #         self.tr(u'Project projection read error'))
 
         sqlFile = os.path.join(self.plugin_dir, 'db', 'ControlPoints.sql')
         if os.path.exists(sqlFile):
@@ -122,8 +122,7 @@ class ControlPointReader(ReaderBase):
                 mapParams = numpy.fromstring(self.db.blobToString(param), '>d').astype('d')
 
                 if len(xCoords) != len(yCoords):
-                    self.iface.messageBar().pushMessage(self.tr('Error'),
-                        self.tr(u'Coordinate count missmatch'), level=QgsMessageBar.CRITICAL)
+                    self.iface.messageBar().pushCritical(self.tr('Error'), self.tr(u'Coordinate count missmatch'))
                     continue
 
                 i = 0

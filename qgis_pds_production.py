@@ -161,6 +161,8 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.startDateEdit.setDateTime(self.mStartDate)
 
         self._getProjection()
+        if not self.db:
+            return
 
         self.readReservoirOrders() # USED FOR LOWWER-UPPER analis.... @TODO: change it to use self._getReservoirs() result
 
@@ -506,7 +508,6 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             self.layer.setCustomProperty("pds_prod_PhaseFilter",        str(self.mPhaseFilter)                 )
 
             palyr = QgsPalLayerSettings()
-            # palyr.readFromLayer(self.layer)
             palyr.enabled = True
             palyr.fieldName = Fields.WellId.name
             palyr.placement= QgsPalLayerSettings.OverPoint
@@ -522,7 +523,6 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
             #palyr.setDataDefinedProperty(QgsPalLayerSettings.PositionY,True,False,'', Fields.lably.name)
             #palyr.setDataDefinedProperty(QgsPalLayerSettings.OffsetXY, True, True, 'format(\'%1,%2\', "labloffx" , "labloffy")', '')
 
-            # palyr.writeToLayer(self.layer)
             palyr = QgsVectorLayerSimpleLabeling(palyr)
             self.layer.setLabelsEnabled(True)
             self.layer.setLabeling(palyr)
@@ -679,7 +679,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         self.layer.updateExtents()
 
     # except Exception as e:
-        #self.progressMessageBar.pushInfo(self.tr("Error"), self.tr(str(e)), level=QgsMessageBar.CRITICAL)
+        #self.progressMessageBar.pushCritical(self.tr("Error"), self.tr(str(e)))
      
         
     #===========================================================================
@@ -826,7 +826,7 @@ class QgisPDSProductionDialog(QDialog, FORM_CLASS, WithQtProgressBar ):
         time_start=time.time()
                     
         # if is_refreshed:
-        #     self.progressMessageBar.pushInfo(self.tr(u'Layer: {0} refreshed').format(self.layer.name()), duration=4)
+        #     self.progressMessageBar.pushMessage(self.tr(u'Layer: {0} refreshed').format(self.layer.name()), duration=4)
         self.writeSettings()
 
     #===========================================================================

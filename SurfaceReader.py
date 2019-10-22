@@ -91,10 +91,8 @@ class SurfaceReader(ReaderBase):
                 sourceCrs = None
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr('Error'),
-                                                self.tr(u'Project projection read error {0}').format(
-                                                str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr('Error'),
+                                                self.tr(u'Project projection read error {0}').format(str(e)))
 
         sqlFile = os.path.join(self.plugin_dir, 'db', 'Surface.sql')
         if os.path.exists(sqlFile):

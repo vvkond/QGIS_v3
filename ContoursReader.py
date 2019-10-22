@@ -93,10 +93,8 @@ class ContoursReader(ReaderBase):
                 sourceCrs = None
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr('Error'),
-                                                self.tr(u'Project projection read error {0}').format(
-                                                str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr('Error'),
+                                                self.tr(u'Project projection read error {0}').format(str(e)))
             return
 
         if self.dataType == 1 and self.dialog.mLoadAsContourCheckBox.isChecked():
@@ -171,8 +169,8 @@ class ContoursReader(ReaderBase):
                 paramLen = len(zParams)
 
                 if len(xCoords) != len(yCoords):
-                    self.iface.messageBar().pushMessage(self.tr('Error'),
-                        self.tr(u'Coordinates length unmatched'), level=QgsMessageBar.CRITICAL)
+                    self.iface.messageBar().pushCritical(self.tr('Error'),
+                        self.tr(u'Coordinates length unmatched'))
                     continue
 
                 i = 0

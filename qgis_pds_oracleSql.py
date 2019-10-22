@@ -51,14 +51,11 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             if layer:
                 QgsProject.instance().addMapLayer(layer)
             else:
-                self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                    self.tr(u'Text file layer create error'),
-                                                    level=QgsMessageBar.CRITICAL)
+                self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'Text file layer create error'))
 
     def initDb(self):
         if self.project is None:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'No current PDS project'), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'No current PDS project'))
 
             return False
 
@@ -76,10 +73,9 @@ class QgisOracleSql(QDialog, FORM_CLASS):
                 #self.xform = QgsCoordinateTransform(sourceCrs, destSrc)
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                                                 self.tr(u'Project projection read error {0}: {1}').format(
-                                                    scheme, str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+                                                    scheme, str(e)))
             return False
         return True
 
@@ -115,9 +111,8 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             sql = self.mSqlTextEdit.toPlainText()
             names = self.db.names(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'SQL error: {0}').format(str(e)))
             return
 
         fileName = QgsProject.instance().homePath() + '/' + self.mLayerNameLineEdit.text() + '.csv'
@@ -129,9 +124,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
         try:
             rows = self.db.execute(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'SQL error: {0}').format(str(e)))
             return
         for row in rows:
             rowdata = []
@@ -147,9 +140,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             sql = self.mSqlTextEdit.toPlainText()
             rows = self.db.execute_assoc(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'SQL error: {0}').format(str(e)))
             return
 
         uri = "Point?crs={}".format(self.proj4String)
@@ -175,9 +166,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             sql = self.mSqlTextEdit.toPlainText()
             rows = self.db.execute_assoc(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'SQL error: {0}').format(str(e)))
             return
 
         xFieldName = self.mXcomboBox.currentText();
@@ -218,9 +207,8 @@ class QgisOracleSql(QDialog, FORM_CLASS):
             sql = self.mSqlTextEdit.toPlainText()
             names = self.db.names(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                                                self.tr(u'SQL error: {0}').format(str(e)))
             return
 
 
@@ -235,9 +223,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
         try:
             rows = self.db.execute(sql)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                self.tr(u'SQL error: {0}').format(str(e)),
-                                                level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), self.tr(u'SQL error: {0}').format(str(e)))
             return
 
         for row in rows:

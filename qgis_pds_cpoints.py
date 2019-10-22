@@ -35,8 +35,8 @@ class QgisPDSCPointsDialog(QDialog, FORM_CLASS):
 
             self.db = connection.get_db(scheme)
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"),
-                self.tr(u'Project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"),
+                self.tr(u'Project {0}: {1}').format(scheme, str(e)))
             return
 
         self.dbReader = reader
@@ -83,8 +83,8 @@ class QgisPDSCPointsDialog(QDialog, FORM_CLASS):
             self.layer = self.dbReader.createLayer(si.text(), self.project, si.data(Qt.UserRole), defValue)
 
 #            except Exception as e:
-#                self.iface.messageBar().pushMessage(self.tr("Error"),
-#                    self.tr(u'Read control points from project {0}: {1}').format(scheme, str(e)), level=QgsMessageBar.CRITICAL)
+#                self.iface.messageBar().pushCritical(self.tr("Error"),
+#                    self.tr(u'Read control points from project {0}: {1}').format(scheme, str(e)))
             if self.layer is not None:
                 QgsProject.instance().addMapLayer(self.layer)
 

@@ -233,9 +233,7 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
 
         for layer in [targetLayer, transiteLayer]:
             palyr = QgsPalLayerSettings()
-            # palyr.readFromLayer(layer)
             palyr=layer_to_labeled(palyr)  #---enable EasyLabel
-            # palyr.writeToLayer(layer)
             palyr = QgsVectorLayerSimpleLabeling(palyr)
             layer.setLabelsEnabled(True)
             layer.setLabeling(palyr)

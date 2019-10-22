@@ -105,7 +105,7 @@ class QgisPDSWells(QObject):
     def initDb(self):
         if self.project is None:
             QgsMessageLog.logMessage(self.tr(u'No current PDS project'), tag="QgisPDS.error")
-            self.iface.messageBar().pushMessage(self.tr("Error"),
+            self.iface.messageBar().pushCritical(self.tr("Error"),
                 self.tr(u'No current PDS project'))
 
             return False
@@ -125,7 +125,7 @@ class QgisPDSWells(QObject):
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id)
         except Exception as e:
             QgsMessageLog.logMessage(self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e)), tag="QgisPDS.error")
-            self.iface.messageBar().pushMessage(self.tr("Error")
+            self.iface.messageBar().pushCritical(self.tr("Error")
                                                 ,self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e)))
             return False
         return True
@@ -270,7 +270,7 @@ class QgisPDSWells(QObject):
         try:
             return self.db.execute(self.get_sql('Wells.sql'))
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
             return None
 
 

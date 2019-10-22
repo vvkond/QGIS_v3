@@ -105,7 +105,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
         QSettings().setValue('PDS/SaveToPDS/InterpreterId', self.interpreter)
         QSettings().setValue('PDS/SaveToPDS/EmptyValue', self.mEmptyValue.value())
         # except Exception as e:
-        #     self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+        #     self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
 
     def saveAsActivated(self):
@@ -114,9 +114,8 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
     def initDb(self):
         if self.project is None:
             QgsMessageLog.logMessage(self.tr(u'No current PDS project'), tag="QgisPDS.error")
-            self.iface.messageBar().pushMessage(self.tr("Error")
+            self.iface.messageBar().pushCritical(self.tr("Error")
                 ,self.tr(u'No current PDS project')
-                , level=QgsMessageBar.CRITICAL
                 , duration=10
                 )
             
@@ -136,7 +135,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                 self.xform=get_qgis_crs_transform(sourceCrs,destSrc,self.tig_projections.fix_id,isSave=True)
         except Exception as e:
             QgsMessageLog.logMessage(self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e)), tag="QgisPDS.error")
-            self.iface.messageBar().pushMessage(self.tr("Error")
+            self.iface.messageBar().pushCritical(self.tr("Error")
                                                 ,self.tr(u'Project projection read error {0}: {1}').format(scheme, str(e))
                                                 ,level=QgsMessageBar.CRITICAL
                                                 ,duration=10
@@ -213,7 +212,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             #             mapSetNo = rec[0]
             #             break
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
         return mapSetNo
 
@@ -235,7 +234,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                         mapSetNo = rec[0]
                         break
         except Exception as e:
-            self.iface.messageBar().pushMessage(self.tr("Error"), str(e), level=QgsMessageBar.CRITICAL)
+            self.iface.messageBar().pushCritical(self.tr("Error"), str(e))
 
         return mapSetNo
 
