@@ -16,8 +16,8 @@ class QgisProcessing:
     def rasterizeLayer(self, raster_polygons_path, input_raster, rasterCrs, cols, rows):
         out_path = self.temp_path +'/temp_raster_polygons.shp'
         err = QgsVectorFileWriter.writeAsVectorFormat(raster_polygons_path, out_path, 'utf-8', rasterCrs, 'ESRI Shapefile')
-        if err != 0:
-            raise Exception("error saving layer: %s" % err)
+        if err[0] != 0:
+            raise Exception("error saving layer: {}".format(err))
 
         tifDriver = gdal.GetDriverByName( 'GTiff' )
         driver = ogr.GetDriverByName('ESRI Shapefile')
@@ -32,7 +32,7 @@ class QgisProcessing:
         band.Fill(0)
         err = gdal.RasterizeLayer(target_ds, [1], source_layer, options=["ATTRIBUTE=ID" ])
         if err != 0:
-            raise Exception("error rasterizing layer: %s" % err)
+            raise Exception("error rasterizing layer: {}".format(err))
 
         return target_ds
 

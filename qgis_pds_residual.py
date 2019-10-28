@@ -6,10 +6,10 @@ from datetime import timedelta
 
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt5 import QtGui, uic
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from qgis.PyQt import QtGui, uic
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtCore import *
 from qgis.analysis import QgsZonalStatistics
 import processing
 from processing.tools.system import getTempFilename
@@ -50,7 +50,7 @@ def split(times, items):
     for end in times:
         if begin is not None:
             assert begin < end
-            for i in xrange(len(cur) - 1, -1, -1):
+            for i in range(len(cur) - 1, -1, -1):
                 if cur[i].end <= begin:
                     del cur[i]
             while item is not None and item.begin == begin:
@@ -299,12 +299,12 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
     def get_well_tops(self):
         for row in self.db.execute(self.wells_sql, **self.sql_args):
-            pt = QgsPoint(row[2], row[3])
+            pt = QgsPointXY(row[2], row[3])
             if self.xform:
                 pt = self.xform.transform(pt)
             yield Well(
                 id=int(row[0]),
-                name=row[1].decode('utf-8'),
+                name=row[1], #.decode('utf-8'),
                 pos=(pt.x(), pt.y()),
             )
 
@@ -318,7 +318,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
     def get_well_bottoms(self):
         for row in self.db.execute(self.well_bottoms_sql, **self.sql_args):
-            pt = QgsPoint(row[2], row[3])
+            pt = QgsPointXY(row[2], row[3])
             if self.xform:
                 pt = self.xform.transform(pt)
             pos=(pt.x(), pt.y())
@@ -340,7 +340,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     pos = (pos[0]+delta_x, pos[1]+delta_y)
             yield Well(
                 id=int(row[0]),
-                name=row[1].decode('utf-8'),
+                name=row[1], #.decode('utf-8'),
                 pos=pos,
             )
 
@@ -379,7 +379,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
     def _calcOffset(self, lon, lat, x, y, md, depth):
         jp = None
         lastIdx = len(x) - 1
-        for ip in xrange(len(x) - 1):
+        for ip in range(len(x) - 1):
             if md[ip] <= depth <= md[ip + 1]:
                 jp = ip
 
@@ -522,7 +522,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
     def maxRadius(self):
         dist = QgsDistanceArea()
         dist.setEllipsoid('WGS84')
-        dist.setEllipsoidalMode(True)
+        # dist.setEllipsoidalMode(True)
 
         val = float(self.mMaxRadiusLineEdit.text())
 
@@ -533,15 +533,14 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             mr = dist.convertLengthMeasurement(val, 2)
         return mr
 
-
     def create_temp_points(self):
         uri = "Point?crs={}".format(self.proj4String)
         uri += "&field=ID:integer"
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_points",uri), tag="QgisPDS.residual")
         self.temp_points = QgsVectorLayer(uri, "temp_points", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsProject.instance().addMapLayer(self.temp_points)
-        self.iface.legendInterface().setLayerVisible(self.temp_points, False)
+        QgsProject.instance().addMapLayer(self.temp_points, False)
+        # self.iface.legendInterface().setLayerVisible(self.temp_points, False)
 
     def create_temp_raster_polygons(self):
         uri = "Polygon?crs={}".format(self.proj4String)
@@ -571,7 +570,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         with edit(self.temp_points):
             f = QgsFeature(self.temp_points.fields())
             for well in wells:
-                geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
+                geom = QgsGeometry.fromPointXY(QgsPointXY(well.pos[0], well.pos[1]))
                 f.setGeometry(geom)
                 f.setAttribute('ID', well.id)
                 self.temp_points.addFeatures([f])
@@ -583,7 +582,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             f = QgsFeature(self.nfpt_output_class.fields())
             for wellId in wells:
                 well = wells[wellId]
-                geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
+                geom = QgsGeometry.fromPointXY(QgsPointXY(well.pos[0], well.pos[1]))
                 f.setGeometry(geom)
                 f.setAttribute('ID', well.id)
                 f.setAttribute('Well', well.name)
@@ -593,7 +592,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
     def buffer_wells(self, wells, mr):
         for well in wells:
-            geom = QgsGeometry.fromPointXY(QgsPoint(well.pos[0], well.pos[1]))
+            geom = QgsGeometry.fromPointXY(QgsPointXY(well.pos[0], well.pos[1]))
             well.buffer = geom.buffer(mr, 50)
             
 
@@ -618,7 +617,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         rasterCrs=raster_lay.crs()
 
         csvFileName = os.path.splitext(self.out_feature_path)[0] + '.csv'
-        out_pipe = open(csvFileName, "wb")
+        out_pipe = open(csvFileName, "w")
         self.csvWriter = csv.writer(out_pipe)
         self.csvWriter.writerow(['attribute', 'value'])
 
@@ -655,12 +654,12 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         
         self.progress.setFormat( self.tr('Copying wells to temp feature class...') )
         QCoreApplication.processEvents();time.sleep(0.02)
-        self.copy_wells_to_temp_points(all_wells.itervalues())
+        self.copy_wells_to_temp_points(iter(all_wells.values()))
 
         self.progress.setFormat( self.tr('Buffering wells...') )
         QCoreApplication.processEvents();time.sleep(0.02)
         # QgsGeometryAnalyzer().buffer(self.temp_points_path, self.temp_polygons_path, 0.02, False, False, -1)
-        self.buffer_wells(all_wells.itervalues(), self.maxRadius)
+        self.buffer_wells(iter(all_wells.values()), self.maxRadius)
 
         self.progress.setFormat( self.tr('Creating output feature class...') )
         QCoreApplication.processEvents();time.sleep(0.02)
@@ -670,13 +669,13 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         self.out_path = QgsVectorLayer(uri, basename(self.out_feature_path), "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         QgsProject.instance().addMapLayer(self.out_path)
-        self.iface.legendInterface().setLayerVisible(self.out_path, False)
+        # self.iface.legendInterface().setLayerVisible(self.out_path, False)
 
         self.progress.setFormat( self.tr('Loading intervals...') )
         QCoreApplication.processEvents();time.sleep(0.02)
         first_time, times = self.get_times()
 
-        events = self.get_events(first_time)    
+        events = self.get_events(first_time)
 
         self.progress.setFormat(self.tr('Processing intervals %p%'))
         QCoreApplication.processEvents();time.sleep(0.02)
@@ -686,7 +685,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         intervals_count = len(times) - 1
         for i, items in enumerate(split(times, events)):
             if items:
-                # print  'Processing interval {} of {}...'.format(i + 1, intervals_count) 
+                # print('Processing interval {} of {}...'.format(i + 1, intervals_count))
                 progr = float(i+1)/float(intervals_count) * 100
                 self.progress.setValue(progr)
                 QApplication.processEvents()
@@ -702,7 +701,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     for item in items:
                         well = all_wells[item.id]
                         pos = well.pos
-                        geom = QgsGeometry.fromPointXY(QgsPoint(pos[0], pos[1]))
+                        geom = QgsGeometry.fromPointXY(QgsPointXY(pos[0], pos[1]))
                         f.setGeometry(geom)
                         f.setAttribute('ID', item.id)
                         self.temp_points.addFeatures([f])
@@ -713,11 +712,23 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                 self.DeleteRows_management(self.temp_raster_polygons_path)
                 if self.temp_points.featureCount() > 1:
                     extStr = '%f,%f,%f,%f' % (extent.xMinimum(), extent.xMaximum(), extent.yMinimum(), extent.yMaximum())
-                    
-                    processing.runalg("grass7:v.voronoi", self.temp_points, 'False', 'False', extStr,
-                                      -1, 0.000100, 3, self.temp_polygons_path, progress=self)
-                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.temp_polygons_path), tag="QgisPDS.residual")
+
+                    params = {
+                        "input": self.temp_points,
+                        "-l": False,
+                        "-t": False,
+                        "GRASS_REGION_PARAMETER": extStr,
+                        "GRASS_SNAP_TOLERANCE_PARAMETER": -1,
+                        "GRASS_MIN_AREA_PARAMETER": 0.0001,
+                        "GRASS_OUTPUT_TYPE_PARAMETER": 3,
+                        "output": self.temp_polygons_path
+                    }
+                    processing.run("grass7:v.voronoi", params)
+                    # processing.run("grass7:v.voronoi", self.temp_points, 'False', 'False', extStr,
+                    #                   -1, 0.000100, 3, self.temp_polygons_path)
+                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load polygons layer: {}\n".format(self.temp_polygons_path), tag="QgisPDS.residual")
                     temp_polygons = QgsVectorLayer(self.temp_polygons_path, 'temp_polygons', 'ogr')
+                    QgsProject.instance().addMapLayer(temp_polygons)
                     IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
                     with edit(self.temp_raster_polygons_path):
                         f_raster = QgsFeature(self.temp_raster_polygons_path.fields())
@@ -798,7 +809,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     counts = numpy.bincount(flattened)
                     sums = numpy.bincount(flattened, input_raster.ravel())
                     values = numpy.zeros(counts.size, dtype='f')
-                    for i in xrange(1, counts.size):
+                    for i in range(1, counts.size):
                         values[i] = items[i - 1].value
                     values *= (self.value_multiplier / cell_area)
                     multipliers = ((sums - values) / sums).astype('f')
@@ -828,8 +839,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             QgsProject.instance().addMapLayer(layer)
 
         out_raster = numpy.copy(saved_input_raster)
-        for i in xrange(out_raster.shape[0]):
-            for j in xrange(out_raster.shape[1]):
+        for i in range(out_raster.shape[0]):
+            for j in range(out_raster.shape[1]):
                 if out_raster[i,j] != noDataValue:
                     out_raster[i, j] = (out_raster[i, j] - input_raster[i, j] )* self.initial_multiplier
         r.saveRaster(self.out_production_raster_path, gdal_input_raster.GetGeoTransform(), noDataValue, rasterCrs.toWkt(), cols, rows,
@@ -844,8 +855,8 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             QgsProject.instance().addMapLayer(layer)
 
         out_raster = numpy.copy(saved_input_raster)
-        for i in xrange(out_raster.shape[0]):
-            for j in xrange(out_raster.shape[1]):
+        for i in range(out_raster.shape[0]):
+            for j in range(out_raster.shape[1]):
                 if out_raster[i, j] != noDataValue:
                     out_raster[i, j] = out_raster[i, j] * self.initial_multiplier
         r.saveRaster(self.initial_raster_path, gdal_input_raster.GetGeoTransform(), noDataValue, rasterCrs.toWkt(), cols, rows,
@@ -872,8 +883,19 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         self.copy_wells_to_residual_points(wellWithProduction)
         extStr = '%f,%f,%f,%f' % (extent.xMinimum(), extent.xMaximum(), extent.yMinimum(), extent.yMaximum())
         try:
-            processing.runalg("grass7:v.voronoi", self.nfpt_output_class, 'False', 'False', extStr,
-                              -1, 0.000100, 3, self.out_nfpt_path, progress=self)
+            params = {
+                "input": self.nfpt_output_class,
+                "-l": False,
+                "-t": False,
+                "GRASS_REGION_PARAMETER": extStr,
+                "GRASS_SNAP_TOLERANCE_PARAMETER": -1,
+                "GRASS_MIN_AREA_PARAMETER": 0.0001,
+                "GRASS_OUTPUT_TYPE_PARAMETER": 3,
+                "output": self.out_nfpt_path
+            }
+            processing.run("grass7:v.voronoi", params)
+            # processing.run("grass7:v.voronoi", self.nfpt_output_class, 'False', 'False', extStr,
+            #                   -1, 0.000100, 3, self.out_nfpt_path)
             IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.out_nfpt_path), tag="QgisPDS.residual")
             layer = QgsVectorLayer(self.out_nfpt_path, basename(self.out_nfpt_path), 'ogr')
             IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
@@ -936,7 +958,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         meterCrs.createFromProj4('+proj=tmerc +lon_0={} +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs'.format(lon))
 
         toM = QgsCoordinateTransform(sourceCrs, meterCrs)
-        geoPt = QgsPoint(dx, dy)
+        geoPt = QgsPointXY(dx, dy)
         mPt = toM.transform(geoPt)
         return mPt.x(), mPt.y()
 
@@ -952,7 +974,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
         sqlFile = os.path.join(self.plugin_dir, 'db', sqlFileName)
         if os.path.exists(sqlFile):
-            f = open(sqlFile, 'r')
+            f = open(sqlFile, 'rb')
             sql = f.read().decode('utf-8')
             f.close()
 
@@ -1019,7 +1041,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
     def fillRasterLayers(self):
         self.mNPTSurfaceComboBox.clear()
 
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             layerType = layer.type()
