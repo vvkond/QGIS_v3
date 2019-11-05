@@ -30,7 +30,7 @@ from .qgis_processing import *
 from .tig_projection import *
 from .qgis_pds_wellFilter import QgisWellFilterDialog
 
-IS_DEBUG=False
+IS_DEBUG=True
 class Item(StrictInit):
     id = None
     begin = None
@@ -404,7 +404,6 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         }
 
     def get_all_wells(self):
-        IS_DEBUG and QgsMessageLog.logMessage(u"Execute get_all_wells for {}\n".format(self.well_coords), tag="QgisPDS.residual")
         get_raw_wells = self.well_coords_methods[self.well_coords]
         wells = {}
         unique_positions = set()
@@ -539,7 +538,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_points",uri), tag="QgisPDS.residual")
         self.temp_points = QgsVectorLayer(uri, "temp_points", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsProject.instance().addMapLayer(self.temp_points, False)
+        QgsProject.instance().addMapLayer(self.temp_points, True)
         # self.iface.legendInterface().setLayerVisible(self.temp_points, False)
 
     def create_temp_raster_polygons(self):
@@ -548,7 +547,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_raster_polygons",uri), tag="QgisPDS.residual")
         self.temp_raster_polygons_path = QgsVectorLayer(uri, "temp_raster_polygons", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        # QgsProject.instance().addMapLayer(self.temp_raster_polygons_path)
+        QgsProject.instance().addMapLayer(self.temp_raster_polygons_path)
 
     def create_output_nfpt_class(self):
         uri = "Point?crs={}".format(self.proj4String)
@@ -649,10 +648,13 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         self.create_temp_points()
 
         self.progress.setFormat( self.tr('Loading wells...') )
+        IS_DEBUG and QgsMessageLog.logMessage(u"Execute get_all_wells for {}\n".format(self.well_coords), "QgisPDS.residual")
         QCoreApplication.processEvents();time.sleep(0.02)
         all_wells = self.get_all_wells()
+        IS_DEBUG and QgsMessageLog.logMessage(u"Well count {}\n".format(len(all_wells)), "QgisPDS.residual")
         
         self.progress.setFormat( self.tr('Copying wells to temp feature class...') )
+        IS_DEBUG and QgsMessageLog.logMessage(u"Copying wells to temp feature class...\n", "QgisPDS.residual")
         QCoreApplication.processEvents();time.sleep(0.02)
         self.copy_wells_to_temp_points(iter(all_wells.values()))
 
@@ -665,7 +667,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         QCoreApplication.processEvents();time.sleep(0.02)
         uri = "Polygon?crs={}".format(self.proj4String)
         uri += "&field=ID:integer&field=NAME:string&field=VALUE:double&field=START_DATE:date&field=END_DATE:date"
-        IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format(self.out_feature_path,uri), tag="QgisPDS.residual")
+        IS_DEBUG and QgsMessageLog.logMessage(u"Try load out feature: {} : {}\n".format(self.out_feature_path,uri), tag="QgisPDS.residual")
         self.out_path = QgsVectorLayer(uri, basename(self.out_feature_path), "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         QgsProject.instance().addMapLayer(self.out_path)
@@ -714,19 +716,27 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     extStr = '%f,%f,%f,%f' % (extent.xMinimum(), extent.xMaximum(), extent.yMinimum(), extent.yMaximum())
 
                     params = {
+                        '-a': False,
+                        '-l': False,
+                        '-s': False,
+                        '-t': False,
+                        'GRASS_MIN_AREA_PARAMETER': 0.0001,
+                        'GRASS_OUTPUT_TYPE_PARAMETER': 3,
+                        'GRASS_SNAP_TOLERANCE_PARAMETER': -1,
+                        'GRASS_VECTOR_DSCO': '',
+                        'GRASS_VECTOR_EXPORT_NOCAT': True,
+                        'GRASS_VECTOR_LCO': '',
+                        'smoothness': 0.25,
+                        'thin': -1,
                         "input": self.temp_points,
-                        "-l": False,
-                        "-t": False,
                         "GRASS_REGION_PARAMETER": extStr,
-                        "GRASS_SNAP_TOLERANCE_PARAMETER": -1,
-                        "GRASS_MIN_AREA_PARAMETER": 0.0001,
-                        "GRASS_OUTPUT_TYPE_PARAMETER": 3,
                         "output": self.temp_polygons_path
                     }
+                    print(params)
                     processing.run("grass7:v.voronoi", params)
                     # processing.run("grass7:v.voronoi", self.temp_points, 'False', 'False', extStr,
                     #                   -1, 0.000100, 3, self.temp_polygons_path)
-                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load polygons layer: {}\n".format(self.temp_polygons_path), tag="QgisPDS.residual")
+                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load polygons voronoi layer: {}\n".format(self.temp_polygons_path), tag="QgisPDS.residual")
                     temp_polygons = QgsVectorLayer(self.temp_polygons_path, 'temp_polygons', 'ogr')
                     QgsProject.instance().addMapLayer(temp_polygons)
                     IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
@@ -735,28 +745,29 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                         with edit(self.out_path):
                             f_out = QgsFeature(self.out_path.fields())
                             for f_voronoy in temp_polygons.getFeatures():
-                                try:
-                                    well = all_wells[f_voronoy[0]]
-                                    wellWithProduction[f_voronoy[0]] = well
-                                    item = items_by_id[well.id]
-                                    voronoi_poly = f_voronoy.geometry()
-                                    buffer_poly = well.buffer
-                                    clipped_poly = voronoi_poly.intersection(buffer_poly)
-                                    # add output feature
-                                    f_out.setGeometry(clipped_poly)
-                                    f_out.setAttribute('ID', well.id)
-                                    f_out.setAttribute('NAME', well.name)
-                                    f_out.setAttribute('VALUE', item.value)
-                                    f_out.setAttribute('START_DATE', (first_time+timedelta(seconds=item.begin)).strftime('%Y-%m-%d') )
-                                    f_out.setAttribute('END_DATE', (first_time + timedelta(seconds=item.end) - timedelta(days=1)).strftime('%Y-%m-%d') )
-                                    self.out_path.addFeatures([f_out])
-                                    #add to raster polygon
-                                    f_raster.setGeometry(clipped_poly)
-                                    f_raster.setAttribute('ID', item_index_by_id[well.id])
-                                    self.temp_raster_polygons_path.addFeatures([f_raster])
-                                except Exception as e:
-                                    QgsMessageLog.logMessage(u"Error process f_voronoy {0}: {1}".format(str(f_voronoy), str(e)), tag="QgisPDS.Error")
+                                # try:
+                                well = all_wells[f_voronoy[0]]
+                                wellWithProduction[f_voronoy[0]] = well
+                                item = items_by_id[well.id]
+                                voronoi_poly = f_voronoy.geometry()
+                                buffer_poly = well.buffer
+                                clipped_poly = voronoi_poly.intersection(buffer_poly)
+                                # add output feature
+                                f_out.setGeometry(clipped_poly)
+                                f_out.setAttribute('ID', well.id)
+                                f_out.setAttribute('NAME', well.name)
+                                f_out.setAttribute('VALUE', item.value)
+                                f_out.setAttribute('START_DATE', (first_time+timedelta(seconds=item.begin)).strftime('%Y-%m-%d') )
+                                f_out.setAttribute('END_DATE', (first_time + timedelta(seconds=item.end) - timedelta(days=1)).strftime('%Y-%m-%d') )
+                                self.out_path.addFeatures([f_out])
+                                #add to raster polygon
+                                f_raster.setGeometry(clipped_poly)
+                                f_raster.setAttribute('ID', item_index_by_id[well.id])
+                                self.temp_raster_polygons_path.addFeatures([f_raster])
+                                # except Exception as e:
+                                #     QgsMessageLog.logMessage(u"Error process f_voronoy {}: {}".format(str(f_voronoy), str(e)), "QgisPDS.Error", Qgis.Critical)
                 else:
+                    print('Feature count', self.temp_points.featureCount() )
                     with edit(self.temp_raster_polygons_path):
                         f_raster = QgsFeature(self.temp_raster_polygons_path.fields())
                         with edit(self.out_path):
@@ -829,7 +840,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
         r = QgisProcessing()
         r.saveRaster(self.out_raster_path, gdal_input_raster.GetGeoTransform(), 0, rasterCrs.toWkt(), cols, rows, out_raster)
-        IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.out_raster_path), tag="QgisPDS.residual")
+        IS_DEBUG and QgsMessageLog.logMessage(u"Try load out raster layer: {}\n".format(self.out_raster_path), tag="QgisPDS.residual")
         layer = QgsRasterLayer(self.out_raster_path, basename(self.out_raster_path))
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         layer_out_raster_path=layer
@@ -845,7 +856,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     out_raster[i, j] = (out_raster[i, j] - input_raster[i, j] )* self.initial_multiplier
         r.saveRaster(self.out_production_raster_path, gdal_input_raster.GetGeoTransform(), noDataValue, rasterCrs.toWkt(), cols, rows,
                      out_raster)
-        IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.out_production_raster_path), tag="QgisPDS.residual")
+        IS_DEBUG and QgsMessageLog.logMessage(u"Try load out production raster layer: {}\n".format(self.out_production_raster_path), tag="QgisPDS.residual")
         layer = QgsRasterLayer(self.out_production_raster_path, basename(self.out_production_raster_path))
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         if layer is None:
@@ -861,7 +872,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                     out_raster[i, j] = out_raster[i, j] * self.initial_multiplier
         r.saveRaster(self.initial_raster_path, gdal_input_raster.GetGeoTransform(), noDataValue, rasterCrs.toWkt(), cols, rows,
                      out_raster)
-        IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.initial_raster_path), tag="QgisPDS.residual")
+        IS_DEBUG and QgsMessageLog.logMessage(u"Try load initial raster layer: {}\n".format(self.initial_raster_path), tag="QgisPDS.residual")
         layer = QgsRasterLayer(self.initial_raster_path, basename(self.initial_raster_path))
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
         if layer is None:
@@ -896,13 +907,13 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
             processing.run("grass7:v.voronoi", params)
             # processing.run("grass7:v.voronoi", self.nfpt_output_class, 'False', 'False', extStr,
             #                   -1, 0.000100, 3, self.out_nfpt_path)
-            IS_DEBUG and QgsMessageLog.logMessage(u"Try load layer: {}\n".format(self.out_nfpt_path), tag="QgisPDS.residual")
+            IS_DEBUG and QgsMessageLog.logMessage(u"Try load voronoi poly-s layer: {}\n".format(self.out_nfpt_path), tag="QgisPDS.residual")
             layer = QgsVectorLayer(self.out_nfpt_path, basename(self.out_nfpt_path), 'ogr')
             IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
             if layer:
                 QgsProject.instance().addMapLayer(layer)
                 # usage - 'QgsZonalStatistics(QgsVectorLayer, Rastr full path QString, QString attributePrefix="", int rasterBand=1, QgsZonalStatistics.Statistics stats=QgsZonalStatistics.Statistics(QgsZonalStatistics.Count|QgsZonalStatistics.Sum|QgsZonalStatistics.Mean))'
-                zoneStat = QgsZonalStatistics(layer, self.out_raster_path, '', 1, QgsZonalStatistics.Sum)
+                zoneStat = QgsZonalStatistics(layer, layer_out_raster_path, '', 1, QgsZonalStatistics.Sum)
                 zoneStat.calculateStatistics(None)
                 #--recalculate zoneStat result by multiple it to raster cell size in current map unit!!!!
                 sum_col=layer.fields().lookupField('sum')
