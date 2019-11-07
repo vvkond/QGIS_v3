@@ -507,7 +507,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
         return result
 
-    @cached_property
+    @property
     def temp_polygons_path(self):
         nn = getTempFilename('shp')
         return nn
@@ -660,7 +660,6 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
 
         self.progress.setFormat( self.tr('Buffering wells...') )
         QCoreApplication.processEvents();time.sleep(0.02)
-        # QgsGeometryAnalyzer().buffer(self.temp_points_path, self.temp_polygons_path, 0.02, False, False, -1)
         self.buffer_wells(iter(all_wells.values()), self.maxRadius)
 
         self.progress.setFormat( self.tr('Creating output feature class...') )
@@ -709,17 +708,17 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                         self.temp_points.addFeatures([f])
                     self.temp_points.removeSelection()
 
-                # processing.runalg("qgis:voronoipolygons", self.temp_points, 50, self.temp_polygons_path, progress=self)
-
                 self.DeleteRows_management(self.temp_raster_polygons_path)
                 if self.temp_points.featureCount() > 1:
                     extStr = '%f,%f,%f,%f' % (extent.xMinimum(), extent.xMaximum(), extent.yMinimum(), extent.yMaximum())
 
+                    tempPolygonsPath = self.temp_polygons_path
                     params = {
                         '-a': False,
                         '-l': False,
                         '-s': False,
                         '-t': False,
+                        '-overwrite': True,
                         'GRASS_MIN_AREA_PARAMETER': 0.0001,
                         'GRASS_OUTPUT_TYPE_PARAMETER': 3,
                         'GRASS_SNAP_TOLERANCE_PARAMETER': -1,
@@ -730,15 +729,12 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                         'thin': -1,
                         "input": self.temp_points,
                         "GRASS_REGION_PARAMETER": extStr,
-                        "output": self.temp_polygons_path
+                        "output": tempPolygonsPath
                     }
-                    print(params)
                     processing.run("grass7:v.voronoi", params)
-                    # processing.run("grass7:v.voronoi", self.temp_points, 'False', 'False', extStr,
-                    #                   -1, 0.000100, 3, self.temp_polygons_path)
-                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load polygons voronoi layer: {}\n".format(self.temp_polygons_path), tag="QgisPDS.residual")
-                    temp_polygons = QgsVectorLayer(self.temp_polygons_path, 'temp_polygons', 'ogr')
-                    QgsProject.instance().addMapLayer(temp_polygons)
+                    IS_DEBUG and QgsMessageLog.logMessage(u"Try load polygons voronoi layer: {}\n".format(tempPolygonsPath), tag="QgisPDS.residual")
+                    temp_polygons = QgsVectorLayer(tempPolygonsPath, 'temp_polygons', 'ogr')
+                    # QgsProject.instance().addMapLayer(temp_polygons, False)
                     IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
                     with edit(self.temp_raster_polygons_path):
                         f_raster = QgsFeature(self.temp_raster_polygons_path.fields())
@@ -746,8 +742,9 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                             f_out = QgsFeature(self.out_path.fields())
                             for f_voronoy in temp_polygons.getFeatures():
                                 # try:
-                                well = all_wells[f_voronoy[0]]
-                                wellWithProduction[f_voronoy[0]] = well
+                                wellId = f_voronoy.attribute('ID')
+                                well = all_wells[wellId]
+                                wellWithProduction[wellId] = well
                                 item = items_by_id[well.id]
                                 voronoi_poly = f_voronoy.geometry()
                                 buffer_poly = well.buffer
