@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtGui, uic, QtCore
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from qgis.PyQt import QtGui, uic, QtCore
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 from qgis import core, gui
 from qgis.gui import QgsColorButton, QgsFieldExpressionWidget, QgsColorDialog
 from qgis.core import QgsFieldProxyModel
-# from qgis.gui import *
-# from qgscolorbuttonv2 import QgsColorButtonV2
 from collections import namedtuple
 from .qgis_pds_production import *
 from .bblInit import *
@@ -280,7 +278,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         self.filteredModel.setSourceModel(self.attributeModel)
 
         self.attributeTableView.setModel(self.filteredModel)
-        self.attributeTableView.horizontalHeader().setResizeMode(0, QHeaderView.Stretch)
+        self.attributeTableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
 
         exprDelegate = ExpressionDelegate(layer, True, self)
         self.attributeTableView.setItemDelegateForColumn(AttributeTableModel.ExpressionColumn, exprDelegate)
@@ -298,7 +296,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         self.labelFilteredModel.setSourceModel(self.labelAttributeModel)
 
         self.labelAttributeTableView.setModel(self.labelFilteredModel)
-        self.labelAttributeTableView.horizontalHeader().setResizeMode(0, QHeaderView.Stretch)
+        self.labelAttributeTableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
 
         labelExprDelegate = ExpressionDelegate(layer, False, self)
         self.labelAttributeTableView.setItemDelegateForColumn(AttributeTableModel.ExpressionColumn, labelExprDelegate)
@@ -318,7 +316,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
 
         self.bubbleProps = None
-        renderer = self.currentLayer.rendererV2()
+        renderer = self.currentLayer.renderer()
         if renderer is not None and renderer.type() == 'RuleRenderer':
             root_rule = renderer.rootRule()
             for r in root_rule.children():
@@ -331,7 +329,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                     break
 
         if self.bubbleProps is None:
-            registry = QgsSymbolLayerRegistry.instance()
+            registry = QgsApplication.symbolLayerRegistry()
             bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
             if bubbleMeta is not None:
                 bubbleLayer = bubbleMeta.createSymbolLayer({})
@@ -436,7 +434,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         d = self.createMyStruct()
         self.layerDiagramms.append(d)
 
-        item = QtGui.QListWidgetItem(d.name)
+        item = QListWidgetItem(d.name)
         item.setData(Qt.UserRole, d)
         self.mDiagrammsListWidget.addItem(item)
         self.mDeleteDiagramm.setEnabled(len(self.layerDiagramms) > 1)
@@ -456,7 +454,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         self.mDeleteDiagramm.setEnabled(len(self.layerDiagramms) > 1)
         for d in self.layerDiagramms:
             name = d.name
-            item = QtGui.QListWidgetItem(name)
+            item = QListWidgetItem(name)
             item.setData(Qt.UserRole, d)
             self.mDiagrammsListWidget.addItem(item)
 
@@ -465,7 +463,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
     def createExpressionContext(self):
         context = QgsExpressionContext()
         context.appendScope(QgsExpressionContextUtils.globalScope())
-        context.appendScope(QgsExpressionContextUtils.projectScope())
+        context.appendScope(QgsExpressionContextUtils.projectScope(QgsProject.instance()))
         context.appendScope(QgsExpressionContextUtils.mapSettingsScope(self.mIface.mapCanvas().mapSettings()))
         context.appendScope(QgsExpressionContextUtils.layerScope(self.currentLayer))
 
@@ -769,7 +767,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                     ET.SubElement(root, "label", labelText=templateStr)
                     # editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('bbllabels'), templateStr)
             except Exception as e:
-                QMessageBox.critical(None, self.tr(u'Error'), str(e), QMessageBox.Ok)
+                QMessageBox.critical(None, self.tr(u'Ошибочка'), str(e), QMessageBox.Ok)
                 break
 
 
@@ -820,7 +818,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                 slices.append(slice)
             diagramm['slices'] = slices
 
-            rows = [r for r in xrange(self.labelAttributeModel.rowCount()) if
+            rows = [r for r in range(self.labelAttributeModel.rowCount()) if
                     self.labelAttributeModel.diagramm(r) == d.diagrammId]
             diagramm['labels'] = self.getLabels(rows)
 
@@ -830,7 +828,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         plugin_dir = os.path.dirname(__file__)
 
-        registry = QgsSymbolLayerRegistry.instance()
+        registry = QgsApplication.symbolLayerRegistry()
 
         symbol = QgsMarkerSymbol()
         bubbleMeta = registry.symbolLayerMetadata('BubbleDiagramm')
@@ -845,7 +843,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
-                bubbleLayer.setSizeUnit(QgsSymbol.MM)
+                bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                 symbol.changeSymbolLayer(0, bubbleLayer)
         else:
             symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer())
@@ -865,7 +863,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
-                bubbleLayer.setSizeUnit(QgsSymbol.MM)
+                bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                 symbol1 = QgsMarkerSymbol()
                 symbol1.changeSymbolLayer(0, bubbleLayer)
                 rule = QgsRuleBasedRenderer.Rule(symbol1)
@@ -873,7 +871,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                 root_rule.appendChild(rule)
 
         for d in self.layerDiagramms:
-            rows = [r for r in xrange(self.attributeModel.rowCount()) if
+            rows = [r for r in range(self.attributeModel.rowCount()) if
                     self.attributeModel.diagramm(r) == d.diagrammId]
 
             koef = (d.scaleMaxRadius - d.scaleMinRadius) / d.scale
@@ -887,7 +885,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
                 m = QgsSimpleMarkerSymbolLayer()
                 m.setSize(4)
-                m.setSizeUnit(QgsSymbol.MM)
+                m.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                 m.setColor(backColor)
                 symbol = QgsMarkerSymbol()
                 symbol.changeSymbolLayer(0, m)
@@ -905,7 +903,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) ) 
         editLayerStyles.setCurrentStyle('diagrams')
 
-        editLayer.setRendererV2(renderer)
+        editLayer.setRenderer(renderer)
 
         editLayer.triggerRepaint()
         self.mIface.layerTreeView().refreshLayerSymbology(editLayer.id())
@@ -914,7 +912,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
     def addLabels(self, context, feature):
         templateStr = u''
-        for row in xrange(self.labelAttributeModel.rowCount()):
+        for row in range(self.labelAttributeModel.rowCount()):
             index = self.labelAttributeModel.index(row, AttributeTableModel.ExpressionColumn)
             expression = self.labelAttributeModel.data(index, Qt.DisplayRole)
 
@@ -987,7 +985,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         self.showLineouts.setChecked(True if self.currentLayer.customProperty("PDS/showLineouts", 'true') == 'true' else False)
 
         self.layerDiagramms = []
-        for num in xrange(count):
+        for num in range(count):
             d = str(num+1)
             val = self.createMyStruct()
             try:
@@ -1006,9 +1004,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         count = int(self.currentLayer.customProperty('PDS/diagramm_attributeCount', 0))
         self.attributeModel.clearRows()
         self.attributeModel.insertRows(0, count)
-        for row in xrange(count):
+        for row in range(count):
             self.attributeModel.setDiagramm(row, int(self.currentLayer.customProperty('PDS/diagramm_filter_' + str(row))))
-            for col in xrange(self.attributeModel.columnCount()):
+            for col in range(self.attributeModel.columnCount()):
                 try:
                     idxStr = '{0}_{1}'.format(row, col)
                     data = self.currentLayer.customProperty('PDS/diagramm_attribute_' + idxStr,'')
@@ -1020,9 +1018,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         count = int(self.currentLayer.customProperty('PDS/diagramm_labelCount', 0))
         self.labelAttributeModel.clearRows()
         self.labelAttributeModel.insertRows(0, count)
-        for row in xrange(count):
+        for row in range(count):
             self.labelAttributeModel.setDiagramm(row, int(self.currentLayer.customProperty('PDS/diagramm_labelfilter_' + str(row))))
-            for col in xrange(self.labelAttributeModel.columnCount()):
+            for col in range(self.labelAttributeModel.columnCount()):
                 index = self.labelAttributeModel.index(row, col)
                 idxStr = '{0}_{1}'.format(row, col)
                 data = self.currentLayer.customProperty('PDS/diagramm_labelAttribute_' + idxStr)
@@ -1057,9 +1055,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         #Write attributes
         self.currentLayer.setCustomProperty('PDS/diagramm_attributeCount', self.attributeModel.rowCount())
-        for row in xrange(self.attributeModel.rowCount()):
+        for row in range(self.attributeModel.rowCount()):
             self.currentLayer.setCustomProperty('PDS/diagramm_filter_' + str(row), self.attributeModel.diagramm(row))
-            for col in xrange(self.attributeModel.columnCount()):
+            for col in range(self.attributeModel.columnCount()):
                 index = self.attributeModel.index(row, col)
                 data = self.attributeModel.data(index, Qt.DisplayRole)
                 idxStr = '{0}_{1}'.format(row, col)
@@ -1067,9 +1065,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         #Write label settings
         self.currentLayer.setCustomProperty('PDS/diagramm_labelCount', self.labelAttributeModel.rowCount())
-        for row in xrange(self.labelAttributeModel.rowCount()):
+        for row in range(self.labelAttributeModel.rowCount()):
             self.currentLayer.setCustomProperty('PDS/diagramm_labelfilter_' + str(row), self.labelAttributeModel.diagramm(row))
-            for col in xrange(self.labelAttributeModel.columnCount()):
+            for col in range(self.labelAttributeModel.columnCount()):
                 index = self.labelAttributeModel.index(row, col)
                 if col > AttributeTableModel.ColorColumn:
                     data = self.labelAttributeModel.data(index, Qt.CheckStateRole)
@@ -1102,9 +1100,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         #Write attributes
         settings.setValue('PDS/diagramm_attributeCount', self.attributeModel.rowCount())
-        for row in xrange(self.attributeModel.rowCount()):
+        for row in range(self.attributeModel.rowCount()):
             settings.setValue('PDS/diagramm_filter_' + str(row), self.attributeModel.diagramm(row))
-            for col in xrange(self.attributeModel.columnCount()):
+            for col in range(self.attributeModel.columnCount()):
                 index = self.attributeModel.index(row, col)
                 data = self.attributeModel.data(index, Qt.DisplayRole)
                 idxStr = '{0}_{1}'.format(row, col)
@@ -1112,9 +1110,9 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
         #Write label settings
         settings.setValue('PDS/diagramm_labelCount', self.labelAttributeModel.rowCount())
-        for row in xrange(self.labelAttributeModel.rowCount()):
+        for row in range(self.labelAttributeModel.rowCount()):
             settings.setValue('PDS/diagramm_labelfilter_' + str(row), self.labelAttributeModel.diagramm(row))
-            for col in xrange(self.labelAttributeModel.columnCount()):
+            for col in range(self.labelAttributeModel.columnCount()):
                 index = self.labelAttributeModel.index(row, col)
                 if col > AttributeTableModel.ColorColumn:
                     data = self.labelAttributeModel.data(index, Qt.CheckStateRole)
@@ -1138,7 +1136,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             True if settings.value("PDS/showLineouts", 'true') == 'true' else False)
 
         self.layerDiagramms = []
-        for num in xrange(count):
+        for num in range(count):
             d = str(num + 1)
             val = self.createMyStruct()
             try:
@@ -1157,10 +1155,10 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         count = int(settings.value('PDS/diagramm_attributeCount', 0))
         self.attributeModel.clearRows()
         self.attributeModel.insertRows(0, count)
-        for row in xrange(count):
+        for row in range(count):
             self.attributeModel.setDiagramm(row,
                                             int(settings.value('PDS/diagramm_filter_' + str(row))))
-            for col in xrange(self.attributeModel.columnCount()):
+            for col in range(self.attributeModel.columnCount()):
                 try:
                     idxStr = '{0}_{1}'.format(row, col)
                     data = settings.value('PDS/diagramm_attribute_' + idxStr)
@@ -1172,10 +1170,10 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         count = int(settings.value('PDS/diagramm_labelCount', 0))
         self.labelAttributeModel.clearRows()
         self.labelAttributeModel.insertRows(0, count)
-        for row in xrange(count):
+        for row in range(count):
             self.labelAttributeModel.setDiagramm(row, int(
                 settings.value('PDS/diagramm_labelfilter_' + str(row))))
-            for col in xrange(self.labelAttributeModel.columnCount()):
+            for col in range(self.labelAttributeModel.columnCount()):
                 index = self.labelAttributeModel.index(row, col)
                 idxStr = '{0}_{1}'.format(row, col)
                 data = settings.value('PDS/diagramm_labelAttribute_' + idxStr)

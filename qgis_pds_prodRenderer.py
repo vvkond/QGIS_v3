@@ -248,8 +248,6 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
                 showZero = label['showZero']
                 isNewLine = label['isNewLine']
 
-                # QgsMessageLog.logMessage(str(val), 'BubbleSymbolLayer')
-
                 if type(val) is float:
                     formatString = "{:." + str(label['decimals']) + "f}"
                     if val != 0.0 or showZero:

@@ -30,7 +30,7 @@ from .qgis_processing import *
 from .tig_projection import *
 from .qgis_pds_wellFilter import QgisWellFilterDialog
 
-IS_DEBUG=True
+IS_DEBUG=False
 class Item(StrictInit):
     id = None
     begin = None
@@ -538,7 +538,7 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
         IS_DEBUG and QgsMessageLog.logMessage(u"Try load memory layer: {} : {}\n".format("temp_points",uri), tag="QgisPDS.residual")
         self.temp_points = QgsVectorLayer(uri, "temp_points", "memory")
         IS_DEBUG and QgsMessageLog.logMessage(u"Loaded\n", tag="QgisPDS.residual")
-        QgsProject.instance().addMapLayer(self.temp_points, True)
+        QgsProject.instance().addMapLayer(self.temp_points, False)
         # self.iface.legendInterface().setLayerVisible(self.temp_points, False)
 
     def create_temp_raster_polygons(self):
@@ -764,7 +764,6 @@ class QgisPDSResidualDialog(QDialog, FORM_CLASS):
                                 # except Exception as e:
                                 #     QgsMessageLog.logMessage(u"Error process f_voronoy {}: {}".format(str(f_voronoy), str(e)), "QgisPDS.Error", Qgis.Critical)
                 else:
-                    print('Feature count', self.temp_points.featureCount() )
                     with edit(self.temp_raster_polygons_path):
                         f_raster = QgsFeature(self.temp_raster_polygons_path.fields())
                         with edit(self.out_path):
