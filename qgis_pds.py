@@ -460,7 +460,7 @@ class QgisPDS:
                     
     def connectVisiblePresetChangedEvent(self):  
         visiblePreset=QgsProject.instance().mapThemeCollection()
-        visiblePreset.mapThemeChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
+        # visiblePreset.mapThemeChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
         
     def onReadProject(self):
         #for current project

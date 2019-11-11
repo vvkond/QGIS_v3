@@ -761,14 +761,14 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                 diagramms.append(diagramm)
 
             #Add labels
-            try:
-                templateStr = self.addLabels(context, feature)
-                if diagrammSize >= d.scaleMinRadius and templateStr:
-                    ET.SubElement(root, "label", labelText=templateStr)
-                    # editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('bbllabels'), templateStr)
-            except Exception as e:
-                QMessageBox.critical(None, self.tr(u'Ошибочка'), str(e), QMessageBox.Ok)
-                break
+            # try:
+            templateStr = self.addLabels(context, feature)
+            if diagrammSize >= d.scaleMinRadius and templateStr:
+                ET.SubElement(root, "label", labelText=templateStr)
+                # editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('bbllabels'), templateStr)
+            # except Exception as e:
+            #     QMessageBox.critical(None, self.tr(u'Ошибочка'), str(e), QMessageBox.Ok)
+            #     break
 
 
             offset = diagrammSize if diagrammSize < d.scaleMaxRadius else d.scaleMaxRadius
@@ -899,13 +899,13 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         orderByClause = QgsFeatureRequest.OrderByClause('BubbleSize', False)
         orderBy = QgsFeatureRequest.OrderBy([orderByClause])
         renderer.setOrderBy(orderBy)
-        editLayerStyles=editLayer.styleManager()
-        editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) ) 
-        editLayerStyles.setCurrentStyle('diagrams')
+        # editLayerStyles=editLayer.styleManager()
+        # editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) )
+        # editLayerStyles.setCurrentStyle('diagrams')
 
         editLayer.setRenderer(renderer)
 
-        editLayer.triggerRepaint()
+        # editLayer.triggerRepaint()
         self.mIface.layerTreeView().refreshLayerSymbology(editLayer.id())
 
         return
@@ -916,30 +916,31 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             index = self.labelAttributeModel.index(row, AttributeTableModel.ExpressionColumn)
             expression = self.labelAttributeModel.data(index, Qt.DisplayRole)
 
-            index = self.labelAttributeModel.index(row, AttributeTableModel.ColorColumn)
-            color =  QColor(self.labelAttributeModel.data(index, Qt.DisplayRole))
-            colorStr = color.name()
+            if len(expression) > 1:
+                index = self.labelAttributeModel.index(row, AttributeTableModel.ColorColumn)
+                color =  QColor(self.labelAttributeModel.data(index, Qt.DisplayRole))
+                colorStr = color.name()
 
-            index = self.labelAttributeModel.index(row, AttributeLabelTableModel.ShowZeroColumn)
-            showZero = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
+                index = self.labelAttributeModel.index(row, AttributeLabelTableModel.ShowZeroColumn)
+                showZero = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
 
-            index = self.labelAttributeModel.index(row, AttributeLabelTableModel.NewLineColumn)
-            isNewLine = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
+                index = self.labelAttributeModel.index(row, AttributeLabelTableModel.NewLineColumn)
+                isNewLine = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
 
-            exp = QgsExpression(expression)
-            exp.prepare(context)
-            val = 0.0
-            if not exp.hasEvalError():
-                context.setFeature(feature)
-                val = exp.evaluate(context)
-            else:
-                val = feature[expression]
-
-            if val or (not val and showZero):
-                if isNewLine:
-                    templateStr += '<div><span><font color="{0}">{1}</font></span></div>'.format(colorStr, str(val))
+                exp = QgsExpression(expression)
+                exp.prepare(context)
+                val = 0.0
+                if not exp.hasEvalError():
+                    context.setFeature(feature)
+                    val = exp.evaluate(context)
                 else:
-                    templateStr += '<span><font color="{0}">{1}</font></span>'.format(colorStr, str(val))
+                    val = feature[expression]
+
+                if val or (not val and showZero):
+                    if isNewLine:
+                        templateStr += '<div><span><font color="{0}">{1}</font></span></div>'.format(colorStr, str(val))
+                    else:
+                        templateStr += '<span><font color="{0}">{1}</font></span>'.format(colorStr, str(val))
 
         return templateStr
 

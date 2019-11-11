@@ -133,15 +133,17 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
                         labels = d['labels']
                         if labels:
                             for label in labels:
-                                # expName = label['expName']
+                                expName = label['expName']
                                 exp = label['expression']
                                 label['expName'] = idx
                                 self.attrsUsed.add(exp)
-                                # self.dataDefinedProperties().setProperty(idx, QgsProperty.fromField(exp))
-                                # self.setDataDefinedProperty(expName, QgsDataDefined(exp))
-                                # if not self.dataDefinedProperties().hasProperty(idx):
-                                #     self.dataDefinedProperties().setProperty(idx, QgsProperty.fromExpression('"{0}" + 0.0'.format(exp)))
-                                #     self.setDataDefinedProperty(expName, QgsDataDefined('"{0}" + 0.0'.format(exp)))
+                                self.dataDefinedProperties().setProperty(idx, QgsProperty.fromField(exp))
+                                # OLD self.setDataDefinedProperty(expName, QgsDataDefined(exp))
+                                if not self.dataDefinedProperties().hasProperty(idx):
+                                    self.dataDefinedProperties().setProperty(idx, QgsProperty.fromExpression('"{0}" + 0.0'.format(exp)))
+                                    # OLD self.setDataDefinedProperty(expName, QgsDataDefined('"{0}" + 0.0'.format(exp)))
+                                self.DEBUG and QgsMessageLog.logMessage('Label property: {},{}'.format(idx, exp),
+                                                                        'BubbleSymbolLayer')
                                 idx = idx + 1
 
         except Exception as e:
@@ -210,13 +212,13 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
             pen.setWidth(1)
             pen.setCosmetic(True)
             painter.setPen(pen)
-            
+
             pt3 = QPointF(rect.topRight())
             pt2 = QPointF((pt1.x()+pt3.x())/2, (pt1.y()+pt3.y())/2)
             pt3.setY(pt2.y())
             painter.drawLine(pt1, pt2)
             painter.drawLine(pt2, pt3)
-            
+
             font = QFont("arial")
             font.setPointSizeF(qAbs(rect.top()-pt2.y()))
             painter.setFont(font)
@@ -229,19 +231,25 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
         sum = 0.0
         for label in labelsProps:
-            expName = label['expName']
+            expName = int(label['expName'])
             val = None
-            if self.hasDataDefinedProperty(expName):
-                (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0)
+            prop = self.dataDefinedProperties().property(expName)
+            if prop:
+                # (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0)
+                (val, ok) = prop.value(context.renderContext().expressionContext(), 0.0)
+                self.DEBUG and QgsMessageLog.logMessage('percent summ property: {} '.format(str(val)), 'BubbleSymbolLayer')
                 if type(val) is float:
                     sum = sum + float(val)
 
         for label in labelsProps:
-            expName = label['expName']
+            expName = int(label['expName'])
             valStr = ''
 
-            if self.hasDataDefinedProperty(expName):
-                (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0)
+            prop = self.dataDefinedProperties().property(expName)
+            if prop:
+                # (val, ok) = self.evaluateDataDefinedProperty(expName, context, 0.0)
+                (val, ok) = prop.value(context.renderContext().expressionContext(), 0.0)
+                self.DEBUG and QgsMessageLog.logMessage('Label value: {} '.format(str(val)), 'BubbleSymbolLayer')
                 if val is None or val == NULL:
                     break
                 colorStr = label['color']
@@ -312,7 +320,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
         templateStr = re.sub('^[\,\:\;\.\-/\\_ ]+|[\,\:\;\.\-/\\_ ]+$', '', templateStr)
         return templateStr
-    
+
     def usedAttributes(self, context):
         res = super().usedAttributes(context)
         for f in self.attrsUsed:
@@ -324,7 +332,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
         feature = context.feature()
         p = context.renderContext().painter()
 
-        if not feature: 
+        if not feature:
             '''
             If item not feature, then draw preview (symbol in legend or in style dock)
             '''
@@ -438,7 +446,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
                             prnc = float_t(values.text)
                             # fn = values.attrib["fieldName"]
                             # slice = DiagrammSlice(backColor=bc, lineColor=lc, percent=prnc, fieldName=fn)
-                     
+
                             slice = DiagrammSlice(backColor=bc, lineColor=lc, percent=prnc)
                             slices.append(slice)
 
@@ -498,14 +506,14 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
                 #if xVal != 0 or yVal != 0:
                 pt1 = point + QPointF(xVal, yVal)
-                
+
                 st = QStaticText(labelTemplate);
                 opt = st.textOption()
                 opt.setWrapMode(QTextOption.NoWrap)
                 st.setTextOption(opt)
                 st.prepare(p.transform(), p.font())
                 widthVal = st.size().width()
-                
+
                 pt2 = point + QPointF(xVal + widthVal, yVal)
 
                 pen = QPen(Qt.black)
