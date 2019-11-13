@@ -201,7 +201,84 @@ def activeLayerProductionType(feature, parent):
     return " и ".decode('utf-8',errors='replace').join(set(result))
 
 
+@qgsfunction(args=-1, group='PumaPlus')
+def piechart(in_list, feature, parent):
+    """
+    Returns pie chart slice geometry polygon.
+    <h2>piechart usage:</h2>
+    <ul>
+      <li>piechart('field1', 'field2', ... 'fieldn', @map_scale, minRadius, maxRadius, sliceNumber) -> 42</li>
+    </ul>
+    """
 
+    to_show =in_list[-1] - 1
+    fields =in_list[:-4]
+    mapScale = in_list[-4] / 1000.0 #Предполагается масштаб карты в метрах -> переводим в мм
+    len_fields = len(in_list)
+    sum_val = sum([feature[k] for k in fields])
+
+    if sum_val == 0:
+        return None
+
+    geom = feature.geometry()
+    radius = in_list[-2] * mapScale
+    minRadius = in_list[-3] * mapScale
+    buffered = geom.buffer(radius, -1)
+
+    slices = []
+    try:
+        first = True
+        for field in fields:
+            point_1 = geom.asPoint()
+            points = [point_1]
+            perim = buffered.length()
+            percent = float(feature[field])/(sum_val)
+            if percent == 1.0:
+                slices.append(buffered)
+            else:
+                l = percent * perim
+                azimuth = l/radius
+                if first:
+                    start = 0
+                    end = azimuth
+                    first = False
+                else:
+                    start = end
+                    end += azimuth
+                if abs(math.degrees(start - end)) <= 180:
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + start), 2 *radius* math.sin(math.radians(90) + start))
+                    point_2 = QgsPointXY(point_1[0] + dist_x, point_1[1] + dist_y)
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + (start + end)/2), 2 *radius* math.sin(math.radians(90) + (start + end)/2))
+                    point_3 = QgsPointXY(point_1[0] + dist_x, point_1[1] + dist_y)
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + end), 2 *radius* math.sin(math.radians(90) + end))
+                    point_4 = QgsPointXY(point_1[0] + dist_x, point_1[1] + dist_y)
+                else:
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + start), 2 *radius* math.sin(math.radians(90) + start))
+                    point_2 = QgsPointXY(point_1[0] + dist_x, point_1[1] + dist_y)
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + (start + end)/2), 2 *radius* math.sin(math.radians(90) + (start + end)/2))
+                    point_3 = QgsPointXY(point_1[0] - dist_x, point_1[1] - dist_y)
+                    dist_x, dist_y = (2 * radius * math.cos(math.radians(90) + end), 2 *radius* math.sin(math.radians(90) + end))
+                    point_4 = QgsPointXY(point_1[0] + dist_x, point_1[1] + dist_y)
+                points.append(point_2)
+                points.append(point_3)
+                points.append(point_4)
+                trGeom = QgsGeometry.fromPolygonXY([points])
+                if  math.degrees(azimuth) <= 180:
+                    if start >= end:
+                        slice = buffered.difference(trGeom)
+                    else:
+                        slice = buffered.intersection(trGeom)
+                else:
+                    if start >= end:
+                        slice = buffered.intersection(trGeom)
+                    else:
+                        slice = buffered.difference(trGeom)
+                slices.append(slice)
+    except Exception as e:
+        QgsMessageLog.logMessage(u"ERROR: {}".format(str(e)), "piechart")
+        return None
+
+    return slices[to_show]
 
 
 #===============================================================================
@@ -918,6 +995,7 @@ class QgisPDS:
         QgsExpression.registerFunction(makeMultilineFormatedLabel)
         QgsExpression.registerFunction(isValueInInterval)
         QgsExpression.registerFunction(isValueInIntervalWithSkeep)
+        QgsExpression.registerFunction(piechart)
         
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -933,6 +1011,7 @@ class QgisPDS:
         QgsExpression.unregisterFunction('makeMultilineFormatedLabel')
         QgsExpression.unregisterFunction('isValueInInterval')
         QgsExpression.unregisterFunction('isValueInIntervalWithSkeep')
+        QgsExpression.unregisterFunction('piechart')
         
         
 

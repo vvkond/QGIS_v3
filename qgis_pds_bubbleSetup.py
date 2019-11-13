@@ -9,6 +9,7 @@ from qgis.core import QgsFieldProxyModel
 from collections import namedtuple
 from .qgis_pds_production import *
 from .bblInit import *
+from .qgis_pds_prodRenderer import BubbleSymbolLayer
 import ast
 import math
 import xml.etree.cElementTree as ET
@@ -840,7 +841,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
             bubbleProps['diagrammStr'] = diagrammStr
             bubbleProps['templateStr'] = None
-            bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+            bubbleLayer = BubbleSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
@@ -860,7 +861,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
             bubbleProps['diagrammStr'] = diagrammStr
             bubbleProps['templateStr'] = None
-            bubbleLayer = bubbleMeta.createSymbolLayer(bubbleProps)
+            bubbleLayer = BubbleSymbolLayer(bubbleProps)
             if bubbleLayer:
                 bubbleLayer.setSize(3)
                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
@@ -899,14 +900,15 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         orderByClause = QgsFeatureRequest.OrderByClause('BubbleSize', False)
         orderBy = QgsFeatureRequest.OrderBy([orderByClause])
         renderer.setOrderBy(orderBy)
-        # editLayerStyles=editLayer.styleManager()
-        # editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) )
-        # editLayerStyles.setCurrentStyle('diagrams')
+        editLayerStyles=editLayer.styleManager()
+        editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) )
+        editLayerStyles.setCurrentStyle('diagrams')
 
         editLayer.setRenderer(renderer)
 
         # editLayer.triggerRepaint()
         self.mIface.layerTreeView().refreshLayerSymbology(editLayer.id())
+        self.mIface.mapCanvas().refreshAllLayers()
 
         return
 

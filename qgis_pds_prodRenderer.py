@@ -61,13 +61,12 @@ class DiagrammDesc:
 
 
 def float_t(val):
-    if val is None or (val and val.isNull()):
-        val=0.0
     try:
         return float(val)
     except Exception as e:
         QgsMessageLog.logMessage("incorrect val for float {}={}\n{}".format(type(val),val,str(e)), 'BubbleSymbolLayer')
         #raise Exception("incorrect val for float {}={}\n{}".format(type(val),val,str(e)))
+    return 0.0
 
 class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
