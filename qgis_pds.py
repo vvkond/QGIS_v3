@@ -53,6 +53,7 @@ from .qgis_pds_SelectMapTool import QgisPDSSelectMapTool
 from .qgis_pds_dca import QgisPDSDCAForm
 from .qgis_pds_wellsMarkDialog import QgisPDSWellsMarkDialog
 from .qgis_pds_wellsBrowserDialog import *
+from .qgis_pds_featureRenderer import *
 from .resources import *
 
 # Import both Processing and CommanderWindow 
@@ -201,7 +202,7 @@ def activeLayerProductionType(feature, parent):
     return " и ".decode('utf-8',errors='replace').join(set(result))
 
 
-@qgsfunction(args=-1, group='PumaPlus')
+@qgsfunction(args=-1, group='PumaPlus', handlesnull=True)
 def piechart(in_list, feature, parent):
     """
     Returns pie chart slice geometry polygon.
@@ -210,6 +211,12 @@ def piechart(in_list, feature, parent):
       <li>piechart('field1', 'field2', ... 'fieldn', @map_scale, minRadius, maxRadius, sliceNumber) -> 42</li>
     </ul>
     """
+
+    if not feature or not parent:
+        QgsMessageLog.logMessage(u"No FEATURE", "piechart")
+        return None
+    QgsMessageLog.logMessage(u"FEATURE: {}".format(feature), "piechart")
+
 
     to_show =in_list[-1] - 1
     fields =in_list[:-4]
@@ -988,6 +995,9 @@ class QgisPDS:
         self._metadata = BabbleSymbolLayerMetadata()
         QgsApplication.symbolLayerRegistry().addSymbolLayerType(self._metadata)
 
+        self.rendererMeta = BubbleFeatureRendererMetadata()
+        QgsApplication.rendererRegistry().addRenderer(self.rendererMeta)
+
         #---REGISTER USER EXPRESSIONS
         QgsExpression.registerFunction(activeLayerCustomProperty)        
         QgsExpression.registerFunction(activeLayerReservoirs)
@@ -1012,8 +1022,8 @@ class QgisPDS:
         QgsExpression.unregisterFunction('isValueInInterval')
         QgsExpression.unregisterFunction('isValueInIntervalWithSkeep')
         QgsExpression.unregisterFunction('piechart')
-        
-        
+
+        QgsApplication.rendererRegistry().removeRenderer('BubbleFeatureRenderer')
 
         # QgsPluginLayerRegistry.instance().removePluginLayerType(QgisPDSProductionLayer.LAYER_TYPE)
 
