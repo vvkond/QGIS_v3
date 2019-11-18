@@ -215,8 +215,6 @@ def piechart(in_list, feature, parent):
     if not feature or not parent:
         QgsMessageLog.logMessage(u"No FEATURE", "piechart")
         return None
-    QgsMessageLog.logMessage(u"FEATURE: {}".format(feature), "piechart")
-
 
     to_show =in_list[-1] - 1
     fields =in_list[:-4]

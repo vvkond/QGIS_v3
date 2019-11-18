@@ -841,10 +841,11 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
             bubbleProps['diagrammStr'] = diagrammStr
             bubbleProps['templateStr'] = None
-            bubbleLayer = BubbleSymbolLayer(bubbleProps)
+            bubbleLayer = QgsGeometryGeneratorSymbolLayer.create({})# BubbleSymbolLayer(bubbleProps)
             if bubbleLayer:
-                bubbleLayer.setSize(3)
-                bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
+                # bubbleLayer.setSize(3)
+                # bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
+                bubbleLayer.setGeometryExpression("piechart( 'oilmas', 'pwmas', @map_scale, 1, 5, 1)")
                 symbol.changeSymbolLayer(0, bubbleLayer)
         else:
             symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer())
