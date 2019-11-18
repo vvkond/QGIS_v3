@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import random
-from qgis.core import QgsWkbTypes, QgsSymbol, QgsFeatureRenderer, QgsRendererAbstractMetadata, QgsRendererRegistry, QgsApplication
+from qgis.core import QgsWkbTypes, QgsSymbol, QgsFeatureRenderer, \
+    QgsRendererAbstractMetadata, QgsRendererRegistry, QgsApplication, QgsMessageLog
 from qgis.gui import QgsRendererWidget, QgsColorButton
 from qgis.PyQt.QtWidgets import *
 
@@ -25,8 +26,28 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
     def usedAttributes(self, context):
         return []
 
+    def capabilities(self):
+        return QgsFeatureRenderer.SymbolLevels #MoreSymbolsPerFeature May use more than one symbol to render a feature: symbolsForFeature() will return them.
+
     def clone(self):
         return BubbleFeatureRenderer(self.syms)
+
+    def toSld(self, doc, element, props):
+        QgsMessageLog.logMessage('toSld {} '.format(str(element)) , 'BubbleFeatureRenderer')
+
+    def create(self):
+        QgsMessageLog.logMessage('create', 'BubbleFeatureRenderer')
+        return BubbleFeatureRenderer()
+
+    def createFromSld(self):
+        QgsMessageLog.logMessage('createFromSld', 'BubbleFeatureRenderer')
+        return BubbleFeatureRenderer()
+
+    def save(self, doc, context):
+        QgsMessageLog.logMessage('save', 'BubbleFeatureRenderer')
+        rendererElem = doc.createElement('renderer-v2');
+        # super().save(doc, context)
+        return rendererElem
 
 
 class BubbleFeatureRendererWidget(QgsRendererWidget):
@@ -52,6 +73,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget):
         self.r.syms[0].setColor(color)
         # self.btn1.setColor(self.r.syms[0].color())
 
+
     def renderer(self):
         return self.r
 
@@ -66,3 +88,5 @@ class BubbleFeatureRendererMetadata(QgsRendererAbstractMetadata):
     def createRendererWidget(self, layer, style, renderer):
         return BubbleFeatureRendererWidget(layer, style, renderer)
 
+
+# QgsApplication.rendererRegistry().addRenderer(BubbleFeatureRendererMetadata())
