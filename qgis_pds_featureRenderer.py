@@ -32,7 +32,7 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
 
         try:
             r.layerDiagramms = ast.literal_eval(domElement.attribute('layerDiagramms'))
-            print(r.layerDiagramms)
+            # print(r.layerDiagramms)
         except:
             pass
 
@@ -74,7 +74,9 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
 
     def clone(self):
         r = BubbleFeatureRenderer(self.mSymbol.clone())
-        r.layerDiagramms = self.layerDiagramms[:]
+        for d in self.layerDiagramms:
+            d1 = dict(d)
+            r.layerDiagramms.append(d1)
         return r
 
     def save(self, doc, context):
@@ -90,8 +92,10 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
         symbolsElem = QgsSymbolLayerUtils.saveSymbols(symbols, "symbols", doc, context)
         rendererElem.appendChild(symbolsElem)
 
-
         return rendererElem
+
+
+
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'featureRendererWidget_base.ui'))
@@ -108,7 +112,6 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
 
         self.mDiagrammId = 0
 
-        self.mIface = iface
         self.currentLayer = layer
 
         # Setup attributes tableView
@@ -165,6 +168,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.labelFilteredModel.setFilter(self.currentDiagrammId)
 
         self.labelAttributeTableView.resizeColumnsToContents()
+
 
     @property
     def layerDiagramms(self):
@@ -331,7 +335,8 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.labelFilteredModel.setFilter(self.currentDiagrammId)
 
     # Delete current diagramm
-    def mDeleteDiagramm_clicked(self):
+    @pyqtSlot()
+    def on_mDeleteDiagramm_clicked(self):
         if len(self.layerDiagramms) < 2:
             return
 
@@ -359,7 +364,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
     def scaleValueEditingFinished(self):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx].scale = self.scaleEdit.value()
+            self.layerDiagramms[idx]['scale'] = self.scaleEdit.value()
 
     @pyqtSlot(float)
     def on_maxDiagrammSize_valueChanged(self, val):
@@ -368,13 +373,13 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.minDiagrammSize.blockSignals(False)
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx].scaleMaxRadius = val
+            self.layerDiagramms[idx]['scaleMaxRadius'] = val
 
     @pyqtSlot(float)
     def on_minDiagrammSize_valueChanged(self, val):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx].scaleMinRadius = val
+            self.layerDiagramms[idx]['scaleMinRadius'] = val
 
     def getCoordinatesForPercent(self, percent):
         x = math.cos(2 * math.pi * percent)
@@ -400,6 +405,9 @@ class BubbleFeatureRendererMetadata(QgsRendererAbstractMetadata):
 
     def createRendererWidget(self, layer, style, oldRenderer):
         return BubbleFeatureRendererWidget(layer, style, oldRenderer)
+
+    def compatibleLayerTypes(self):
+        return QgsRendererAbstractMetadata.PointLayer
 
 
 # QgsApplication.rendererRegistry().addRenderer(BubbleFeatureRendererMetadata())

@@ -556,21 +556,10 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
     def clone(self):
         m = BubbleSymbolLayer(self.properties())
-        self.copyDataDefinedProperties(m);
-        self.copyPaintEffect(m);
+        # self.copyDataDefinedProperties(m);
+        # self.copyPaintEffect(m);
         return m
 
-    def create(props):
-        QgsMessageLog.logMessage('Creating', 'BubbleSymbolLayer')
-        return BubbleSymbolLayer(props)
-
-    def toSld(self, doc, element, props):
-        QgsMessageLog.logMessage('toSld', 'BubbleSymbolLayer')
-        super().toSld(doc, element, props)
-
-    def writeSldMarker(self, doc, element, props):
-        QgsMessageLog.logMessage('writeSldMarker', 'BubbleSymbolLayer')
-        super().writeSldMarker(doc, element, props)
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_renderer_base.ui'))
@@ -644,6 +633,8 @@ class BabbleSymbolLayerMetadata(QgsSymbolLayerAbstractMetadata):
 
     def createSymbolLayerWidget(self, vectorLayer):
         return BabbleSymbolLayerWidget(None, vectorLayer)
+  
+
 
 
 
