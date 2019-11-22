@@ -35,7 +35,7 @@ class AttributeTableModel(QAbstractTableModel):
 
         self.beginInsertRows(parent, row, count + row - 1)
         for i in range(0, count):
-            newRow = ['', QColor(255, 0, 0), QColor(255, 0, 0), '', '']
+            newRow = ['', QColor(255, 0, 0), QColor(0, 0, 0), '', '']
             self.arraydata.insert(i + row, newRow)
 
         self.endInsertRows()
