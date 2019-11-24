@@ -633,7 +633,7 @@ class BabbleSymbolLayerMetadata(QgsSymbolLayerAbstractMetadata):
 
     def createSymbolLayerWidget(self, vectorLayer):
         return BabbleSymbolLayerWidget(None, vectorLayer)
-  
+
 
 
 

@@ -53,12 +53,14 @@ class AttributeTableModel(QAbstractTableModel):
         if not index.isValid():
             return None
 
+        r = index.row()
+        c = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            return self.arraydata[index.row()][index.column()]
-        elif role == Qt.DecorationRole and index.column() == AttributeTableModel.ColorColumn:
-            return self.arraydata[index.row()][AttributeTableModel.ColorColumn]
-        elif role == Qt.DecorationRole and index.column() == AttributeTableModel.ColorLineColumn:
-            return self.arraydata[index.row()][AttributeTableModel.ColorLineColumn]
+            return self.arraydata[r][c]
+        elif role == Qt.DecorationRole and c == AttributeTableModel.ColorColumn:
+            return self.arraydata[r][c]
+        elif role == Qt.DecorationRole and c == AttributeTableModel.ColorLineColumn:
+            return self.arraydata[r][c]
 
         return None
 

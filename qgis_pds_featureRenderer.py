@@ -4,6 +4,7 @@ from qgis.PyQt import QtGui, uic, QtCore
 from qgis.core import *
 from qgis.gui import QgsRendererWidget, QgsColorButton, QgsFieldExpressionWidget, QgsColorDialog
 from qgis.PyQt.QtWidgets import *
+from qgis.utils import iface
 import os
 import ast
 from .AttributeModel import *
@@ -30,11 +31,13 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
     def create(domElement, context):
         r = BubbleFeatureRenderer()
 
-        try:
-            r.layerDiagramms = ast.literal_eval(domElement.attribute('layerDiagramms'))
-            # print(r.layerDiagramms)
-        except:
-            pass
+        diagrammsElem = domElement.firstChildElement('layerDiagramms')
+        if not diagrammsElem.isNull():
+            propElem = diagrammsElem.firstChildElement('prop')
+            while not propElem.isNull():
+                dd = ast.literal_eval(propElem.attribute('v'))
+                r.layerDiagramms.append(MyStruct(**dd))
+                propElem = propElem.nextSiblingElement('prop')
 
         return r
 
@@ -75,7 +78,7 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
     def clone(self):
         r = BubbleFeatureRenderer(self.mSymbol.clone())
         for d in self.layerDiagramms:
-            d1 = dict(d)
+            d1 = MyStruct(**d.__dict__)
             r.layerDiagramms.append(d1)
         return r
 
@@ -85,7 +88,14 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
         rendererElem.setAttribute('forceraster', '0')
         rendererElem.setAttribute('type', 'BubbleFeatureRenderer')
 
-        rendererElem.setAttribute('layerDiagramms', str(self.layerDiagramms))
+        diagrammsElem = doc.createElement('layerDiagramms')
+        for d in self.layerDiagramms:
+            propElem = doc.createElement('prop')
+            propElem.setAttribute('k', d.name)
+            propElem.setAttribute('v', str(d))
+            diagrammsElem.appendChild(propElem)
+
+        rendererElem.appendChild(diagrammsElem)
 
         symbols = {}
         symbols["0"] = self.mSymbol
@@ -111,6 +121,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
             self.r = renderer.clone()
 
         self.mDiagrammId = 0
+        self.mIface = iface
 
         self.currentLayer = layer
 
@@ -163,9 +174,10 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.defaultUnitNum = 2 if self.isCurrentProd else 3
 
         if len(self.layerDiagramms) > 0:
-            self.mDiagrammId = max(d['diagrammId'] for d in self.layerDiagramms)
+            self.mDiagrammId = max(d.diagrammId for d in self.layerDiagramms)
 
         self.fillAttributes()
+        self.fillLabels()
 
         self.updateWidgets()
 
@@ -177,27 +189,57 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
     def fillAttributes(self):
         count = 0
         for d in self.layerDiagramms:
-            if 'slices' in d:
-                count += len(d['slices'])
+            count += len(d.slices)
 
         self.attributeModel.clearRows()
         self.attributeModel.insertRows(0, count)
         row = 0
         for d in self.layerDiagramms:
-            self.attributeModel.setDiagramm(row, d['diagrammId'])
-            if 'slices' in d:
-                slices = d['slices']
-                for slice in slices:
-                    index = self.attributeModel.index(row, AttributeTableModel.ExpressionColumn)
-                    self.attributeModel.setData(index, slice['expression'], Qt.EditRole)
+            for slice in d.slices:
+                self.attributeModel.setDiagramm(row, d.diagrammId)
 
-                    index = self.attributeModel.index(row, AttributeTableModel.ColorColumn)
-                    self.attributeModel.setData(index, slice['backColor'], Qt.EditRole)
+                index = self.attributeModel.index(row, AttributeTableModel.ExpressionColumn)
+                self.attributeModel.setData(index, slice['expression'], Qt.EditRole)
 
-                    index = self.attributeModel.index(row, AttributeTableModel.ColorLineColumn)
-                    self.attributeModel.setData(index, slice['lineColor'], Qt.EditRole)
-                    row += 1
+                index = self.attributeModel.index(row, AttributeTableModel.ColorColumn)
+                self.attributeModel.setData(index, QgsSymbolLayerUtils.decodeColor(slice['backColor']), Qt.EditRole)
 
+                index = self.attributeModel.index(row, AttributeTableModel.ColorLineColumn)
+                self.attributeModel.setData(index, QgsSymbolLayerUtils.decodeColor(slice['lineColor']), Qt.EditRole)
+
+                index = self.attributeModel.index(row, AttributeTableModel.DescrColumn)
+                self.attributeModel.setData(index, slice['description'], Qt.EditRole)
+                row += 1
+
+
+    def fillLabels(self):
+        count = 0
+        for d in self.layerDiagramms:
+            count += len(d.labels)
+
+        self.labelAttributeModel.clearRows()
+        self.labelAttributeModel.insertRows(0, count)
+        row = 0
+        for d in self.layerDiagramms:
+            for label in d.labels:
+                self.labelAttributeModel.setDiagramm(row, d.diagrammId)
+
+                index = self.labelAttributeModel.index(row, AttributeTableModel.ExpressionColumn)
+                self.labelAttributeModel.setData(index, label['expression'], Qt.EditRole)
+
+                index = self.labelAttributeModel.index(row, AttributeTableModel.ColorColumn)
+                self.labelAttributeModel.setData(index, QColor(label['color']),  Qt.EditRole)
+
+                index = self.labelAttributeModel.index(row, AttributeLabelTableModel.ShowZeroColumn)
+                self.labelAttributeModel.setData(index, Qt.Checked if label['showZero'] == 'true' else Qt.Unchecked, Qt.CheckStateRole)
+
+                index = self.labelAttributeModel.index(row, AttributeLabelTableModel.NewLineColumn)
+                self.labelAttributeModel.setData(index, Qt.Checked if label['isNewLine'] == 'true' else Qt.Unchecked, Qt.CheckStateRole)
+
+                index = self.labelAttributeModel.index(row, AttributeLabelTableModel.IsPercentColumn)
+                self.labelAttributeModel.setData(index, Qt.Checked if label['percent'] == 'true' else Qt.Unchecked, Qt.CheckStateRole)
+
+                row+=1
 
     @property
     def layerDiagramms(self):
@@ -208,7 +250,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         id = 0
         try:
             data = self.mDiagrammsListWidget.currentItem().data(Qt.UserRole)
-            id = data['diagrammId']
+            id = data.diagrammId
         except:
             pass
 
@@ -223,7 +265,6 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         curRow = self.attributeModel.rowCount()
         self.attributeModel.insertRow(curRow)
 
-        print(self.currentDiagrammId)
         self.attributeModel.setDiagramm(curRow, self.currentDiagrammId)
         self.filteredModel.setFilter(self.currentDiagrammId)
 
@@ -249,17 +290,17 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         for row in rows:
             self.labelAttributeTableView.model().removeRow(row)
 
-    def createMyStruct(self):
+    def createDiagramm(self):
         newName = u'Диаграмма {}'.format(len(self.layerDiagramms) + 1)
-        return {'name': newName, 'scale': 300000, 'scaleType':0, 'scaleAttribute':'',
-                        'scaleMinRadius': 3, 'scaleMaxRadius': 15,
-                        'fixedSize': 15, 'diagrammId': self.newDiagrammId()}
+        return MyStruct(name=newName, scale=300000, scaleType=0, scaleAttribute='',
+                        scaleMinRadius= 3, scaleMaxRadius= 15,
+                        fixedSize= 15, diagrammId=self.newDiagrammId(), slices= [], labels= [])
 
     def addDiagramm(self):
-        d = self.createMyStruct()
+        d = self.createDiagramm()
         self.layerDiagramms.append(d)
 
-        item = QListWidgetItem(d['name'])
+        item = QListWidgetItem(d.name)
         item.setData(Qt.UserRole, d)
         self.mDiagrammsListWidget.addItem(item)
         self.mDeleteDiagramm.setEnabled(len(self.layerDiagramms) > 1)
@@ -273,11 +314,11 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.mDiagrammsListWidget.clear()
 
         if len(self.layerDiagramms) < 1:
-            self.layerDiagramms.append(self.createMyStruct())
+            self.layerDiagramms.append(self.createDiagramm())
 
         self.mDeleteDiagramm.setEnabled(len(self.layerDiagramms) > 1)
         for d in self.layerDiagramms:
-            name = d['name']
+            name = d.name
             item = QListWidgetItem(name)
             item.setData(Qt.UserRole, d)
             self.mDiagrammsListWidget.addItem(item)
@@ -301,19 +342,19 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
 
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['scaleType'] = 0 if isOn else 1
+            self.layerDiagramms[idx].scaleType = 0 if isOn else 1
 
     @pyqtSlot(float)
     def on_fixedDiagrammSize_valueChanged(self, value):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['fixedSize'] = value
+            self.layerDiagramms[idx].fixedSize = value
 
     @pyqtSlot(str)
     def maxValueAttribute_fieldChanged(self, fieldName):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['scaleAttribute'] = fieldName
+            self.layerDiagramms[idx].scaleAttribute = fieldName
 
     # Calculate max value for diagramm size attribute
     @pyqtSlot()
@@ -342,7 +383,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
             maxValue = float(self.currentLayer.maximumValue(attributeNumber))
 
         self.scaleEdit.setValue(maxValue);
-        self.layerDiagramms[idx]['scale'] = maxValue
+        self.layerDiagramms[idx].scale = maxValue
 
     # Change current diagramm
     def on_mDiagrammsListWidget_currentRowChanged(self, row):
@@ -351,14 +392,14 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
 
         diagramm = self.layerDiagramms[row]
 
-        self.scaleEdit.setValue(diagramm['scale'])
-        self.titleEdit.setText(diagramm['name'])
-        self.maxValueAttribute.setField(diagramm['scaleAttribute'])
-        self.minDiagrammSize.setValue(diagramm['scaleMinRadius'])
-        self.maxDiagrammSize.setValue(diagramm['scaleMaxRadius'])
-        self.fixedDiagrammSize.setValue(diagramm['fixedSize'])
-        self.fixedSizeRadioButton.setChecked(diagramm['scaleType'] == 0)
-        self.scaledSizeRadioButton.setChecked(diagramm['scaleType'] == 1)
+        self.scaleEdit.setValue(diagramm.scale)
+        self.titleEdit.setText(diagramm.name)
+        self.maxValueAttribute.setField(diagramm.scaleAttribute)
+        self.minDiagrammSize.setValue(diagramm.scaleMinRadius)
+        self.maxDiagrammSize.setValue(diagramm.scaleMaxRadius)
+        self.fixedDiagrammSize.setValue(diagramm.fixedSize)
+        self.fixedSizeRadioButton.setChecked(diagramm.scaleType == 0)
+        self.scaledSizeRadioButton.setChecked(diagramm.scaleType == 1)
 
         self.filteredModel.setFilter(self.currentDiagrammId)
         self.labelFilteredModel.setFilter(self.currentDiagrammId)
@@ -386,14 +427,14 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
     def on_titleEdit_editingFinished(self):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['name'] = self.titleEdit.text()
+            self.layerDiagramms[idx].name = self.titleEdit.text()
             item = self.mDiagrammsListWidget.item(idx)
             item.setText(self.titleEdit.text())
 
     def scaleValueEditingFinished(self):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['scale'] = self.scaleEdit.value()
+            self.layerDiagramms[idx].scale = self.scaleEdit.value()
 
     @pyqtSlot(float)
     def on_maxDiagrammSize_valueChanged(self, val):
@@ -402,13 +443,13 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
         self.minDiagrammSize.blockSignals(False)
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['scaleMaxRadius'] = val
+            self.layerDiagramms[idx].scaleMaxRadius = val
 
     @pyqtSlot(float)
     def on_minDiagrammSize_valueChanged(self, val):
         idx = self.mDiagrammsListWidget.currentRow()
         if idx >= 0:
-            self.layerDiagramms[idx]['scaleMinRadius'] = val
+            self.layerDiagramms[idx].scaleMinRadius = val
 
     def getCoordinatesForPercent(self, percent):
         x = math.cos(2 * math.pi * percent)
@@ -437,13 +478,13 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
             label['color'] = color.name()
 
             index = self.labelAttributeModel.index(row, AttributeLabelTableModel.ShowZeroColumn)
-            label['showZero'] = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
+            label['showZero'] = 'true' if self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked else 'false'
 
             index = self.labelAttributeModel.index(row, AttributeLabelTableModel.NewLineColumn)
-            label['isNewLine'] = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
+            label['isNewLine'] = 'true' if self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked else 'false'
 
             index = self.labelAttributeModel.index(row, AttributeLabelTableModel.IsPercentColumn)
-            label['percent'] = self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked
+            label['percent'] = 'true' if self.labelAttributeModel.data(index, Qt.CheckStateRole) == Qt.Checked else 'false'
 
             label['scale'] = 1.0
             label['decimals'] = 2
@@ -454,33 +495,36 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
 
     def getAttributes(self):
         for d in self.layerDiagramms:
-            rows = [r for r in range(self.attributeModel.rowCount()) if self.attributeModel.diagramm(r) == d['diagrammId'] ]
+            rows = [r for r in range(self.attributeModel.rowCount()) if self.attributeModel.diagramm(r) == d.diagrammId ]
             slices = []
             for row in rows:
                 index = self.attributeModel.index(row, AttributeTableModel.ExpressionColumn)
                 expression = self.attributeModel.data(index, Qt.DisplayRole)
                 backColor = QColor(self.attributeModel.data(
-                                                            self.attributeModel.index(row, AttributeTableModel.ColorColumn)
-                                                            , Qt.DisplayRole)
-                                                            )
+                    self.attributeModel.index(row, AttributeTableModel.ColorColumn)
+                    , Qt.DisplayRole)
+                )
                 lineColor = QColor(self.attributeModel.data(
-                                                            self.attributeModel.index(row, AttributeTableModel.ColorLineColumn)
-                                                            , Qt.DisplayRole)
-                                                            )
+                    self.attributeModel.index(row, AttributeTableModel.ColorLineColumn)
+                    , Qt.DisplayRole)
+                )
+                description = self.attributeModel.data(
+                    self.attributeModel.index(row, AttributeTableModel.DescrColumn)
+                    , Qt.DisplayRole)
+
                 slice = {}
                 slice['backColor'] = QgsSymbolLayerUtils.encodeColor(backColor)
                 slice['lineColor'] = QgsSymbolLayerUtils.encodeColor(lineColor)
                 slice['expression'] = expression
-                # key = '{0}_{1}'.format(d.diagrammId, row)
+                slice['description'] = description
                 slices.append(slice)
-            d['slices'] = slices
+            d.slices = slices
 
-            rows = [r for r in range(self.labelAttributeModel.rowCount()) if self.labelAttributeModel.diagramm(r) == d['diagrammId']]
-            d['labels'] = self.getLabels(rows)
+            rows = [r for r in range(self.labelAttributeModel.rowCount()) if self.labelAttributeModel.diagramm(r) == d.diagrammId]
+            d.labels = self.getLabels(rows)
 
     def renderer(self):
         self.getAttributes()
-        print(self.layerDiagramms)
         return self.r
 
 
