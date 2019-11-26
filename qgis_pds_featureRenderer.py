@@ -8,7 +8,7 @@ from qgis.utils import iface
 import os
 import ast
 from .AttributeModel import *
-
+from .qgis_pds_bubbleSymbolLayer import *
 
 class BubbleFeatureRenderer(QgsFeatureRenderer):
     def __init__(self, syms=None):
@@ -39,13 +39,46 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
                 r.layerDiagramms.append(MyStruct(**dd))
                 propElem = propElem.nextSiblingElement('prop')
 
+        r.updateSymbol()
         return r
+
+    def updateSymbol(self):
+        self.mSymbol = QgsMarkerSymbol()
+        lay = PdsBubbleSymbolLayer(self.layerDiagramms)
+        self.mSymbol.changeSymbolLayer(0, lay)
+        # for d in self.layerDiagramms:
+        #     sector = 1
+        #     for s in d.slices:
+        #         expression = "piechart("
+        #         numVar = 0
+        #         for slice in d.slices:
+        #             if numVar > 0:
+        #                 expression += ", "
+        #             expression += "'" + slice["expression"] + "'"
+        #             numVar += 1
+        #
+        #         if d.scaleType == 0: #Fixed size
+        #             expression += ', @map_scale, {}, {}, {})'.format(1, d.fixedSize, sector)
+        #         else:
+        #             expression += ', @map_scale, {}, {}, {})'.format(d.scaleMinRadius, d.scaleMaxRadius, sector)
+        #
+        #         geomLayer = QgsGeometryGeneratorSymbolLayer.create({})
+        #         geomLayer.setGeometryExpression(expression)
+        #         print(expression)
+        #         if geomLayer.subSymbol():
+        #             for l in geomLayer.subSymbol().symbolLayers():
+        #                 l.setColor(QgsSymbolLayerUtils.decodeColor(s['backColor']))
+        #                 l.setStrokeColor(QgsSymbolLayerUtils.decodeColor(s['lineColor']))
+        #         if sector == 1:
+        #             self.mSymbol.changeSymbolLayer(0, geomLayer)
+        #         else:
+        #             self.mSymbol.appendSymbolLayer(geomLayer)
+        #         sector += 1
 
     def getLayerDiagramms(self):
         return self.layerDiagramms
 
     def symbolForFeature(self, feature, context):
-        # sym = random.choice(self.syms)
         return self.mSymbol
 
     def startRender(self, context, fields):
@@ -80,6 +113,7 @@ class BubbleFeatureRenderer(QgsFeatureRenderer):
         for d in self.layerDiagramms:
             d1 = MyStruct(**d.__dict__)
             r.layerDiagramms.append(d1)
+        r.updateSymbol()
         return r
 
     def save(self, doc, context):
@@ -530,7 +564,7 @@ class BubbleFeatureRendererWidget(QgsRendererWidget, FORM_CLASS):
 
 class BubbleFeatureRendererMetadata(QgsRendererAbstractMetadata):
     def __init__(self):
-        super().__init__("BubbleFeatureRenderer", "PUMA+ Bubble renderer")
+        super().__init__("BubbleFeatureRenderer", "Круговые диаграммы PUMA+")
 
     def createRenderer(self, domElement, context):
         return BubbleFeatureRenderer.create(domElement, context)

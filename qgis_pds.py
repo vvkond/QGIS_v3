@@ -202,7 +202,7 @@ def activeLayerProductionType(feature, parent):
     return " и ".decode('utf-8',errors='replace').join(set(result))
 
 
-@qgsfunction(args=-1, group='PumaPlus', handlesnull=True)
+@qgsfunction(args=-1, group='PumaPlus')
 def piechart(in_list, feature, parent):
     """
     Returns pie chart slice geometry polygon.
