@@ -316,7 +316,7 @@ class QgisPDS:
         # QObject.__init__(self)
         # Save reference to the QGIS interface
         self.iface = _iface
-        
+
         self._currentProject = None
 
         # initialize plugin directory
@@ -397,7 +397,8 @@ class QgisPDS:
                 continue
 
             if bblInit.isProductionLayer(layer) or bblInit.isWellLayer(layer):
-                layer.attributeValueChanged.connect(self.pdsLayerModified)
+                layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
+                # layer.attributeValueChanged.connect(self.pdsLayerModified)
 
 
     def disconnectFromLayers(self):
@@ -409,23 +410,21 @@ class QgisPDS:
 
             try:
                 if bblInit.isProductionLayer(layer) or bblInit.isWellLayer(layer):
-                    layer.attributeValueChanged.disconnect(self.pdsLayerModified)
+                    layer.attributeValueChanged.disconnect()
             except:
                 pass
     #===============================================================================
     # 
     #===============================================================================
-    def pdsLayerModified(self, FeatureId, idx, variant):
+    def pdsLayerModified(self, layerId, FeatureId, idx, variant):
         '''
             @info: Function for update lablOffX,lablOffY instead of LablX,LablY
         '''
-        sender = self.sender()
-        if not sender or not sender.type() == 0 or sender == self:
+        if not layerId:
             return
 
-        # print 'start pdsLayerModified', sender
+        editedLayer = QgsProject.instance().mapLayer(layerId)
 
-        editedLayer = sender
         mc = self.iface.mapCanvas()
         tr = mc.getCoordinateTransform()
         xMm = mc.mapSettings().outputDpi() / 25.4
@@ -448,7 +447,7 @@ class QgisPDS:
                 pass
             originX = editGeom.asPoint().x()
             originY = editGeom.asPoint().y()
-            pixelOrig = tr.transform(QgsPoint(originX, originY))
+            pixelOrig = tr.transform(QgsPointXY(originX, originY))
 
             idxOffX = editLayerProvider.fields().lookupField('labloffx')
             idxOffY = editLayerProvider.fields().lookupField('labloffy')
@@ -465,7 +464,6 @@ class QgisPDS:
             if idxOffX < 0 or idxOffY < 0:
                 return
 
-
             if fieldname.lower() == 'lablx':
                 if variant == NULL:  # case when user unpins the label > sets arrow back to arrow based on point location
                     return
@@ -473,7 +471,7 @@ class QgisPDS:
                     variant = float(variant)
                 newFinalX = variant
 
-                pixelOffset = tr.transform(QgsPoint(newFinalX, originY))
+                pixelOffset = tr.transform(QgsPointXY(newFinalX, originY))
                 mmOffset = (pixelOffset.x() - pixelOrig.x()) / xMm
 
                 editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablX'), None)
@@ -487,7 +485,7 @@ class QgisPDS:
                     variant = float(variant)
                 newFinalY = variant
 
-                pixelOffset = tr.transform(QgsPoint(originX, newFinalY))
+                pixelOffset = tr.transform(QgsPointXY(originX, newFinalY))
                 mmOffset = (pixelOffset.y() - pixelOrig.y()) / xMm
 
                 editedLayer.changeAttributeValue(FeatureId, editLayerProvider.fields().lookupField('LablY'), None)
@@ -1062,7 +1060,8 @@ class QgisPDS:
         if dlg.isInitialised():
             result = dlg.exec_()
             if dlg.getLayer() is not None:
-                dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
+                layer = dlg.getLayer()
+                layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         # except Exception as e:
         #     QgsMessageLog.logMessage(u"{}".format(str(e)), "QgisPDS.error", Qgis.Critical)
                     
@@ -1077,7 +1076,8 @@ class QgisPDS:
         if dlg.isInitialised():
             result = dlg.exec_()
             if dlg.getLayer() is not None:
-                dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
+                layer = dlg.getLayer()
+                layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         if self.iface.activeLayer()!=currentLayer:
             currentLayer = self.iface.activeLayer()
             if currentLayer is None:
@@ -1103,7 +1103,8 @@ class QgisPDS:
         if dlg.isInitialised():
             result = dlg.exec_()
         if dlg.layer is not None:
-            dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
+            layer = dlg.layer
+            layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         # except Exception as e:
         #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
                 
@@ -1113,7 +1114,8 @@ class QgisPDS:
         dlg = QgisPDSZonationsDialog(self.currentProject, self.iface)
         dlg.exec_()
         if dlg.layer is not None:
-            dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
+            layer = dlg.layer
+            layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         # except Exception as e:
         #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
 
@@ -1130,7 +1132,8 @@ class QgisPDS:
             if dlg.isInitialised():
                 result = dlg.exec_()
                 if dlg.getLayer() is not None:
-                    dlg.getLayer().attributeValueChanged.connect(self.pdsLayerModified)
+                    layer = dlg.getLayer()
+                    layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         except Exception as e:
             QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
 
@@ -1156,7 +1159,8 @@ class QgisPDS:
             dlg = QgisPDSCPointsDialog(self.currentProject, self.iface, ControlPointReader(self.iface))
             dlg.exec_()
             if dlg.layer is not None:
-                dlg.layer.attributeValueChanged.connect(self.pdsLayerModified)
+                layer = dlg.layer
+                layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
             
         except Exception as e:
             QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
@@ -1255,7 +1259,7 @@ class QgisPDS:
                 wells.setWellList(dlg.getWellIds())
                 layer = wells.createWellLayer()
                 if layer is not None:
-                    layer.attributeValueChanged.connect(self.pdsLayerModified)
+                    layer.attributeValueChanged.connect(lambda x, y, z, l=layer.id(): self.pdsLayerModified(l, x, y, z))
         del dlg
         # except Exception as e:
         #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")

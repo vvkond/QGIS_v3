@@ -795,6 +795,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                                 bubbleLayer.setSize(3)
                                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                                 symbol.changeSymbolLayer(0, bubbleLayer)
+                                symbol.changeSymbolLayer(0, bubbleLayer.clone())
                         else:
                             symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
 
@@ -818,6 +819,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                             bubbleLayer.setSize(3)
                             bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                             symbol.changeSymbolLayer(0, bubbleLayer)
+                            symbol.changeSymbolLayer(0, bubbleLayer.clone())
                     else:
                         symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer(''))
 

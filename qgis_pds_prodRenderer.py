@@ -36,12 +36,6 @@ import ast
 import re
 from datetime import datetime
 
-try:
-    from qgis.PyQt.QtCore import QString
-except ImportError:
-    # we are using Python3 so QString is not defined
-    QString = type("")
-
 class DiagrammSlice(MyStruct):
     backColor = QColor(Qt.red)
     lineColor = QColor(Qt.black)
@@ -97,13 +91,12 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
                           BubbleSymbolLayer.BUBBLE_SIZE, BubbleSymbolLayer.DIAGRAMM_LABELS, BubbleSymbolLayer.DIAGRAMM_LABELS}
 
         try:
-            self.showLineouts  = props[QString("showLineouts")]  == "True" if QString("showLineouts")  in props else True
-            self.showLabels    = props[QString("showLabels")]    == "True" if QString("showLabels")    in props else True
-            self.showDiagramms = props[QString("showDiagramms")] == "True" if QString("showDiagramms") in props else True
-            self.labelSize     = float(props[QString("labelSize")]) if QString("labelSize")   in props else 7.0
-            self.diagrammStr   = props[QString("diagrammStr")]      if QString("diagrammStr") in props else u'';
-            self.templateStr   = props[QString("templateStr")]      if QString("templateStr") in props else u'';
-            # self.labelDataSums = props[QString("labelDataSums")] if QString("labelDataSums") in props else None;
+            self.showLineouts  = props["showLineouts"]  == "True" if "showLineouts"  in props else True
+            self.showLabels    = props["showLabels"]    == "True" if "showLabels"    in props else True
+            self.showDiagramms = props["showDiagramms"] == "True" if "showDiagramms" in props else True
+            self.labelSize     = float(props["labelSize"]) if "labelSize"   in props else 7.0
+            self.diagrammStr   = str(props["diagrammStr"]) if "diagrammStr" in props else u''
+            self.templateStr   = str(props["templateStr"]) if "templateStr" in props else u''
         except Exception as e:
             QgsMessageLog.logMessage('SET PROPERTY ERROR: ' +  str(e), 'BubbleSymbolLayer')
 
