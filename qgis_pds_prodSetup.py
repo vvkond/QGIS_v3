@@ -851,7 +851,6 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
         #--- If Use default production style 
         ########################################################
         else:
-            QgsMessageLog.logMessage('Add new layer', "QgisPDS.prodSetup")
             load_style(layer=editLayer, style_path=os.path.join(plugin_dir ,STYLE_DIR ,PROD_RENDER_STYLE+".qml"), name=QCoreApplication.translate('bblInit', PROD_RENDER_STYLE))
             
             rootRules=[] # list of root rules for append them symbology
@@ -909,7 +908,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                         symbol = QgsMarkerSymbol()
-                        symbol.changeSymbolLayer(0, bubbleLayer)
+                        symbol.changeSymbolLayer(0, bubbleLayer.clone())
                         rule = QgsRuleBasedRenderer.Rule(symbol)
                         rootRule.appendChild(rule)
 
@@ -927,7 +926,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                         bubbleLayer.setSize(3)
                         bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                         symbol = QgsMarkerSymbol()
-                        symbol.changeSymbolLayer(0, bubbleLayer)
+                        symbol.changeSymbolLayer(0, bubbleLayer.clone())
                         qgs_set_symbol_render_level(symbol, 10)
                         rule = QgsRuleBasedRenderer.Rule(symbol)
                         rule.setLabel(u'Скважины')
@@ -1014,7 +1013,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
                 orderByClause = QgsFeatureRequest.OrderByClause('BubbleSize', False)
                 orderBy = QgsFeatureRequest.OrderBy([orderByClause])
                 renderer.setOrderBy(orderBy)
-                editLayer.setRenderer(renderer)
+                editLayer.setRenderer(renderer.clone())
                 #---------
                 rootRule.children()[0].setLabel(self.resultRuleName.text())
     

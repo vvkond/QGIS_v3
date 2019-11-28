@@ -395,6 +395,25 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
     def setup(self, editLayer):
 
+        # bubbleProps = {}
+        # bubbleProps['showLineouts'] = 'True'
+        # bubbleProps['showLabels'] = 'True'
+        # bubbleProps['showDiagramms'] = 'True'
+        # bubbleProps['labelSize'] = str(self.labelSizeEdit.value())
+        # bubbleProps['diagrammStr'] = ''
+        # bubbleProps['templateStr'] = ''
+        # bubbleLayer = BubbleSymbolLayer(bubbleProps)
+        # bubbleLayer.setSize(3)
+        # bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
+        # symbol = QgsMarkerSymbol()
+        # symbol.changeSymbolLayer(0, bubbleLayer)
+        #
+        # renderer = QgsRuleBasedRenderer(symbol)
+        # root_rule = renderer.rootRule()
+        # root_rule.children()[0].setLabel(u'Круговые диаграммы')
+        # editLayer.setRenderer(renderer.clone())
+        # return
+
         self.saveSettings()
 
         context = self.createExpressionContext()
@@ -604,8 +623,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
             if bubbleLayer:
                 bubbleLayer.setSize(3)
                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
-                # bubbleLayer.setGeometryExpression("piechart( 'oilmas', 'pwmas', @map_scale, 1, 5, 1)")
-                symbol.changeSymbolLayer(0, bubbleLayer)
+                symbol.changeSymbolLayer(0, bubbleLayer.clone())
         else:
             symbol.changeSymbolLayer(0, QgsSvgMarkerSymbolLayer())
 
@@ -626,7 +644,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
                 bubbleLayer.setSize(3)
                 bubbleLayer.setSizeUnit(QgsUnitTypes.RenderMillimeters)
                 symbol1 = QgsMarkerSymbol()
-                symbol1.changeSymbolLayer(0, bubbleLayer)
+                symbol1.changeSymbolLayer(0, bubbleLayer.clone())
                 rule = QgsRuleBasedRenderer.Rule(symbol1)
                 rule.setLabel(u'Сноски')
                 root_rule.appendChild(rule)
@@ -664,7 +682,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
         editLayerStyles.addStyle( 'diagrams', editLayerStyles.style(editLayerStyles.styles()[0]) )
         editLayerStyles.setCurrentStyle('diagrams')
 
-        editLayer.setRenderer(renderer)
+        editLayer.setRenderer(renderer.clone())
 
         # editLayer.triggerRepaint()
         self.mIface.layerTreeView().refreshLayerSymbology(editLayer.id())
