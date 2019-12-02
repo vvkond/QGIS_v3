@@ -271,7 +271,7 @@ class BubbleSymbolLayer(QgsSimpleMarkerSymbolLayer):
 
     def compileLabels(self, templateStr, sum, d, feature):
         self.DEBUG and QgsMessageLog.logMessage('compileLabels:', 'BubbleSymbolLayer') #DEBUG
-        showZero = False
+        showZero = d['showZero'] if 'showZero' in d else False
         decimals = d['decimals']
         formatString = "{:."+str(decimals)+"f}"
 

@@ -513,7 +513,6 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
     # 
     #===========================================================================
     def on_grpBoxStyleLoadConfig_clicked(self):
-        QgsMessageLog.logMessage(u"on_grpBoxStyleLoadConfig_clicked", tag="QgisPDS.QgisPDSProdSetup")
         self.grpBoxMainConfig.setEnabled(not self.isUpdateExistDiagram.isChecked())
             
     #===========================================================================
@@ -685,6 +684,8 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
             #
             # editLayer.changeAttributeValue(FeatureId, editLayerProvider.fieldNameIndex('scaletype'), scaleType)
 
+        showZero = int(self.mShowZero.isChecked())
+
         stop_edit_layer(editLayer)
         plugin_dir = plugin_path()
         # --- COLLECT FIELDS FOR DATA DEFINED PROPS
@@ -708,6 +709,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
             diagramm['scaleMaxRadius'] = d.diagSize[1]
             diagramm['scale'] = d.scale * multiplier if self.useScaleGroupBox.isChecked() else multiplier * maxSum
             diagramm['multiplier'] = mm
+            diagramm['showZero'] = showZero
             diagramm['dailyProduction'] = self.dailyProduction.isChecked()
             diagramm['scaleType'] = 1
             diagramm['fixedSize'] = maxDiagrammSize
@@ -745,9 +747,8 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
 
         registry = QgsApplication.symbolLayerRegistry()
 
-        if type(layerCurrentStyleRendere) is QgsRuleBasedRenderer:
-            print('type is QgsRuleBasedRenderer')
-            #------ITERATE OVER LAYER STYLE-RULES                
+        if type(layerCurrentStyleRendere) is QgsRuleBasedRenderer and not self.isUseDefaultStyle.isChecked():
+            #------ITERATE OVER LAYER STYLE-RULES
             rootRule=layerCurrentStyleRendere.rootRule()
             
             if self.isUpdateExistDiagram.isChecked():
@@ -1024,42 +1025,42 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
     #===========================================================================
     # 
     #===========================================================================
-    def addLabels(self, templateStr, sum, fluids, feature, scaleType, multiplier):
-        showZero = int(self.mShowZero.isChecked())
-        formatString = "{:."+str(self.decimalEdit.value())+"f}"
-        days = feature["Days"]
-        if days:
-            days = 1.0 / days
-        for idx, v in enumerate(fluids):
-            if v:
-                fluid = bblInit.fluidCodes[idx]
-                code = '%'+str(idx+1)
-                strVal = '0'
-                val = 0.0
-                percentStr = ''
-                if code in templateStr:
-                    attr = fluid.code + scaleType
-                    val = feature[attr]
-                    if val is not None:
-                        val *= multiplier
-                    else:
-                        val = 0
-                    if fluid.inPercent and sum != 0:
-                        val = val / sum * 100
-                        percentStr = '%'
-                    elif self.dailyProduction.isChecked() and days:
-                        val *= days
-                    strVal = formatString.format(val) + percentStr
-
-                colorStr = fluid.labelColor.name()
-                if float(formatString.format(val)) > float(0) or showZero == 1:
-                    templateStr = templateStr.replace(code, '<span><font color="{0}">{1}</font></span>'.format(colorStr,
-                                                                                                               strVal))
-                else:
-                    templateStr = templateStr.replace(code, '')
-
-        templateStr = re.sub('^[\,\:\;\.\-/\\_ ]+|[\,\:\;\.\-/\\_ ]+$', '', templateStr)
-        return templateStr
+    # def addLabels(self, templateStr, sum, fluids, feature, scaleType, multiplier):
+    #     showZero = int(self.mShowZero.isChecked())
+    #     formatString = "{:."+str(self.decimalEdit.value())+"f}"
+    #     days = feature["Days"]
+    #     if days:
+    #         days = 1.0 / days
+    #     for idx, v in enumerate(fluids):
+    #         if v:
+    #             fluid = bblInit.fluidCodes[idx]
+    #             code = '%'+str(idx+1)
+    #             strVal = '0'
+    #             val = 0.0
+    #             percentStr = ''
+    #             if code in templateStr:
+    #                 attr = fluid.code + scaleType
+    #                 val = feature[attr]
+    #                 if val is not None:
+    #                     val *= multiplier
+    #                 else:
+    #                     val = 0
+    #                 if fluid.inPercent and sum != 0:
+    #                     val = val / sum * 100
+    #                     percentStr = '%'
+    #                 elif self.dailyProduction.isChecked() and days:
+    #                     val *= days
+    #                 strVal = formatString.format(val) + percentStr
+    #
+    #             colorStr = fluid.labelColor.name()
+    #             if float(formatString.format(val)) > float(0) or showZero == 1:
+    #                 templateStr = templateStr.replace(code, '<span><font color="{0}">{1}</font></span>'.format(colorStr,
+    #                                                                                                            strVal))
+    #             else:
+    #                 templateStr = templateStr.replace(code, '')
+    #
+    #     templateStr = re.sub('^[\,\:\;\.\-/\\_ ]+|[\,\:\;\.\-/\\_ ]+$', '', templateStr)
+    #     return templateStr
 
     def compileLabels(self, templateStr, fluids, scaleType):
         sums = ''
@@ -1076,94 +1077,94 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
 
         return (templateStr, sums)
 
-    def getLabels(self, templateStr, fluids, scaleType, multiplier):
-        attributes = []
-        labels = []
-        decimals = self.decimalEdit.value()
-        showZero = int(self.mShowZero.isChecked())
-
-        nameCounter = time.time()
-
-        sums = ''
-        numbers = []
-        for idx, v in enumerate(fluids):
-            if v:
-                numbers.append(idx+1)
-                fluid = bblInit.fluidCodes[idx]
-
-                if len(sums):
-                    sums += ' + '
-                sums += '"{0}{1}"'.format(fluid.code, scaleType)
-
-        labelStr = ''
-        key = False
-        colorStr = '#000'
-        for ch in templateStr:
-            if key:
-                num = int(ch)
-                if num in numbers:
-                    fluid = bblInit.fluidCodes[num-1]
-                    colorStr = fluid.labelColor.name()
-                    expression = ''
-                    if fluid.inPercent and len(sums) > 0:
-                        expression = '"{0}{1}"/({2}) * 100.0'.format(fluid.code, scaleType, sums)
-                    else:
-                        expression = '"{0}{1}" * {2}'.format(fluid.code, scaleType, multiplier)
-                    formattedExpr = 'format_number({0}, {1})'.format(expression, decimals)
-                    if not showZero:
-                        formattedExpr = "if({0} != 0, format('{1}%1', {2}), '')".format(expression, labelStr, formattedExpr)
-                    else:
-                        formattedExpr = "format('{0} %1', {1})".format(labelStr, formattedExpr)
-                    label = {}
-                    label['expName'] = str(nameCounter) + '_labexpression'
-                    nameCounter += 1
-                    label['expression'] = formattedExpr
-                    label['color'] = colorStr
-                    label['showZero'] = False
-                    label['isNewLine'] = False
-                    label['percent'] = False
-                    label['scale'] = 1.0
-                    label['decimals'] = 0
-                    labels.append(label)
-
-                labelStr = ''
-                key = False
-            elif ch == '%':
-                key = True
-            else:
-                labelStr += ch
-
-        # for idx, v in enumerate(fluids):
-        #     code = '%' + str(idx + 1)
-        #     if v:
-        #         fluid = bblInit.fluidCodes[idx]
-        #
-        #         colorStr = fluid.labelColor.name()
-        #         if fluid.inPercent:
-        #             attr = 'format_number("{0}{1}" / ({2}) * 100.0, {3})'.format(fluid.code, scaleType, sums, decimals)
-        #             expression = '<span><font color="{0}">%{1}%</font></span>'.format(colorStr, len(attributes) + 1)
-        #         else:
-        #             attr = 'format_number("{0}{1}" * {2}, {3})'.format(fluid.code, scaleType, multiplier, decimals)
-        #             expression = '<span><font color="{0}">%{1}</font></span>'.format(colorStr, len(attributes) + 1)
-        #
-        #         if code in templateStr:
-        #             templateStr = templateStr.replace(code, expression)
-        #             attributes.append(attr)
-        #     else:
-        #         templateStr = templateStr.replace(code, '')
-        # for idx, v in enumerate(fluids):
-        #     code = '%' + str(idx + 1)
-        #     if not v:
-        #         templateStr = templateStr.replace(code, '')
-        #
-        # templateStr = re.sub('^[\,\:\;\.\-/\\_ ]+|[\,\:\;\.\-/\\_ ]+$', '', templateStr)
-
-
-
-
-        # labels.append(label)
-
-        return labels
+    # def getLabels(self, templateStr, fluids, scaleType, multiplier):
+    #     attributes = []
+    #     labels = []
+    #     decimals = self.decimalEdit.value()
+    #     showZero = int(self.mShowZero.isChecked())
+    #
+    #     nameCounter = time.time()
+    #
+    #     sums = ''
+    #     numbers = []
+    #     for idx, v in enumerate(fluids):
+    #         if v:
+    #             numbers.append(idx+1)
+    #             fluid = bblInit.fluidCodes[idx]
+    #
+    #             if len(sums):
+    #                 sums += ' + '
+    #             sums += '"{0}{1}"'.format(fluid.code, scaleType)
+    #
+    #     labelStr = ''
+    #     key = False
+    #     colorStr = '#000'
+    #     for ch in templateStr:
+    #         if key:
+    #             num = int(ch)
+    #             if num in numbers:
+    #                 fluid = bblInit.fluidCodes[num-1]
+    #                 colorStr = fluid.labelColor.name()
+    #                 expression = ''
+    #                 if fluid.inPercent and len(sums) > 0:
+    #                     expression = '"{0}{1}"/({2}) * 100.0'.format(fluid.code, scaleType, sums)
+    #                 else:
+    #                     expression = '"{0}{1}" * {2}'.format(fluid.code, scaleType, multiplier)
+    #                 formattedExpr = 'format_number({0}, {1})'.format(expression, decimals)
+    #                 if not showZero:
+    #                     formattedExpr = "if({0} != 0, format('{1}%1', {2}), '')".format(expression, labelStr, formattedExpr)
+    #                 else:
+    #                     formattedExpr = "format('{0} %1', {1})".format(labelStr, formattedExpr)
+    #                 label = {}
+    #                 label['expName'] = str(nameCounter) + '_labexpression'
+    #                 nameCounter += 1
+    #                 label['expression'] = formattedExpr
+    #                 label['color'] = colorStr
+    #                 label['showZero'] = False
+    #                 label['isNewLine'] = False
+    #                 label['percent'] = False
+    #                 label['scale'] = 1.0
+    #                 label['decimals'] = 0
+    #                 labels.append(label)
+    #
+    #             labelStr = ''
+    #             key = False
+    #         elif ch == '%':
+    #             key = True
+    #         else:
+    #             labelStr += ch
+    #
+    #     # for idx, v in enumerate(fluids):
+    #     #     code = '%' + str(idx + 1)
+    #     #     if v:
+    #     #         fluid = bblInit.fluidCodes[idx]
+    #     #
+    #     #         colorStr = fluid.labelColor.name()
+    #     #         if fluid.inPercent:
+    #     #             attr = 'format_number("{0}{1}" / ({2}) * 100.0, {3})'.format(fluid.code, scaleType, sums, decimals)
+    #     #             expression = '<span><font color="{0}">%{1}%</font></span>'.format(colorStr, len(attributes) + 1)
+    #     #         else:
+    #     #             attr = 'format_number("{0}{1}" * {2}, {3})'.format(fluid.code, scaleType, multiplier, decimals)
+    #     #             expression = '<span><font color="{0}">%{1}</font></span>'.format(colorStr, len(attributes) + 1)
+    #     #
+    #     #         if code in templateStr:
+    #     #             templateStr = templateStr.replace(code, expression)
+    #     #             attributes.append(attr)
+    #     #     else:
+    #     #         templateStr = templateStr.replace(code, '')
+    #     # for idx, v in enumerate(fluids):
+    #     #     code = '%' + str(idx + 1)
+    #     #     if not v:
+    #     #         templateStr = templateStr.replace(code, '')
+    #     #
+    #     # templateStr = re.sub('^[\,\:\;\.\-/\\_ ]+|[\,\:\;\.\-/\\_ ]+$', '', templateStr)
+    #
+    #
+    #
+    #
+    #     # labels.append(label)
+    #
+    #     return labels
 
 
     def scaleValueEditingFinished(self):
