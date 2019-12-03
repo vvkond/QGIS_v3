@@ -56,7 +56,7 @@ def removeOutliers2(x, m = 2.):
     @return {min,max,p90,p50,p10,avg}
 """ 
 def calc_statistics_np(val_series):
-    p90= np.percentile(val_series, 10)#, interpolation='linear') #--reverse because p90 need as most 
+    p90= np.percentile(val_series, 10)#, interpolation='linear') #--reverse because p90 need as most
     p50= np.percentile(val_series, 50)#, interpolation='linear')
     p10= np.percentile(val_series, 90)#, interpolation='linear')
     avg= val_series.mean()            # avg= average(mean)       
@@ -174,7 +174,7 @@ class CalculateStatistics(object):
             assert None not in lst,"Not allowed None in range"
             if lst[0]==lst[1]:
                 lst[1]+=0.000000001
-            self.__range = map(float,lst)
+            self.__range = list(map(float,lst))
     @property
     def data_source(self):
         return self.__data_source
@@ -210,7 +210,7 @@ class CalculateStatistics(object):
         #take mean from half data range                         
         #res=map(np.mean,[lst[int(len(lst))/2:] for lst in self.__data_result])
         #take last 'percent' values from each group
-        res=map(np.mean,[lst[int((100-percent)*len(lst)/100.0):] for lst in self.__data_result])
+        res=list(map(np.mean,[lst[int((100-percent)*len(lst)/100.0):] for lst in self.__data_result]))
         return res
     def get_statistics(self,percent=AVG_SLICE):
         data=np.asarray(self.get_slice_avg(percent))

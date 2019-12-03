@@ -1436,28 +1436,26 @@ class QgisPDS:
         return
 
     def calcStatistics(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
-                return
-            dlg = QgisPDSStatisticsDialog(self.currentProject, self.iface)
-            dlg.exec_()
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
             return
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        dlg = QgisPDSStatisticsDialog(self.currentProject, self.iface)
+        dlg.exec_()
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
         
 
     def calcDCA(self):
-        try:
+        # try:
     #         if not QgsProject.instance().homePath():
     #             self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
     #             return
-            dlg = QgisPDSDCAForm(self.currentProject, self.iface)
-            dlg.exec_()
+        dlg = QgisPDSDCAForm(self.currentProject, self.iface)
+        dlg.exec_()
             #dlg.show()
-            return
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
         
 
 

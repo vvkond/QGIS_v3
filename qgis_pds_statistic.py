@@ -7,7 +7,7 @@ from PyQt5 import QtGui, uic
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import csv
-import imp
+import importlib
 
 from QgisPDS.db import Oracle
 from QgisPDS.connections import create_connection
@@ -34,12 +34,13 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
         self.allowFileChange = True
 
         try:
-            mp_info = imp.find_module('matplotlib')
-            mp = imp.load_module('mp', *mp_info)
-            imp.find_module('pyplot', mp.__path__) # __path__ is already a list
-        except ImportError:
-            self.in_show_graph.value=False
-            self.in_show_graph.enabled=False
+            import matplotlib.pyplot as plt
+            # mp_info = imp.find_module('matplotlib')
+            # mp = imp.load_module('mp', *mp_info)
+            # imp.find_module('pyplot', mp.__path__) # __path__ is already a list
+        except:
+            self.in_show_graph.setChecked(False)
+            self.in_show_graph.setEnabled(False)
 
         self.fillLayersList()
 
@@ -55,11 +56,11 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
 
     def fillLayersList(self):
         self.mMapLayerComboBox.clear()
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             layerType = layer.type()
-            if layerType == QgsMapLayer.VectorLayer and layer.geometryType() == QGis.Point:
+            if layerType == QgsMapLayer.VectorLayer and layer.geometryType() == QgsWkbTypes.PointGeometry:
                 self.mMapLayerComboBox.addItem(layer.name(), layer.id())
 
 
@@ -154,7 +155,7 @@ class QgisPDSStatisticsDialog(QDialog, FORM_CLASS):
 
         v_out_f = self.mOutputLineEdit.text()
 
-        out_pipe = open(v_out_f, "wb")
+        out_pipe = open(v_out_f, "w")
         w = csv.writer(out_pipe)
         stat = CalculateStatistics()
         stat.N_BINS = v_nbin

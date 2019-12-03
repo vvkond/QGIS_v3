@@ -45,7 +45,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         
         self.iface = _iface
         self.project = _project
-        self.reservoirsListWidget.setSelectionMode( QtGui.QAbstractItemView.SingleSelection )
+        self.reservoirsListWidget.setSelectionMode( QAbstractItemView.SingleSelection )
         
         connection = create_connection(self.project)
         scheme = self.project['project']
@@ -56,22 +56,22 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #self.buttonBox.setEnabled(len(self.wells)>0)
         if len(self.wells)>0:
             self.setWindowTitle(u"Select reservoir for calculation")
-            self.buttonBox.button( QtGui.QDialogButtonBox.Ok).setEnabled(True)
+            self.buttonBox.button( QDialogButtonBox.Ok).setEnabled(True)
             reg = self._getReservoirGroups(wells=self.wells)            
             pass
         else:
             self.setWindowTitle(u"You must select wells")
-            self.buttonBox.button( QtGui.QDialogButtonBox.Ok).setEnabled(False)
+            self.buttonBox.button( QDialogButtonBox.Ok).setEnabled(False)
             reg = self._getReservoirGroups()
             pass
     
         if reg is not None:
             for reservoir_group_code in reg:
                 reservoirName = to_unicode("".join(reservoir_group_code))
-                item = QtGui.QListWidgetItem(reservoirName)
+                item = QListWidgetItem(reservoirName)
                 if self.reservoirsListWidget.isEnabled():
                     self.reservoirsListWidget.addItem(item)
-                    self.reservoirsListWidget.setItemSelected(item, False)
+                    # self.reservoirsListWidget.setItemSelected(item, False)
         self.init_gui_config()
     #===========================================================================
     # 
@@ -89,7 +89,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         conf_getter={} # Dictionary of setter/gettervalue in self.conf
         
         hh=[]
-        tableWidget = QtGui.QTableWidget()
+        tableWidget = QTableWidget()
         tableWidget.setColumnCount(1)
         tableWidget.setRowCount(0)
         tableWidget.setHorizontalHeaderLabels(["value"])
@@ -98,7 +98,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- forecast_end='2029'
         tableWidget.insertRow(tableWidget.rowCount())
         name='forecast_end'
-        val = QtGui.QDateEdit()
+        val = QDateEdit()
         val.setMaximumDateTime(QtCore.QDateTime(QtCore.QDate(7999, 12, 28), QtCore.QTime(23, 59, 59)))
         val.setDate(QtCore.QDate(2029, 1, 1) )
         val.setCalendarPopup(False)   
@@ -114,7 +114,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- MinRate=0.158988  #One barrel per day
         tableWidget.insertRow(tableWidget.rowCount())
         name='MinRate'
-        val=QtGui.QDoubleSpinBox()
+        val=QDoubleSpinBox()
         val.setValue(0.158988)
         setter=lambda widget,val:widget.setValue(float(val) )
         getter=lambda widget:widget.value()
@@ -127,7 +127,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- MaxWC=0.99
         tableWidget.insertRow(tableWidget.rowCount())
         name='MaxWC'
-        val=QtGui.QDoubleSpinBox()
+        val=QDoubleSpinBox()
         val.setValue(0.99)
         setter=lambda widget,val:widget.setValue(float(val) )
         getter=lambda widget:widget.value()
@@ -141,7 +141,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- threshold=0.1
         tableWidget.insertRow(tableWidget.rowCount())
         name='threshold'
-        val=QtGui.QDoubleSpinBox()
+        val=QDoubleSpinBox()
         setter=lambda widget,val:widget.setValue(float(val) )
         getter=lambda widget:widget.value()
         val.setValue(0.1) 
@@ -155,7 +155,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- window_size=5 #size of Sample for calculkation
         tableWidget.insertRow(tableWidget.rowCount())
         name='window_size'
-        val=QtGui.QSpinBox()
+        val=QSpinBox()
         setter=lambda widget,val:widget.setValue(int(val) )
         getter=lambda widget:widget.value()
         val.setValue(5) 
@@ -169,7 +169,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- LastPointFcst=True
         tableWidget.insertRow(tableWidget.rowCount())
         name='LastPointFcst'
-        val=QtGui.QCheckBox()
+        val=QCheckBox()
         val.setCheckState(True)
         val.setTristate(False)
         setter=lambda widget,val:widget.setChecked(False if val in ['False',0,'0'] else True)
@@ -183,7 +183,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- LastDateFcst=False
         tableWidget.insertRow(tableWidget.rowCount())
         name='LastDateFcst'
-        val=QtGui.QCheckBox()
+        val=QCheckBox()
         val.setCheckState(False)
         val.setTristate(False)
         setter=lambda widget,val:widget.setChecked(False if val in ['False',0,'0'] else True)
@@ -197,7 +197,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- EndFitFcst=False
         tableWidget.insertRow(tableWidget.rowCount())
         name='EndFitFcst'
-        val=QtGui.QCheckBox()
+        val=QCheckBox()
         val.setCheckState(False)
         val.setTristate(False)
         setter=lambda widget,val:widget.setChecked(False if val in ['False',0,'0'] else True)
@@ -211,7 +211,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- perhour=1 #defaults is 24
         tableWidget.insertRow(tableWidget.rowCount())
         name='perhour'
-        val=QtGui.QSpinBox()
+        val=QSpinBox()
         val.setValue(1) 
         setter=lambda widget,val:widget.setValue(int(val) )
         getter=lambda widget:widget.value()
@@ -224,7 +224,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- persecond=1 #default is 3600
         tableWidget.insertRow(tableWidget.rowCount())
         name='persecond'
-        val=QtGui.QSpinBox()
+        val=QSpinBox()
         val.setValue(1) 
         setter=lambda widget,val:widget.setValue(int(val) )
         getter=lambda widget:widget.value()
@@ -237,7 +237,7 @@ class QgisPDSDCAForm(QDialog, FORM_CLASS,WithSql):
         #--- LastPointFcst=True
         tableWidget.insertRow(tableWidget.rowCount())
         name='UseTypeWell'
-        val=QtGui.QCheckBox()
+        val=QCheckBox()
         val.setCheckState(True)
         val.setTristate(False)
         setter=lambda widget,val:widget.setChecked(False if val in ['False',0,'0'] else True)
