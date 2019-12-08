@@ -25,8 +25,8 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
 
 
     def updateWidgets(self):
-        self.fillComboboxRaster(self.mSurfaceComboBox,)
-        self.fillComboboxVector(self.mFaultsComboBox, QGis.WKBLineString)
+        self.fillComboboxRaster(self.mSurfaceComboBox)
+        self.fillComboboxVector(self.mFaultsComboBox, QgsWkbTypes.LineGeometry)
 
         if self.mSurfaceComboBox.count() > 0:
             self.mSurfaceComboBox.setCurrentIndex(0)
@@ -37,21 +37,20 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
     def fillComboboxVector(self, combo, geomType):
         combo.clear()
 
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             lt = layer.type()
-            try:
-                provider = layer.dataProvider()
-                if lt == QgsMapLayer.VectorLayer and provider.geometryType() == geomType:
-                    combo.addItem(layer.name(), layer.id())
-            except:
-                pass
+            # try:
+            if lt == QgsMapLayer.VectorLayer and layer.geometryType() == geomType:
+                combo.addItem(layer.name(), layer.id())
+            # except:
+            #     pass
 
     def fillComboboxRaster(self, combo):
         combo.clear()
 
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             lt = layer.type()
@@ -108,14 +107,15 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
             fields = provider.fields()
             writer = QgsVectorFileWriter(faultFileName, systemEncoding,
                                   fields,
-                                  provider.geometryType(), provider.crs())
+                                  provider.wkbType(), provider.crs(), 'ESRI Shapefile')
 
             features = faultLayer.getFeatures()
             for f in features:
                 l = f.geometry()
                 feat = QgsFeature(f)
                 feat.setGeometry(l)
-                writer.addFeature(feat)
+                if not writer.addFeature(feat):
+                    print('Error: ', writer.errorMessage())
 
             del writer
 
@@ -167,7 +167,7 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
 
         contourLayer = QgsVectorLayer(contourPath, contourName, 'ogr')
         if contourLayer:
-            myStyle = QgsStyleV2().defaultStyle()
+            myStyle = QgsStyle().defaultStyle()
             ramp = myStyle.colorRamp('Spectral')
 
             idx = contourLayer.fields().lookupField('Z')
@@ -176,19 +176,19 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
             categories = []
             num = 0.0
             for ss in uniqSymbols:
-                symbol = QgsSymbolV2.defaultSymbol(contourLayer.geometryType())
+                symbol = QgsSymbol.defaultSymbol(contourLayer.geometryType())
 
                 clr = ramp.color(num / count)
                 num = num + 1.0
                 symbol.setColor(clr)
-                symbol.symbolLayer(0).setBorderColor(symbol.color())
+                symbol.symbolLayer(0).setStrokeColor(symbol.color())
 
-                category = QgsRendererCategoryV2(ss, symbol, str(ss))
+                category = QgsRendererCategory(ss, symbol, str(ss))
                 categories.append(category)
 
-            renderer = QgsCategorizedSymbolRendererV2('Z', categories)
+            renderer = QgsCategorizedSymbolRenderer('Z', categories)
             renderer.setSourceColorRamp(ramp)
-            contourLayer.setRendererV2(renderer)
+            contourLayer.setRenderer(renderer)
             contourLayer.commitChanges()
             QgsProject.instance().addMapLayer(contourLayer)
 
@@ -244,7 +244,7 @@ class QgisPDSCreateIsolines(QDialog, FORM_CLASS):
         process = QProcess(self.iface)
         process.start(runStr)
         process.waitForFinished()
-        # print process.readAllStandardOutput()
+        # print(process.readAllStandardOutput())
         process.kill()
 
 

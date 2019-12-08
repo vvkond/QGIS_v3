@@ -319,7 +319,7 @@ class QgisPDSBubbleSetup(QDialog, FORM_CLASS):
 
     #Import diagramm from other layer
     def mImportFromLayer_clicked(self):
-        layers = self.mIface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         layersList = []
         for layer in layers:

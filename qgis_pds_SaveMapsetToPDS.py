@@ -365,10 +365,10 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                 if geom:
                     t = geom.wkbType()
 
-                    if t == QGis.WKBPoint:
+                    if t == QgsWkbTypes.Point:
                         isPointsGeom = 1
                         break
-                    elif t == QGis.WKBMultiPoint:
+                    elif t == QgsWkbTypes.MultiPoint:
                         mpt = geom.asMultiPoint()
                         ll = len(mpt)
                         if ll > 1:
@@ -376,10 +376,10 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                         else:
                             isPointsGeom = 1
                         break
-                    elif t == QGis.WKBLineString:
+                    elif t == QgsWkbTypes.LineString:
                         isPointsGeom = 2
                         break
-                    elif t == QGis.WKBPolygon:
+                    elif t == QgsWkbTypes.Polygon:
                         isPointsGeom = 2
                         break
 
@@ -450,9 +450,9 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
             if geom:
                 t = geom.wkbType()
                 pt = None
-                if t == QGis.WKBPoint:
+                if t == QgsWkbTypes.Point:
                     pt = self.xform.transform(geom.asPoint())
-                elif t == QGis.WKBMultiPoint:
+                elif t == QgsWkbTypes.MultiPoint:
                     mpt = geom.asMultiPoint()
                     if len(mpt):
                         pt = self.xform.transform(mpt[0])
@@ -521,7 +521,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                 pointsY = []
                 params = []
                 t = geom.wkbType()
-                if t == QGis.WKBMultiPoint:
+                if t == QgsWkbTypes.MultiPoint:
                     mpt = geom.asMultiPoint()
                     for pt in mpt:
                         newPt = self.xform.transform(pt)
@@ -529,7 +529,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                         pointsY.append(newPt.y())
                         params.append(parameter)
                     self.writePoints(pointsX, pointsY, params, paramName)
-                elif t == QGis.WKBLineString:
+                elif t == QgsWkbTypes.LineString:
                     mpt = geom.asPolyline()
                     for pt in mpt:
                         newPt = self.xform.transform(pt)
@@ -537,7 +537,7 @@ class QgisSaveMapsetToPDS(QDialog, FORM_CLASS):
                         pointsY.append(newPt.y())
                         params.append(parameter)
                     self.writePoints(pointsX, pointsY, params, paramName)
-                elif t == QGis.WKBPolygon:
+                elif t == QgsWkbTypes.Polygon:
                     mpt = geom.asPolygon()
                     for polyline in mpt:
                         for pt in polyline:

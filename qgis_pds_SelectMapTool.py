@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from qgis.PyQt import uic, QtCore, QtGui
-from PyQt5.QtCore import *
+from qgis.PyQt.QtCore import *
 import qgis
 from qgis.core import *
 from qgis.gui import *
@@ -16,7 +16,7 @@ class QgisPDSSelectMapTool(QgsMapToolEmitPoint):
         self.exeName = ''
         self.appArgs = ''
         QgsMapToolEmitPoint.__init__(self, self.canvas)
-        self.rubberBand = QgsRubberBand(self.canvas, QGis.WKBLineString)
+        self.rubberBand = QgsRubberBand(self.canvas, QgsWkbTypes.LineGeometry)
         self.rubberBand.setColor(Qt.red)
         self.rubberBand.setWidth(1)
         self.reset()
@@ -46,7 +46,7 @@ class QgisPDSSelectMapTool(QgsMapToolEmitPoint):
             # get transform for canvas CRS->layer CRS
             canvas_crs=self.canvas.mapSettings().destinationCrs()     
             layer_crs=self.layer.crs()
-            xform = QgsCoordinateTransform(canvas_crs, layer_crs)
+            xform = QgsCoordinateTransform(canvas_crs, layer_crs, QgsProject.instance())
             
             #canvas click point
             self.startPoint = self.toMapCoordinates(e.pos())
@@ -85,17 +85,17 @@ class QgisPDSSelectMapTool(QgsMapToolEmitPoint):
     def getFeaturePoint(self, geom):
         try:
             t = geom.wkbType()
-            if t == QGis.WKBPoint:
+            if t == QgsWkbTypes.Point:
                 return geom.asPoint()
-            elif t == QGis.WKBMultiPoint:
+            elif t == QgsWkbTypes.MultiPoint:
                 mpt = geom.asMultiPoint()
                 if len(mpt) > 0:
                     return mpt[len(mpt)-1]
-            elif t == QGis.WKBLineString:
+            elif t == QgsWkbTypes.LineString:
                 mpt = geom.asPolyline()
                 if len(mpt) > 0:
                     return mpt[len(mpt)-1]
-            elif t == QGis.WKBPolygon:
+            elif t == QgsWkbTypes.Polygon:
                 mpt = geom.asPolygon()
                 if len(mpt) > 0:
                     line = mpt[0]
@@ -110,7 +110,7 @@ class QgisPDSSelectMapTool(QgsMapToolEmitPoint):
         # get transform for layer CRS->canvas CRS
         canvas_crs=self.canvas.mapSettings().destinationCrs()     
         layer_crs=self.layer.crs()
-        xform = QgsCoordinateTransform(layer_crs, canvas_crs)
+        xform = QgsCoordinateTransform(layer_crs, canvas_crs, QgsProject.instance())
         
         for f in self.features:
             point1 = self.getFeaturePoint(f.geometry())

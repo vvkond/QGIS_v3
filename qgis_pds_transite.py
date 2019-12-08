@@ -183,12 +183,12 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
         transiteFields.append(QgsField("transite", QVariant.String))
         transiteWriter = QgsVectorFileWriter(transiteFileName, systemEncoding,
                                       transiteFields,
-                                      provider.wkbType(), provider.crs(), 'SHP')
+                                      provider.wkbType(), provider.crs(), 'ESRI Shapefile')
 
         fields = self.editLayer.fields()
         targetWriter = QgsVectorFileWriter(targetFileName, systemEncoding,
                           fields,
-                          provider.wkbType(), provider.crs(), 'SHP')
+                          provider.wkbType(), provider.crs(), 'ESRI Shapefile')
 
         with edit_layer(self.editLayer):
             self.editLayer.setSubsetString('')
@@ -212,7 +212,6 @@ class QgisPDSTransitionsDialog(QgisPDSCoordFromZoneDialog):
                     feat.setAttributes(f.attributes())
                     feat.setAttribute('transite', transites)
                     transiteWriter.addFeature(feat)
-                    print(feat)
                 elif self.isZoneTarget(wellId, sel):
                     feat = QgsFeature(f)
                     feat.setGeometry(l)

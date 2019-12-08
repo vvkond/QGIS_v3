@@ -20,8 +20,8 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 from qgis.gui import QgsVertexMarker
@@ -59,6 +59,7 @@ from .resources import *
 # Import both Processing and CommanderWindow 
 #   classes from the Processing framework. 
 from processing.core.Processing import Processing
+import processing
 # from processing.gui.CommanderWindow import CommanderWindow
 
 import os
@@ -158,17 +159,15 @@ def activeLayerReservoirs(feature, parent):
     import qgis
     #get iface
     i =qgis.utils.iface
-    # get legend
-    legend = i.legendInterface()
+
     result=[]
-    for layer in QgsProject.instance().mapLayers().values():
+    tree = QgsProject.instance().layerTreeRoot()
+    for layer in tree.checkedLayers():
         # check current visibility
-        if legend.isLayerVisible(layer):
-            if layer.customProperty("qgis_pds_type") == "pds_current_production" or layer.customProperty("qgis_pds_type") == "pds_cumulative_production":
-                reservoir=layer.customProperty("pds_prod_SelectedReservoirs")
-                result.extend(ast.literal_eval(reservoir))
-            else:
-                continue
+        if layer.customProperty("qgis_pds_type") == "pds_current_production" or layer.customProperty("qgis_pds_type") == "pds_cumulative_production":
+            reservoir=layer.customProperty("pds_prod_SelectedReservoirs")
+            result.extend(ast.literal_eval(reservoir))
+
     return u','.join(set(result))
 
 @qgsfunction(args='auto', group='PumaPlus')
@@ -182,24 +181,19 @@ def activeLayerProductionType(feature, parent):
     """
     import qgis
     #get iface
-    i = qgis.utils.iface
-    # get legend
-    legend = i.legendInterface()
+
     result=[]
-    for layer in QgsProject.instance().mapLayers().values():
-        # check current visibility
-        if legend.isLayerVisible(layer):
-            if layer.customProperty("qgis_pds_type") == "pds_current_production":
-                #result.append("�������".decode('utf-8',errors='replace')) 
-                result.append("текуших".decode('utf-8',errors='replace'))
-                pass
-            elif layer.customProperty("qgis_pds_type") == "pds_cumulative_production":
-                #result.append("�����������".decode('utf-8',errors='replace'))
-                result.append("накопленных".decode('utf-8',errors='replace'))
-                pass
-            else:
-                continue
-    return " и ".decode('utf-8',errors='replace').join(set(result))
+    tree = QgsProject.instance().layerTreeRoot()
+    for layer in tree.checkedLayers():
+        if layer.customProperty("qgis_pds_type") == "pds_current_production":
+            result.append(u"текуших")
+            pass
+        elif layer.customProperty("qgis_pds_type") == "pds_cumulative_production":
+            result.append(u"накопленных")
+            pass
+        else:
+            continue
+    return u" и ".join(set(result))
 
 
 @qgsfunction(args=-1, group='PumaPlus')
@@ -530,9 +524,9 @@ class QgisPDS:
 
 
     def switchInvisibleLayersStyleOff(self,style_name=u"default"):
-        all_layers= self.iface.legendInterface().layers()
-        for lyr in all_layers: 
-            if not self.iface.legendInterface().isLayerVisible(lyr) and lyr.type() == QgsMapLayer.VectorLayer:
+        tree = QgsProject.instance().layerTreeRoot()
+        for lyr in tree.checkedLayers():
+            if lyr.type() == QgsMapLayer.VectorLayer:
                 editLayerStyles=lyr.styleManager()
                 if style_name in editLayerStyles.styles():
                     QgsMessageLog.logMessage(u"Switch style of layer \n'{}'\n\tto {}".format(lyr.name(),style_name), tag="QgisPDS")
@@ -540,7 +534,7 @@ class QgisPDS:
                     
     def connectVisiblePresetChangedEvent(self):  
         visiblePreset=QgsProject.instance().mapThemeCollection()
-        # visiblePreset.mapThemeChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
+        visiblePreset.mapThemeChanged.connect(lambda:self.switchInvisibleLayersStyleOff())
         
     def onReadProject(self):
         #for current project
@@ -598,7 +592,7 @@ class QgisPDS:
 
     def checkLabellingLayer(self, lay):
         labelLayerName = self.getLabelLayerName(lay.name())
-        layers = self.iface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         for layer in layers:
             if layer.name() == labelLayerName:
@@ -919,41 +913,37 @@ class QgisPDS:
         # Instantiate the commander window and open the algorithm's interface 
         # cw = CommanderWindow(self.iface.mainWindow(), self.iface.mapCanvas())
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        # alg_mesh = Processing.getAlgorithm("pumaplus:creategridwithfaults")
-        # if alg_mesh is not None:
-        #     icon_path = ':/plugins/QgisPDS/surface.png'
-        #     self.add_action(
-        #         icon_path,
-        #         text=self.tr(u'Create mesh'),
-        #         callback=lambda :Processing.execAlgorithmDialog(alg_mesh),
-        #         parent=self.iface.mainWindow())
-        # # Then get the algorithm you're interested in (for instance, Join Attributes):
-        # alg_mp = Processing.getAlgorithm("pumaplus:updatewelllocation")
-        # if alg_mp is not None:
-        #     icon_path = ':/plugins/QgisPDS/move_point.png'
-        #     self.add_action(
-        #         icon_path,
-        #         text=self.tr(u'Move point'),
-        #         callback=lambda :Processing.execAlgorithmDialog(alg_mp),
-        #         parent=self.iface.mainWindow())
-        # # Then get the algorithm you're interested in (for instance, Join Attributes):
-        # alg_ml = Processing.getAlgorithm("pumaplus:updatelabellocation")
-        # if alg_ml is not None:
-        #     icon_path = ':/plugins/QgisPDS/move_label.png'
-        #     self.add_action(
-        #         icon_path,
-        #         text=self.tr(u'Move label'),
-        #         callback=lambda :Processing.execAlgorithmDialog(alg_ml),
-        #         parent=self.iface.mainWindow())
-        # # Then get the algorithm you're interested in (for instance, Join Attributes):
-        # alg_mv = Processing.getAlgorithm("pumaplus:setmapvariable")
-        # if alg_mv is not None:
-        #     icon_path = ':/plugins/QgisPDS/text_edit.png'
-        #     self.add_action(
-        #         icon_path,
-        #         text=self.tr(u'Update variables'),
-        #         callback=lambda :Processing.execAlgorithmDialog(alg_mv),
-        #         parent=self.iface.mainWindow())
+        alg_mesh = QgsApplication.processingRegistry().algorithmById("pumaplus:creategridwithfaults")
+        if alg_mesh:
+            icon_path = ':/plugins/QgisPDS/surface.png'
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Create mesh'),
+                callback=lambda :processing.execAlgorithmDialog('pumaplus:creategridwithfaults'))
+        # Then get the algorithm you're interested in (for instance, Join Attributes):
+        alg_mp = QgsApplication.processingRegistry().algorithmById("pumaplus:updatewelllocation")
+        if alg_mp:
+            icon_path = ':/plugins/QgisPDS/move_point.png'
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Move point'),
+                callback=lambda :processing.execAlgorithmDialog('pumaplus:updatewelllocation'))
+        # Then get the algorithm you're interested in (for instance, Join Attributes):
+        alg_ml = QgsApplication.processingRegistry().algorithmById("pumaplus:updatelabellocation")
+        if alg_ml:
+            icon_path = ':/plugins/QgisPDS/move_label.png'
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Move label'),
+                callback=lambda :processing.execAlgorithmDialog('pumaplus:updatelabellocation'))
+        # Then get the algorithm you're interested in (for instance, Join Attributes):
+        alg_mv = QgsApplication.processingRegistry().algorithmById("pumaplus:setmapvariable")
+        if alg_mv:
+            icon_path = ':/plugins/QgisPDS/text_edit.png'
+            self.add_action(
+                icon_path,
+                text=self.tr(u'Update variables'),
+                callback=lambda :processing.execAlgorithmDialog('pumaplus:setmapvariable'))
 
 
         applicationMenu = QMenu(self.iface.mainWindow())
@@ -1472,15 +1462,15 @@ class QgisPDS:
             
 
     def dataFromOracleSql(self):
-        try:
-            if not QgsProject.instance().homePath():
-                self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
-                return
-    
-            dlg = QgisOracleSql(self.currentProject, self.iface)
-            dlg.exec_()
-        except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+        # try:
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
+            return
+
+        dlg = QgisOracleSql(self.currentProject, self.iface)
+        dlg.exec_()
+        # except Exception as e:
+        #     QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
             
 
     def createIsolines(self):
@@ -1511,11 +1501,11 @@ class QgisPDS:
         self.selectMapTool.setArgs(exeName, appArgs, layer)
         self.iface.mapCanvas().setMapTool(self.selectMapTool)
 
-    @pyqtSlot(list, str, str)
+    # @pyqtSlot(list, str, str)
     def selectMapTool_finished(self, features, exeName, appArgs):
         if len(features):
             ids = self.getSelectedSldnids(features)
-            # print  appArgs + '{' + ids + '})" '
+            # print(appArgs + '{' + ids + '})" ')
             self.runTigressProcess(exeName, appArgs + '{' + ids + '})" ')
 
 

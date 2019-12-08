@@ -316,7 +316,7 @@ class QgisPDSProdSetup(QDialog, FORM_CLASS):
     # 
     #===========================================================================
     def mImportFromLayer_clicked(self):
-        layers = self.mIface.legendInterface().layers()
+        layers = QgsProject.instance().mapLayers().values()
 
         layersList = []
         for layer in layers:

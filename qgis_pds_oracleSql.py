@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5.QtCore import *
+from qgis.PyQt.QtCore import *
 from qgis.core import *
 from qgis.gui import QgsMessageBar
-from PyQt5 import QtGui, uic, QtCore
+from qgis.PyQt import QtGui, uic, QtCore
 from qgis.PyQt.QtWidgets import *
+from qgis.PyQt.QtGui import *
 from qgis import core, gui
 import os
 import csv
@@ -83,14 +84,14 @@ class QgisOracleSql(QDialog, FORM_CLASS):
         lastFilePath = QSettings().value('PDS/OracleSQL/lastFilePath', u'.')
         fname = QFileDialog.getOpenFileName(self, u'Выбрать файл',
                                             lastFilePath, u"Файлы SQL (*.sql *.SQL);;Все файлы (*.*)")
-        if fname:
-            self.loadFile(fname)
+        if len(fname[0]):
+            self.loadFile(fname[0])
             self.refreshFields()
 
-            QSettings().setValue('PDS/OracleSQL/lastFilePath', os.path.dirname(fname))
-            self.mFileNameLineEdit.setText(fname)
+            QSettings().setValue('PDS/OracleSQL/lastFilePath', os.path.dirname(fname[0]))
+            self.mFileNameLineEdit.setText(fname[0])
             if not self.mLayerNameLineEdit.text():
-                self.mLayerNameLineEdit.setText(os.path.basename(os.path.splitext(fname)[0]))
+                self.mLayerNameLineEdit.setText(os.path.basename(os.path.splitext(fname[0])[0]))
 
     def refreshClicked(self):
         self.refreshFields()
@@ -186,7 +187,7 @@ class QgisOracleSql(QDialog, FORM_CLASS):
                     if key == yFieldName:
                         y = val
                 if x and y:
-                    pt = QgsPoint(float(x), float(y))
+                    pt = QgsPointXY(float(x), float(y))
                     if needConvert and self.xform:
                         pt = self.xform.transform(pt)
                     geom = QgsGeometry.fromPointXY(pt)
