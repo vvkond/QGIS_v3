@@ -207,7 +207,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
                                 if len(wellsWithoutElev) > 0:
                                     wellsWithoutElev += ', '
                                 wellsWithoutElev += wellName
-                            else:
+                            elif value is not None:
                                 feat.setAttribute(paramName, float(value))
                             self.layer.addFeatures([feat])
                         break
