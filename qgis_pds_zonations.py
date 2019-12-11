@@ -105,7 +105,7 @@ class QgisPDSZonationsDialog(QgisPDSCoordFromZoneDialog):
         layerName = self.mParamComboBox.currentText()
         parts = layerName.split('(')
         if len(parts) > 0:
-            layerName = parts[0]
+            layerName = parts[0].strip()
 
         zoneName = zoneName.replace('/', '_')
         if self.createLayer(layerName):
