@@ -32,12 +32,12 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     #
     from qgis.PyQt.QtCore import QSettings
+    from qgis.core import QgsMessageLog
     import os,sys
 
     settings_svg_path=QSettings().value( 'svg/searchPathsForSVG')
-    if settings_svg_path is None: settings_svg_path = []
+    if settings_svg_path is None or type(settings_svg_path) is str : settings_svg_path = []
 
-    #svg_path=os.path.join(os.environ['USERPROFILE'],u'.qgis2',u'python',u'plugins',u'QgisPDS',u'svg')
     svg_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),u'svg')
     utils_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),u'libs\\pds_opt_py')
     utils_platform_depended=str(os.path.join(
@@ -51,13 +51,10 @@ def classFactory(iface):  # pylint: disable=invalid-name
     sys.path.insert(0, utils_platform_depended)
     sys.path.insert(0, utils_path)
     sys.path.insert(0, bin_platform_depended)
-
     
     if svg_path not in settings_svg_path and svg_path is not None:
         settings_svg_path.append(svg_path)
-        QSettings().setValue('svg/searchPathsForSVG', settings_svg_path)
-    #QSettings().setValue('svg/searchPathsForSVG',u'C:\\Users\\tig\\.qgis2\\python\\plugins\\QgisPDS\\svg')
-    #QSettings().setValue('svg/searchPathsForSVG', QSettings().value( 'svg/searchPathsForSVG')+u'|'+u'C:\\Users\\tig\\.qgis2\\python\\plugins\\QgisPDS\\svg')
-        
+        QSettings().setValue('svg/searchPathsForSVG', ', '.join(settings_svg_path))
+
     from .qgis_pds import QgisPDS
     return QgisPDS(iface)
