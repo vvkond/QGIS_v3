@@ -32,7 +32,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     """
     #
     from qgis.PyQt.QtCore import QSettings
-    from qgis.core import QgsMessageLog
     import os,sys
 
     settings_svg_path=QSettings().value( 'svg/searchPathsForSVG')
