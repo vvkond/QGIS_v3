@@ -913,37 +913,37 @@ class QgisPDS:
         # Instantiate the commander window and open the algorithm's interface 
         # cw = CommanderWindow(self.iface.mainWindow(), self.iface.mapCanvas())
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mesh = QgsApplication.processingRegistry().algorithmById("pumaplus:creategridwithfaults")
+        alg_mesh = QgsApplication.processingRegistry().algorithmById("PUMAplus:creategridwithfaults")
         if alg_mesh:
             icon_path = ':/plugins/QgisPDS/surface.png'
             self.add_action(
                 icon_path,
                 text=self.tr(u'Create mesh'),
-                callback=lambda :processing.execAlgorithmDialog('pumaplus:creategridwithfaults'))
+                callback=lambda :processing.execAlgorithmDialog('PUMAplus:creategridwithfaults'))
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mp = QgsApplication.processingRegistry().algorithmById("pumaplus:updatewelllocation")
+        alg_mp = QgsApplication.processingRegistry().algorithmById("PUMAplus:TigUpdatePointLocationAlgorithm")
         if alg_mp:
             icon_path = ':/plugins/QgisPDS/move_point.png'
             self.add_action(
                 icon_path,
                 text=self.tr(u'Move point'),
-                callback=lambda :processing.execAlgorithmDialog('pumaplus:updatewelllocation'))
+                callback=lambda :processing.execAlgorithmDialog('PUMAplus:TigUpdatePointLocationAlgorithm'))
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_ml = QgsApplication.processingRegistry().algorithmById("pumaplus:updatelabellocation")
+        alg_ml = QgsApplication.processingRegistry().algorithmById("PUMAplus:TigUpdateLabelLocationAlgorithm")
         if alg_ml:
             icon_path = ':/plugins/QgisPDS/move_label.png'
             self.add_action(
                 icon_path,
                 text=self.tr(u'Move label'),
-                callback=lambda :processing.execAlgorithmDialog('pumaplus:updatelabellocation'))
+                callback=lambda :processing.execAlgorithmDialog('PUMAplus:TigUpdateLabelLocationAlgorithm'))
         # Then get the algorithm you're interested in (for instance, Join Attributes):
-        alg_mv = QgsApplication.processingRegistry().algorithmById("pumaplus:setmapvariable")
+        alg_mv = QgsApplication.processingRegistry().algorithmById("PUMAplus:TigSetMapVariable")
         if alg_mv:
             icon_path = ':/plugins/QgisPDS/text_edit.png'
             self.add_action(
                 icon_path,
                 text=self.tr(u'Update variables'),
-                callback=lambda :processing.execAlgorithmDialog('pumaplus:setmapvariable'))
+                callback=lambda :processing.execAlgorithmDialog('PUMAplus:TigSetMapVariable'))
 
 
         applicationMenu = QMenu(self.iface.mainWindow())
