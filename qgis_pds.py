@@ -54,6 +54,7 @@ from .qgis_pds_dca import QgisPDSDCAForm
 from .qgis_pds_wellsMarkDialog import QgisPDSWellsMarkDialog
 from .qgis_pds_wellsBrowserDialog import *
 from .qgis_pds_featureRenderer import *
+from .qgis_pds_modelDialog import QgisPDSModel3DDialog
 from .resources import *
 
 # Import both Processing and CommanderWindow 
@@ -792,6 +793,13 @@ class QgisPDS:
             callback=self.createWellDeviationLayer,
             parent=self.iface.mainWindow())
 
+        icon_path = ':/plugins/QgisPDS/heatmap.png'
+        self.add_action(
+            icon_path,
+            text=self.tr(u'3D модель'),
+            callback=self.create3DModel,
+            parent=self.iface.mainWindow())
+
         icon_path = ':/plugins/QgisPDS/pump-jack.png'
         self.actionRefreshLayer = self.add_action(
             icon_path,
@@ -1482,7 +1490,16 @@ class QgisPDS:
             dlg = QgisPDSCreateIsolines(self.iface)
             dlg.exec_()
         except Exception as e:
-            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")  
+            QgsMessageLog.logMessage(u"{}".format(str(e)), tag="QgisPDS.error")
+
+
+    def create3DModel(self):
+        if not QgsProject.instance().homePath():
+            self.iface.messageBar().pushCritical(self.tr("PUMA+"), self.tr(u'Save project before using plugin'))
+            return
+
+        dlg = QgisPDSModel3DDialog(self.iface, self.currentProject)
+        dlg.exec_()
             
 
     def createProjectString(self, args={}):

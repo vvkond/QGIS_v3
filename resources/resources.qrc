@@ -46,5 +46,6 @@
         <file alias="type_well.png">/icons/type_well.png</file>
         <file alias="mark_item.png">/icons/mark_item.png</file>
         <file alias="text_edit.png">/icons/text_edit.png</file>
+	<file alias="heatmap.png">/icons/heatmap.png</file>	
     </qresource>
 </RCC>
