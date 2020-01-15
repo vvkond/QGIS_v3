@@ -796,7 +796,7 @@ class QgisPDS:
         icon_path = ':/plugins/QgisPDS/heatmap.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'3D модель'),
+            text=self.tr(u'Загрузить слой 3D модели'),
             callback=self.create3DModel,
             parent=self.iface.mainWindow())
 
