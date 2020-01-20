@@ -6,6 +6,7 @@ from qgis.PyQt.QtWidgets import *
 from PyQt5 import QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import time
 import numpy
 from QgisPDS.connections import create_connection
 from .utils import *
@@ -41,7 +42,7 @@ SIM_INDT = -999
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'qgis_pds_modelDialog_base.ui'))
 
-class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
+class QgisPDSModel3DDialog(QDialog, FORM_CLASS, WithQtProgressBar):
     """Constructor."""
     def __init__(self, _iface, _project, parent=None):
         super().__init__(parent)
@@ -135,10 +136,11 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
 
         self.curModelNo = -1
         self.curPropKey = ''
-        self.curModelNo,self.curPropKey, layerNo = self.readSettings()
+        self.curModelNo,self.curPropKey, layerNo, lastLayerNo = self.readSettings()
 
         self.fillModelList()
-        self.layerSpinBox.setValue(layerNo)
+        self.layerSpinBox.setValue(int(layerNo))
+        self.lastLayerSpinBox.setValue(int(lastLayerNo))
 
 
     def initDb(self):
@@ -203,7 +205,8 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
 
         nx, ny, nz = self.readGridInfo(model_no)
         self.layerSpinBox.setMaximum(nz)
-        self.layerLabel.setText(self.tr('Слой') + ' (1:{0})'.format(nz))
+        self.lastLayerSpinBox.setMaximum(nz)
+        self.layerLabel.setText(self.tr('Слои') + ' (1:{0})'.format(nz))
 
         self.fillParamList(model_no)
 
@@ -219,13 +222,22 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
         key = self.propertyListWidget.currentItem().text()
         sl = self.simLinks[key]
 
+        self.showProgressBar('', 100)
+
+        self.progress.setFormat(self.tr('Чтение модели'))
+        QCoreApplication.processEvents()
         grid = self.readGrid(model_no, self.modelListWidget.currentItem().text())
         if not grid:
             QMessageBox.critical(None, self.tr(u'Ошибка'), self.tr('Ошибка загрузки модели'), QMessageBox.Ok)
             return
 
+        self.progress.setFormat(self.tr('Чтение свойств'))
+        QCoreApplication.processEvents()
         self.readPropertyCube(grid, sl)
-        self.gridToLayer(grid, self.layerSpinBox.value()-1)
+        self.progress.setFormat(self.tr('Запись в QGIS'))
+        QCoreApplication.processEvents()
+        self.gridToLayer(grid, self.layerSpinBox.value()-1, self.lastLayerSpinBox.value())
+
 
     def readGridInfo(self, modelId):
         sql = 'select tig_simultn_model_no, tig_model_def_sldnid, tig_radial_geometry, tig_geometry_type, ' \
@@ -288,7 +300,7 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
                 grid.cubeMax = numpy.amax(grid.cube)
                 break
 
-    def gridToLayer(self, grid, layer):
+    def gridToLayer(self, grid, layerStart, layerEnd):
         if not grid:
             return
 
@@ -297,38 +309,47 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
         uri += '&field={}:{}'.format('value', "double")
         mapLayer = QgsVectorLayer(uri, grid.layerName, "memory")
 
-        istart = grid.nCellsX * grid.nCellsY * layer
+        istart = grid.nCellsX * grid.nCellsY * (grid.nCellsZ-1)
         useCube = grid.cube is not None and len(grid.cube) > istart
 
+        startTime = int(time.time())
+
         mapLayer.startEditing()
-        for i in range(1, grid.nCellsX):
-            for j in range(1, grid.nCellsY):
-                x1,y1, x2,y2, x3,y3, x4,y4 = grid.getPolygon(i, j, layer);
-                pt1 = QgsPointXY(x1, y1)
-                pt2 = QgsPointXY(x2, y2)
-                pt3 = QgsPointXY(x3, y3)
-                pt4 = QgsPointXY(x4, y4)
-                if self.xform:
-                    pt1 = self.xform.transform(pt1)
-                    pt2 = self.xform.transform(pt2)
-                    pt3 = self.xform.transform(pt3)
-                    pt4 = self.xform.transform(pt4)
-                cPoint = QgsFeature(mapLayer.fields())
-                cPoint.setGeometry(QgsGeometry.fromPolygonXY([[pt1, pt2, pt3, pt4]]))
-                cPoint.setAttribute('layer', layer)
-                try:
-                    if useCube:
-                        val = grid.cube[istart + (j-1)*grid.nCellsX + i - 1]
-                        cPoint.setAttribute('value', float(val))
-                    else:
-                        cPoint.setAttribute('value', SIM_INDT)
-                except:
-                    pass
-                mapLayer.addFeatures([cPoint])
+        layerEnd = max(layerEnd, layerStart)
+        layerStart = min(layerEnd, layerStart)
+        progressStep = 100.0 / (layerEnd-layerStart+1)
+        for k in range(layerStart, layerEnd):
+            self.progress.setValue((float((k-layerStart)*progressStep)))
+            QCoreApplication.processEvents()
+            istart = grid.nCellsX * grid.nCellsY * k
+            for i in range(1, grid.nCellsX):
+                for j in range(1, grid.nCellsY):
+                    x1,y1, x2,y2, x3,y3, x4,y4 = grid.getPolygon(i, j, k);
+                    pt1 = QgsPointXY(x1, y1)
+                    pt2 = QgsPointXY(x2, y2)
+                    pt3 = QgsPointXY(x3, y3)
+                    pt4 = QgsPointXY(x4, y4)
+                    if self.xform:
+                        pt1 = self.xform.transform(pt1)
+                        pt2 = self.xform.transform(pt2)
+                        pt3 = self.xform.transform(pt3)
+                        pt4 = self.xform.transform(pt4)
+                    cPoint = QgsFeature(mapLayer.fields())
+                    cPoint.setGeometry(QgsGeometry.fromPolygonXY([[pt1, pt2, pt3, pt4]]))
+                    cPoint.setAttribute('layer', startTime+k)
+                    try:
+                        if useCube:
+                            val = grid.cube[istart + (j-1)*grid.nCellsX + i - 1]
+                            cPoint.setAttribute('value', float(val))
+                        else:
+                            cPoint.setAttribute('value', SIM_INDT)
+                    except:
+                        pass
+                    mapLayer.addFeatures([cPoint])
 
         mapLayer.commitChanges()
 
-        shpLayer = memoryToShp(mapLayer, self.project['project'], grid.layerName+'_layer_'+str(layer+1))
+        shpLayer = memoryToShp(mapLayer, self.project['project'], grid.layerName)
 
         if useCube:
             myStyle = QgsStyle().defaultStyle()
@@ -368,6 +389,7 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
             settings.setValue('PDS/QgisPDSModel3DDialog/property', key)
 
         settings.setValue('PDS/QgisPDSModel3DDialog/layer', self.layerSpinBox.value())
+        settings.setValue('PDS/QgisPDSModel3DDialog/lastLayer', self.lastLayerSpinBox.value())
 
     def readSettings(self):
         settings = QSettings()
@@ -375,5 +397,6 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS):
         model_no = settings.value('PDS/QgisPDSModel3DDialog/model', -1)
         key = settings.value('PDS/QgisPDSModel3DDialog/property', "")
         layer = settings.value('PDS/QgisPDSModel3DDialog/layer', 1)
+        lastLayer = settings.value('PDS/QgisPDSModel3DDialog/lastLayer', 1)
 
-        return (model_no, key, layer)
+        return (model_no, key, layer, lastLayer)
