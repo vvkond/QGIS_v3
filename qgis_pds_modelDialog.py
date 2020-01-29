@@ -324,7 +324,7 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS, WithQtProgressBar):
             istart = grid.nCellsX * grid.nCellsY * k
             for i in range(1, grid.nCellsX):
                 for j in range(1, grid.nCellsY):
-                    x1,y1, x2,y2, x3,y3, x4,y4 = grid.getPolygon(i, j, k);
+                    x1,y1, x2,y2, x3,y3, x4,y4 = grid.getPolygon(i, j, k)
                     pt1 = QgsPointXY(x1, y1)
                     pt2 = QgsPointXY(x2, y2)
                     pt3 = QgsPointXY(x3, y3)
