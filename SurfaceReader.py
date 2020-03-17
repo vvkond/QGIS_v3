@@ -94,6 +94,9 @@ class SurfaceReader(ReaderBase):
             self.iface.messageBar().pushCritical(self.tr('Error'),
                                                 self.tr(u'Project projection read error {0}').format(str(e)))
 
+        minVal = 0
+        maxVal = 0
+
         sqlFile = os.path.join(self.plugin_dir, 'db', 'Surface.sql')
         if os.path.exists(sqlFile):
             f = open(sqlFile, 'r')
