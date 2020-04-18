@@ -284,6 +284,9 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS, WithQtProgressBar):
                             or len(grid.XCoordLine) != coordLinesCount
                             or len(grid.YCoordLine) != coordLinesCount
                             or len(grid.ZCoordLine) != coordLinesCount + cornerPointsCount):
+                        self.iface.messageBar().pushMessage(self.tr("Error"),
+                                                            self.tr(u'Не верный формат модели: ' + str(geometryType)),
+                                                            level=Qgis.Critical)
                         break
 
                     return grid
