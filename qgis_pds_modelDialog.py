@@ -37,6 +37,7 @@ MNWSAT = 'Minimum water saturation'
 
 CORNER_POINT = 2
 FULL_CORNER_POINT = 4
+CARTESIAN = 0
 SIM_INDT = -999
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
@@ -268,28 +269,46 @@ class QgisPDSModel3DDialog(QDialog, FORM_CLASS, WithQtProgressBar):
 
                 coordLinesCount = 2 * (nCellsX + 1) * (nCellsY + 1)
                 cornerPointsCount = 8 * nCellsX * nCellsY * nCellsZ
+                nBlocks = (nCellsX+1) * (nCellsY+1) * (nCellsZ+1)
 
                 sql = 'select tig_cell_x_map_coord, tig_cell_y_map_coord, tig_cell_z_map_coord from tig_sim_grid_defn ' \
                       'where db_sldnid = ' + str(gridSld)
 
                 grid_records = self.db.execute(sql)
                 for row in grid_records:
-                    grid = CornerPointGrid(modelId, nCellsX, nCellsY, nCellsZ)
-                    grid.layerName = modelName
+                    if geometryType == CARTESIAN:
+                        grid = CartesianGrid(modelId, nCellsX, nCellsY, nCellsZ)
+                        grid.layerName = modelName
 
-                    grid.XCoordLine = numpy.fromstring(self.db.blobToString(row[0]), '>f').astype('d')
-                    grid.YCoordLine = numpy.fromstring(self.db.blobToString(row[1]), '>f').astype('d')
-                    grid.ZCoordLine = numpy.fromstring(self.db.blobToString(row[2]), '>f').astype('d')
-                    if ((geometryType != CORNER_POINT and geometryType != FULL_CORNER_POINT)
-                            or len(grid.XCoordLine) != coordLinesCount
-                            or len(grid.YCoordLine) != coordLinesCount
-                            or len(grid.ZCoordLine) != coordLinesCount + cornerPointsCount):
-                        self.iface.messageBar().pushMessage(self.tr("Error"),
-                                                            self.tr(u'Не верный формат модели: ' + str(geometryType)),
-                                                            level=Qgis.Critical)
-                        break
+                        grid.XCoordLine = numpy.fromstring(self.db.blobToString(row[0]), '>f').astype('d')
+                        grid.YCoordLine = numpy.fromstring(self.db.blobToString(row[1]), '>f').astype('d')
+                        grid.ZCoordLine = numpy.fromstring(self.db.blobToString(row[2]), '>f').astype('d')
+                        if (len(grid.XCoordLine) != nBlocks
+                                or len(grid.YCoordLine) != nBlocks
+                                or len(grid.ZCoordLine) != nBlocks):
+                            self.iface.messageBar().pushMessage(self.tr("Error"),
+                                                                self.tr(
+                                                                    u'Не верный формат модели: ' + str(geometryType)),
+                                                                level=Qgis.Critical)
+                            break
+                        return grid
 
-                    return grid
+                    elif geometryType == CORNER_POINT or geometryType == FULL_CORNER_POINT:
+                        grid = CornerPointGrid(modelId, nCellsX, nCellsY, nCellsZ)
+                        grid.layerName = modelName
+
+                        grid.XCoordLine = numpy.fromstring(self.db.blobToString(row[0]), '>f').astype('d')
+                        grid.YCoordLine = numpy.fromstring(self.db.blobToString(row[1]), '>f').astype('d')
+                        grid.ZCoordLine = numpy.fromstring(self.db.blobToString(row[2]), '>f').astype('d')
+                        if (len(grid.XCoordLine) != coordLinesCount
+                                or len(grid.YCoordLine) != coordLinesCount
+                                or len(grid.ZCoordLine) != coordLinesCount + cornerPointsCount):
+                            self.iface.messageBar().pushMessage(self.tr("Error"),
+                                                                self.tr(u'Не верный формат модели: ' + str(geometryType)),
+                                                                level=Qgis.Critical)
+                            break
+
+                        return grid
 
         return None
 

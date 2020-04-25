@@ -134,3 +134,16 @@ class CornerPointGrid:
         y4 = self.getLeftFrontUpperCornerY(i, j, layer)
 
         return (x1,y1, x2,y2, x3,y3, x4,y4)
+
+class CartesianGrid(CornerPointGrid):
+    def __init__(self,  model_no, nCellsX, nCellsY, nCellsZ):
+        super().__init__(model_no, nCellsX, nCellsY, nCellsZ)
+
+    def getCornerCoordinates(self, i, j, k, di, dj, dk):
+        nodeIndex = (i+di-1) + (j+dj-1) * (self.nCellsX + 1) + (k+dk-1) * (self.nCellsX + 1) * (self.nCellsY + 1)
+
+        x = self.XCoordLine[nodeIndex]
+        y = self.YCoordLine[nodeIndex]
+        z = self.ZCoordLine[nodeIndex]
+
+        return (x, y, z)
